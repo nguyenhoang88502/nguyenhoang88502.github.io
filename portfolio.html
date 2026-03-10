@@ -16,16 +16,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .ai-chat-shadow {
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
-        }
-        @keyframes pulse-soft {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-        }
-        .animate-pulse-soft {
-            animation: pulse-soft 2s infinite ease-in-out;
-        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -34,13 +24,13 @@
     <nav class="fixed w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <span class="text-xl font-bold gradient-text">About Me.</span>
+                <span class="text-xl font-bold gradient-text">About Me</span>
                 <div class="hidden md:flex space-x-8 text-sm font-medium">
                     <a href="#about" class="hover:text-blue-600 transition">About</a>
                     <a href="#skills" class="hover:text-blue-600 transition">Skills</a>
                     <a href="#experience" class="hover:text-blue-600 transition">Experience</a>
                     <a href="#education" class="hover:text-blue-600 transition">Education</a>
-                    <a href="#ai-tools" class="text-blue-600 font-bold hover:text-blue-800 transition">AI Tools</a>
+                    <a href="#contact" class="hover:text-blue-600 transition">Contact</a>
                 </div>
             </div>
         </div>
@@ -50,37 +40,18 @@
     <section id="about" class="pt-32 pb-20 px-4">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
             <div class="w-48 h-48 md:w-64 md:h-64 flex-shrink-0 overflow-hidden rounded-2xl shadow-2xl border-4 border-white">
-                <img src="DSC_4906a (1).jpg" alt="Nguyen Huy Hoang" class="w-full h-full object-cover">
+                <img src="DSC_4906a (1).jpg" alt="Nguyen Huy Hoang" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/300?text=Profile+Image'">
             </div>
             <div class="text-center md:text-left">
                 <h1 class="text-4xl md:text-5xl font-extrabold mb-4 uppercase tracking-tight">Nguyen Huy Hoang</h1>
                 <p class="text-xl text-blue-600 font-semibold mb-6">Industrial Systems Engineer | Production Analytics | Lean Manufacturing</p>
-                <p id="bio-text" class="text-gray-600 leading-relaxed max-w-2xl text-lg">
+                <p class="text-gray-600 leading-relaxed max-w-2xl text-lg">
                     Industrial Systems Engineering student at HCMUT focused on production analytics, operational optimization, and digitalization. Experienced in data analysis, SQL querying, and Microsoft Power Platform. Proficient in statistical process control, discrete-event simulation, and lean methodology.
                 </p>
                 <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
-                    <button onclick="speakSummary()" id="tts-btn" class="bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-200 transition flex items-center gap-2">
-                        <span id="tts-icon">🔊</span> Listen to Summary
-                    </button>
                     <a href="#contact" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-200">Contact Me</a>
+                    <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" class="border border-gray-300 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition">LinkedIn</a>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- AI Tools Section -->
-    <section id="ai-tools" class="py-20 bg-blue-50">
-        <div class="max-w-4xl mx-auto px-4">
-            <div class="bg-white p-8 rounded-3xl shadow-xl border border-blue-100">
-                <div class="flex items-center gap-3 mb-6">
-                    <h2 class="text-2xl font-bold">Smart Career Match Analysis</h2>
-                </div>
-                <p class="text-gray-600 mb-6">Recruiters: Paste your Job Description below to see how my skills align with your requirements.</p>
-                <textarea id="jd-input" rows="4" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4" placeholder="Paste Job Description here..."></textarea>
-                <button onclick="analyzeMatch()" id="analyze-btn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition flex justify-center items-center gap-2">
-                    Analyze Compatibility
-                </button>
-                <div id="analysis-result" class="mt-6 hidden p-6 bg-blue-50 border border-blue-100 rounded-xl text-gray-700 leading-relaxed"></div>
             </div>
         </div>
     </section>
@@ -119,10 +90,10 @@
         </div>
     </section>
 
-    <!-- Experience Section -->
+      <!-- Experience Section -->
     <section id="experience" class="py-20">
         <div class="max-w-4xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-12 text-center">Work Experience</h2>
+            <h2 class="text-3xl font-bold mb-12 text-center">Experience</h2>
             <div class="space-y-12">
                 <!-- Bach Khoa Ambassador Club -->
                 <div class="relative pl-8 border-l-2 border-blue-200">
@@ -187,6 +158,7 @@
         </div>
     </section>
 
+
     <!-- Education Section -->
     <section id="education" class="py-20 bg-blue-600 text-white">
         <div class="max-w-6xl mx-auto px-4 text-center">
@@ -202,200 +174,56 @@
                 </div>
                 <div class="bg-white/10 p-8 rounded-2xl backdrop-blur-sm">
                     <h3 class="text-xl font-bold mb-6">Languages</h3>
-                    <div class="flex flex-col gap-4">
-                        <span>English (TOEIC 935/990)</span>
-                        <span>Vietnamese (Native)</span>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>English (TOEIC 935/990)</span>
+                                <span>Full Proficiency</span>
+                            </div>
+                            <div class="w-full bg-white/20 h-2 rounded-full">
+                                <div class="bg-white h-2 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Vietnamese</span>
+                                <span>Native</span>
+                            </div>
+                            <div class="w-full bg-white/20 h-2 rounded-full">
+                                <div class="bg-white h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Floating AI Chat Assistant -->
-    <div id="chat-container" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
-        <div id="chat-window" class="hidden w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl mb-4 border border-gray-100 overflow-hidden flex flex-col">
-            <div class="bg-blue-600 p-4 text-white font-bold flex justify-between items-center">
-                <span>AI Career Assistant</span>
-                <button onclick="toggleChat()" class="text-white hover:text-blue-100">✕</button>
-            </div>
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 text-sm scroll-smooth">
-                <div class="bg-blue-50 text-blue-800 p-3 rounded-lg rounded-tl-none mr-8">
-                    Hello! Ask me anything about Nguyen Huy Hoang's skills or experience.
+    <!-- Contact Section -->
+    <section id="contact" class="py-20">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-12">Contact Information</h2>
+            <div class="flex flex-wrap justify-center gap-8 text-lg">
+                <a href="mailto:nguyenhoang88502@gmail.com" class="flex items-center gap-3 hover:text-blue-600 transition">
+                    <span class="p-3 bg-blue-50 rounded-full">✉️</span>
+                    nguyenhoang88502@gmail.com
+                </a>
+                <a href="tel:+84369412005" class="flex items-center gap-3 hover:text-blue-600 transition">
+                    <span class="p-3 bg-blue-50 rounded-full">📞</span>
+                    +84 369 412 005
+                </a>
+                <div class="flex items-center gap-3">
+                    <span class="p-3 bg-blue-50 rounded-full">📍</span>
+                    Ho Chi Minh City, Vietnam
                 </div>
             </div>
-            <div class="p-4 border-t flex gap-2">
-                <input id="chat-input" type="text" placeholder="Type a question..." class="flex-1 border rounded-lg px-3 py-2 outline-none focus:border-blue-500" onkeypress="if(event.key==='Enter') sendMessage()">
-                <button onclick="sendMessage()" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition">➤</button>
-            </div>
-        </div>
-        <button onclick="toggleChat()" class="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-blue-700 transition animate-pulse-soft">
-            ✨
-        </button>
-    </div>
-
-    <!-- Contact Section -->
-    <section id="contact" class="py-20 text-center">
-        <h2 class="text-3xl font-bold mb-12">Let's Get In Touch!</h2>
-        <div class="flex flex-wrap justify-center gap-8">
-            <a href="mailto:nguyenhoang88502@gmail.com" class="hover:text-blue-600">nguyenhoang88502@gmail.com</a>
-            <span>+84 369 412 005</span>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer class="py-10 border-t border-gray-100 text-center text-gray-500 text-sm">
         <p>© 2026 Nguyen Huy Hoang.</p>
     </footer>
 
-    <script>
-        const apiKey = "";
-        const portfolioContext = `
-            User Name: Nguyen Huy Hoang
-            Background: Industrial Systems Engineering student at HCMUT.
-            Graduation: 2027. GPA: 3.3/4 (2025-2026).
-            Skills: SQL, Power BI, Excel, Power Apps, Power Automate, Lean Six Sigma, SPC, Kaizen, AutoCAD 2D, Minitab, Arena.
-            Experience: Project Leader at BKFC, HR Member at Play & Learn English Club, Event MC & Coordinator/STEM Team at Mechanical Engineering Faculty Youth Union, Store Assistant at 7-Eleven.
-        `;
-
-        async function callGemini(prompt, systemInstruction = "", isTTS = false) {
-            const url = isTTS 
-                ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`
-                : `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
-            const payload = isTTS ? {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } }
-                }
-            } : {
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: systemInstruction }] }
-            };
-
-            let delay = 1000;
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!response.ok) throw new Error('API Error');
-                    return await response.json();
-                } catch (e) {
-                    if (i === 4) throw e;
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
-                }
-            }
-        }
-
-        function toggleChat() {
-            document.getElementById('chat-window').classList.toggle('hidden');
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
-            if (!message) return;
-
-            appendMessage(message, true);
-            input.value = '';
-
-            const systemPrompt = `Assistant for Nguyen Huy Hoang's portfolio. Data: ${portfolioContext}. Professional and concise.`;
-
-            try {
-                const result = await callGemini(message, systemPrompt);
-                const reply = result.candidates?.[0]?.content?.parts?.[0]?.text || "Error processing request.";
-                appendMessage(reply, false);
-            } catch (err) {
-                appendMessage("Connection error.", false);
-            }
-        }
-
-        function appendMessage(text, isUser) {
-            const container = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            div.className = isUser 
-                ? "bg-blue-600 text-white p-3 rounded-lg rounded-tr-none ml-8 self-end"
-                : "bg-gray-100 text-gray-800 p-3 rounded-lg rounded-tl-none mr-8";
-            div.innerText = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function analyzeMatch() {
-            const jd = document.getElementById('jd-input').value;
-            const btn = document.getElementById('analyze-btn');
-            const resultBox = document.getElementById('analysis-result');
-            
-            if (!jd.trim()) return;
-
-            btn.disabled = true;
-            btn.innerText = 'Analyzing...';
-            resultBox.classList.remove('hidden');
-            resultBox.innerText = "Analyzing compatibility...";
-
-            const prompt = `Match JD: "${jd}" with Profile: ${portfolioContext}. Score 0-100, identify key matches. Professional format.`;
-
-            try {
-                const result = await callGemini(prompt, "HR Analyst mode.");
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analysis failed.";
-                resultBox.innerHTML = `<div class='text-sm'>${text.replace(/\n/g, '<br>')}</div>`;
-            } catch (err) {
-                resultBox.innerText = "Service error.";
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Analyze Compatibility';
-            }
-        }
-
-        async function speakSummary() {
-            const btn = document.getElementById('tts-btn');
-            const text = "Hi, I'm Nguyen Huy Hoang, an Industrial Systems Engineering student at HCMUT. I specialize in production analytics and lean manufacturing. Let's connect!";
-            
-            btn.disabled = true;
-            btn.innerText = 'Generating Audio...';
-
-            try {
-                const result = await callGemini(text, "", true);
-                const pcmData = result.candidates[0].content.parts[0].inlineData.data;
-                const audioBlob = pcmToWav(pcmData, 24000);
-                const audio = new Audio(URL.createObjectURL(audioBlob));
-                audio.play();
-                audio.onended = () => {
-                    btn.disabled = false;
-                    btn.innerText = '🔊 Listen to Summary';
-                };
-            } catch (err) {
-                btn.innerText = 'Error';
-                setTimeout(() => { btn.disabled = false; btn.innerText = '🔊 Listen to Summary'; }, 2000);
-            }
-        }
-
-        function pcmToWav(base64Pcm, sampleRate) {
-            const pcm = atob(base64Pcm);
-            const buffer = new ArrayBuffer(44 + pcm.length);
-            const view = new DataView(buffer);
-            const writeString = (offset, string) => {
-                for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
-            };
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + pcm.length, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, 1, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(36, 'data');
-            view.setUint32(40, pcm.length, true);
-            for (let i = 0; i < pcm.length; i++) view.setUint8(44 + i, pcm.charCodeAt(i));
-            return new Blob([buffer], { type: 'audio/wav' });
-        }
-    </script>
 </body>
 </html>
