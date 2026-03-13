@@ -62,18 +62,75 @@ Presentation Slides <svg width="12" height="12" viewBox="0 0 24 24" fill="black"
 <p class="text-gray-700 leading-relaxed mb-8">
 The AHP analysis for the EVLotus project provides a mathematically grounded roadmap for market entry and operational scaling. By decomposing complex strategic decisions into pairwise comparisons, the optimal business strategy was identified across customer segmentation, partner selection, product positioning, and distribution channels.
 </p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic Market Segment Analysis - EVLotus</title>
+    <meta name="description" content="Strategic market segment analysis for EVLotus using Weighted Sum Model.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+    </style>
+</head>
 
-<ul class="space-y-4 text-gray-700 mb-16">
+<div class="max-w-5xl mx-auto px-4 py-12">
 
-<li><strong>Priority Customer Segment:</strong> B2B transportation companies dominate with a weight of <strong>46.62%</strong>, driven by stable long-term contracts and high revenue potential.</li>
+<div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+<canvas id="strategySummaryChart" height="140"></canvas>
+</div>
 
-<li><strong>Optimal Partner Selection:</strong> Supplier B (European) leads with nearly <strong>50% global weight</strong>, largely due to superior quality and battery technology.</li>
+</div>
 
-<li><strong>Top Value Proposition:</strong> The <strong>E-S35</strong> vehicle model achieved the highest performance score of <strong>0.40</strong>, balancing affordability, technology, and charging convenience.</li>
+<script>
 
-<li><strong>Primary Distribution Channel:</strong> A digital platform (website + mobile app) scored <strong>0.43</strong>, making it the most scalable and effective channel for reaching customers.</li>
+const summaryCtx = document.getElementById('strategySummaryChart').getContext('2d');
 
-</ul>
+new Chart(summaryCtx,{
+type:'bar',
+data:{
+labels:[
+'Market Segment (B2B)',
+'Battery Supplier (Supplier B)',
+'Marketing Strategy (Co-branding)',
+'Vehicle Model (E-S35)'
+],
+datasets:[
+{
+label:'AHP Final Score',
+data:[0.466,0.4993,0.271,0.40],
+backgroundColor:[
+'#6366f1',
+'#10b981',
+'#f59e0b',
+'#3b82f6'
+]
+}
+]
+},
+options:{
+indexAxis:'y',
+responsive:true,
+plugins:{
+legend:{display:false},
+tooltip:{
+callbacks:{
+label:(context)=>'Score: '+context.parsed.x.toFixed(3)
+}
+}
+},
+scales:{
+x:{
+beginAtZero:true,
+title:{display:true,text:'Final AHP Priority Score'}
+}
+}
+}
+});
+
+</script>
+
 
 
 <h2 class="text-2xl font-bold mb-4">What is the Analytic Hierarchy Process?</h2>
@@ -93,18 +150,6 @@ AHP relies on pairwise comparisons, where decision makers evaluate two factors a
 </p>
 <ul class="list-disc pl-6 space-y-2 text-gray-700 mb-12">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategic Market Segment Analysis - EVLotus</title>
-    <meta name="description" content="Strategic market segment analysis for EVLotus using Weighted Sum Model.">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-    </style>
-</head>
 
 <body class="bg-slate-50 text-slate-900">
 
