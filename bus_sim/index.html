@@ -2,326 +2,770 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bus Simulation VNU-HCM</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body { font-family: Arial; margin:0; background:#e9ecef; }
-#container { display:flex; height:100vh; }
-#sim { flex:3; background:#fff; }
-
-#ui {
-  flex:1;
-  background:#f8f9fa;
-  border-left:2px solid #ccc;
-  padding:10px;
-  overflow:auto;
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222636;
+  --border: #2e3347;
+  --accent: #f5c518;
+  --accent2: #4af0a0;
+  --accent3: #5b8ef5;
+  --danger: #ff5f57;
+  --text: #e8eaf0;
+  --muted: #7a7f94;
+  --bus-go: #4af0a0;
+  --bus-ret: #5b8ef5;
+  --radius: 10px;
 }
 
-.block { border:1px solid #bbb; padding:8px; margin-bottom:10px; background:#fff; }
-.routeBox { border:1px solid #999; padding:6px; margin-bottom:8px; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-input { width:60px; margin:2px; }
-button { margin:3px; padding:5px; }
+body {
+  font-family: 'Barlow Condensed', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
-table { border-collapse: collapse; width:100%; font-size:12px; }
-td, th { border:1px solid #999; padding:4px; text-align:center; }
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 2px solid var(--accent);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+header h1 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.header-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--accent2);
+}
+
+.header-served {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.header-served span { color: var(--accent); font-weight: 700; }
+
+.header-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.speed-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.speed-wrap input {
+  width: 54px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 4px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+}
+
+.btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-start  { background: var(--accent2); color: #0f1117; }
+.btn-stop   { background: var(--danger);  color: #fff; }
+.btn-reset  { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.btn:hover  { opacity: .85; }
+
+/* MAIN LAYOUT */
+#layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* CANVAS */
+#sim {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  background: var(--bg);
+}
+
+/* SIDEBAR */
+#sidebar {
+  width: 330px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 2px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 14px;
+}
+
+.panel-title {
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+/* ROUTES */
+.route-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.route-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  user-select: none;
+}
+.route-chip input { display: none; }
+.route-chip.active {
+  border-color: var(--accent);
+  background: rgba(245,197,24,0.1);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* CONFIG ACCORDION & INPUTS */
+.route-config {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: var(--surface2);
+}
+.route-config-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--accent);
+  transition: background 0.2s;
+}
+.route-config-head:hover { background: rgba(255, 255, 255, 0.05); }
+.route-config-body {
+  display: none;
+  padding: 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.route-config-body.open { display: block; }
+
+.cfg-group {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.cfg-group:last-child { margin-bottom: 0; }
+.cfg-group-title {
+  font-size: 0.75rem;
+  color: var(--accent2);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cfg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 12px;
+}
+.cfg-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cfg-input-box.full {
+  grid-column: span 2;
+}
+.cfg-input-box label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.cfg-input-box label span {
+  font-size: 0.6rem;
+  color: var(--border);
+}
+.cfg-input-box input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 5px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  width: 100%;
+  transition: all 0.2s;
+}
+.cfg-input-box input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #111;
+  box-shadow: 0 0 0 2px rgba(245,197,24,0.1);
+}
+.input-row-multi {
+  display: flex;
+  gap: 4px;
+}
+.input-row-multi input {
+  width: 50%;
+  text-align: center;
+}
+
+/* REPORT */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.report-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.report-table td:last-child {
+  text-align: right;
+  font-family: 'Space Mono', monospace;
+  color: var(--accent2);
+}
+
+/* MODEL INFO */
+.model-list {
+  list-style: none;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.9;
+}
+.model-list li::before {
+  content: '› ';
+  color: var(--accent);
+}
+
+/* MOBILE TOGGLE */
+#sidebarToggle {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0f1117;
+  font-size: 1.4rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  body { overflow: hidden; }
+
+  header { padding: 8px 12px; gap: 8px; }
+  header h1 { font-size: 1rem; }
+  .header-controls { gap: 5px; }
+  .btn { padding: 5px 10px; font-size: 0.85rem; }
+
+  #layout { position: relative; }
+
+  #sidebar {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 88vw;
+    max-width: 340px;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform .3s ease;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.5);
+  }
+  #sidebar.open { transform: translateX(0); }
+
+  #sidebarToggle { display: flex; }
+
+  #sim { width: 100%; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* CANVAS LEGEND */
+.canvas-overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  gap: 14px;
+  background: rgba(15,17,23,0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+#canvasWrap { position: relative; flex: 1; min-width: 0; }
 </style>
 </head>
-
 <body>
-<div id="container">
 
-<canvas id="sim"></canvas>
+<header>
+  <h1>🚌 VNU-HCM Bus Sim</h1>
+  <div class="header-badge" id="clock">05:30</div>
+  <div class="header-served">Served: <span id="served">0</span></div>
+  <div class="header-controls">
+    <div class="speed-wrap">
+      ⚡ <input id="speedInput" type="number" value="2000">×
+    </div>
+    <button class="btn btn-start" onclick="start()">▶ Start</button>
+    <button class="btn btn-stop"  onclick="stopSim()">■ Stop</button>
+    <button class="btn btn-reset" onclick="reset()">↺ Reset</button>
+  </div>
+</header>
 
-<div id="ui">
+<div id="layout">
+  <div id="canvasWrap">
+    <canvas id="sim"></canvas>
+    <div class="canvas-overlay">
+      <span><span class="legend-dot" style="background:var(--bus-go)"></span>Active</span>
+      <span><span class="legend-dot" style="background:var(--bus-ret)"></span>Returning/Parked</span>
+      <span><span class="legend-dot" style="background:#f5c518;border-radius:50%"></span>Station</span>
+    </div>
+  </div>
 
-<div class="block">
-<b>MÔ HÌNH</b><br>
-- 05:30 → 19:30 hoạt động<br>
-- Sau 19:30: NGỪNG nhận khách<br>
-- Xe chỉ trả khách và quay về START<br>
-- Khi tất cả xe về START và rỗng → dừng simulation
+  <div id="sidebar">
+
+    <div class="panel">
+      <div class="panel-title">Model</div>
+      <ul class="model-list">
+        <li>05:30 → 19:30 hoạt động</li>
+        <li>Sau 19:30: ngừng nhận khách</li>
+        <li>Hoàn tất nốt tuyến đang chạy</li>
+        <li>Xe về lại START & rỗng → dừng</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Chọn Tuyến</div>
+      <div class="route-grid" id="routeSelect"></div>
+    </div>
+
+    <div class="panel" id="config" style="padding-top:10px;"></div>
+
+    <div class="panel" id="reportPanel" style="display:none;">
+      <div class="panel-title">Report</div>
+      <div id="report"></div>
+    </div>
+
+  </div>
 </div>
 
-<div class="block">
-<b>CHỌN TUYẾN</b><br>
-<div id="routeSelect"></div>
-</div>
-
-<div class="block">
-Speed <input id="speedInput" value="50"><br>
-<button onclick="start()">Start</button>
-<button onclick="stopSim()">Stop</button>
-<button onclick="reset()">Reset</button>
-</div>
-
-<div id="config"></div>
-
-<div class="block">
-Clock: <span id="clock">05:30</span><br>
-Served: <span id="served">0</span>
-</div>
-
-<div class="block" id="report"></div>
-
-</div>
-</div>
+<button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 
 <script>
 /* TIME */
 let startTime = 5*3600 + 30*60;
 let endTime   = 19*3600 + 30*60;
 let simTime   = startTime;
-let totalSamples = 0;
+let simElapsed = 0;
 
-/* RANDOM */
 function normal(m,s){
- let u1=Math.random(),u2=Math.random();
- return m + Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*s;
+  let u1=Math.random(),u2=Math.random();
+  return m + Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*s;
 }
 
-/* ROUTES */
 const ROUTES=["08","10","19","30","33","50","52","53","99"];
 
-/* CLASSES */
-class Passenger{}
+class Passenger {
+  constructor(dest) {
+    this.dest = dest;
+  }
+}
 
 class Station{
- constructor(type,x,y){
-  this.type=type;
-  this.x=x;
-  this.y=y;
-  this.queue=[];
-  this.qSum=0;
-  this.samples=0;
- }
+  constructor(type,x,y){
+    this.type=type; this.x=x; this.y=y;
+    this.queue=[]; this.qSum=0; this.samples=0;
+  }
 }
 
 class Bus{
- constructor(route,y,delay){
-  this.route=route;
-  this.capacity = (route==="50")?80:45;
-  this.passengers=[];
-  this.seq=["START","MID","END","MID","START"];
-  this.index=0;
-
-  this.posX=0;
-  this.y=y;
-
-  this.delay=delay||0;
-  this.layover=0;
-
-  this.segmentTime=0;
-  this.segmentProgress=0;
-
-  this.returning=false;
-
-  this.loadSum=0;
-  this.moveTime=0;
-  this.idleTime=0;
- }
+  constructor(route,y,delay){
+    this.route=route;
+    this.capacity=(route==="50")?80:45;
+    this.passengers=[];
+    this.seq=["START","MID","END","MID","START"];
+    this.index=0;
+    this.posX=0; this.y=y;
+    this.delay=delay||0; this.layover=0;
+    this.segmentTime=0; this.segmentProgress=0;
+    this.returning=false; // Chỉ dùng để tô màu xe
+    this.loadSum=0; this.moveTime=0; this.idleTime=0;
+  }
 }
 
-/* GLOBAL */
 let selectedRoutes=[];
 let stationMap={}, buses=[], served=0;
 let running=false, speed=1, last;
 
 /* UI */
 function buildSelector(){
- let html="";
- ROUTES.forEach(r=>{
-  let checked=(r==="50")?"checked":"";
-  html+=`<label><input type="checkbox" value="${r}" ${checked} onchange="updateSelection()"> Route ${r}</label><br>`;
- });
- document.getElementById("routeSelect").innerHTML=html;
- updateSelection();
+  let html="";
+  ROUTES.forEach(r=>{
+    let active=(r==="50")?"active":"";
+    html+=`<label class="route-chip ${active}" id="chip_${r}">
+      <input type="checkbox" value="${r}" ${active?"checked":""} onchange="toggleChip(this,'${r}')">
+      ${r}
+    </label>`;
+  });
+  document.getElementById("routeSelect").innerHTML=html;
+  updateSelection();
+}
+
+function toggleChip(cb, r){
+  let chip=document.getElementById("chip_"+r);
+  chip.classList.toggle("active", cb.checked);
+  updateSelection();
 }
 
 function updateSelection(){
- selectedRoutes=[];
- document.querySelectorAll("#routeSelect input").forEach(c=>{
-  if(c.checked) selectedRoutes.push(c.value);
- });
- buildConfig();
+  selectedRoutes=[];
+  document.querySelectorAll("#routeSelect input").forEach(c=>{
+    if(c.checked) selectedRoutes.push(c.value);
+  });
+  buildConfig();
 }
 
 function buildConfig(){
- let html="";
- selectedRoutes.forEach(r=>{
-   html+=`<div class="routeBox"><b>Route ${r}</b><br>
-   Fleet <input id="fleet_${r}" value="12">
-   Headway <input id="headway_${r}" value="720"><br>`;
+  let html="<div class='panel-title'>Cấu Hình Tuyến</div>";
+  selectedRoutes.forEach(r=>{
+    html+=`<div class="route-config">
+    <div class="route-config-head" onclick="toggleCfg('cfg_${r}')">
+      <span>🚌 Tuyến ${r}</span><span id="cfgarrow_${r}">▾</span>
+    </div>
+    <div class="route-config-body" id="cfg_${r}">
+      
+      <div class="cfg-group">
+        <div class="cfg-group-title">⏱ Thông số chung</div>
+        <div class="cfg-grid">
+          <div class="cfg-input-box">
+            <label>Số xe</label>
+            <input id="fleet_${r}" type="number" value="12">
+          </div>
+          <div class="cfg-input-box">
+            <label>Giãn cách (s)</label>
+            <input id="headway_${r}" type="number" value="720">
+          </div>
+          <div class="cfg-input-box">
+            <label>Độ trễ bến (σ)</label>
+            <input id="d_${r}" type="number" value="10">
+          </div>
+        </div>
+      </div>`;
 
-   ["START","MID","END"].forEach(t=>{
-     html+=`
-     <u>${t}</u><br>
-     λ <input id="arr_${r}_${t}" value="0.05">
-     bm <input id="bm_${r}_${t}" value="2">
-     bs <input id="bs_${r}_${t}" value="0.5"><br>
-     am <input id="am_${r}_${t}" value="2">
-     as <input id="as_${r}_${t}" value="0.5"><br>
-     tm <input id="tm_${r}_${t}" value="20">
-     ts <input id="ts_${r}_${t}" value="5"><br>
-     `;
-   });
+    ["START","MID","END"].forEach(t=>{
+      let icon = t === "START" ? "🏁" : (t === "MID" ? "📍" : "🛑");
+      html+=`<div class="cfg-group">
+        <div class="cfg-group-title">${icon} Trạm ${t}</div>
+        <div class="cfg-grid">
+          <div class="cfg-input-box full">
+            <label>Khách đến (λ - người/s)</label>
+            <input id="arr_${r}_${t}" type="number" value="0.05" step="0.01">
+          </div>
+          <div class="cfg-input-box">
+            <label>Khách Lên <span>(μ / σ)</span></label>
+            <div class="input-row-multi">
+              <input id="bm_${r}_${t}" type="number" value="2" step="0.1" title="Trung bình (s)">
+              <input id="bs_${r}_${t}" type="number" value="0.5" step="0.1" title="Độ lệch (s)">
+            </div>
+          </div>
+          <div class="cfg-input-box">
+            <label>Khách Xuống <span>(μ / σ)</span></label>
+            <div class="input-row-multi">
+              <input id="am_${r}_${t}" type="number" value="2" step="0.1" title="Trung bình (s)">
+              <input id="as_${r}_${t}" type="number" value="0.5" step="0.1" title="Độ lệch (s)">
+            </div>
+          </div>
+          <div class="cfg-input-box full">
+            <label>T/g đi từ trạm trước <span>(μ / σ) - phút</span></label>
+            <div class="input-row-multi">
+              <input id="tm_${r}_${t}" type="number" value="20" title="Trung bình (phút)">
+              <input id="ts_${r}_${t}" type="number" value="5" title="Độ lệch (phút)">
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
 
-   html+=`Depart σ <input id="d_${r}" value="10"></div>`;
- });
- document.getElementById("config").innerHTML=html;
+    html+=`</div></div>`;
+  });
+  document.getElementById("config").innerHTML=html;
+}
+
+function toggleCfg(id){
+  let body=document.getElementById(id);
+  body.classList.toggle("open");
 }
 
 /* INIT */
 function init(){
- stationMap={}; buses=[]; served=0; simTime=startTime;
+  stationMap={}; buses=[]; served=0; simTime=startTime; simElapsed=0;
 
- selectedRoutes.forEach((r,i)=>{
-   let y=80+i*100;
+  selectedRoutes.forEach((r,i)=>{
+    let y = getRouteY(i);
+    ["START","MID","END"].forEach((t,j)=>{
+      stationMap[r+"_"+t]=new Station(t, getStationX(j), y);
+    });
 
-   ["START","MID","END"].forEach((t,j)=>{
-     stationMap[r+"_"+t]=new Station(t,150+j*250,y);
-   });
-
-   let fleet=parseInt(document.getElementById(`fleet_${r}`).value);
-   let headway=parseFloat(document.getElementById(`headway_${r}`).value);
-
-   for(let k=0;k<fleet;k++){
-     let b=new Bus(r,y,k*headway);
-     b.posX=stationMap[r+"_START"].x;
-     buses.push(b);
-   }
- });
+    let fleet=parseInt(document.getElementById(`fleet_${r}`).value);
+    let headway=parseFloat(document.getElementById(`headway_${r}`).value);
+    for(let k=0;k<fleet;k++){
+      let b=new Bus(r,y,k*headway);
+      b.posX=stationMap[r+"_START"].x;
+      buses.push(b);
+    }
+  });
 }
 
-/* PROCESS */
+function getRouteY(i){ return 80 + i * 90; }
+function getStationX(j){
+  let w = canvas.width;
+  return 120 + j * ((w - 200) / 2);
+}
+
+/* PROCESS (Boarding/Alighting Logic) */
 function process(bus){
- let t=bus.seq[bus.index];
- let s=stationMap[bus.route+"_"+t];
+  let t = bus.seq[bus.index];
+  let s = stationMap[bus.route + "_" + t];
 
- let am=parseFloat(document.getElementById(`am_${bus.route}_${t}`).value);
- let as=parseFloat(document.getElementById(`as_${bus.route}_${t}`).value);
- let bm=parseFloat(document.getElementById(`bm_${bus.route}_${t}`).value);
- let bs=parseFloat(document.getElementById(`bs_${bus.route}_${t}`).value);
+  let am = parseFloat(document.getElementById(`am_${bus.route}_${t}`).value);
+  let as = parseFloat(document.getElementById(`as_${bus.route}_${t}`).value);
+  let bm = parseFloat(document.getElementById(`bm_${bus.route}_${t}`).value);
+  let bs = parseFloat(document.getElementById(`bs_${bus.route}_${t}`).value);
 
- let off=Math.min(bus.passengers.length, Math.max(0,Math.floor(normal(am,as)*5)));
+  let off = 0;
 
- let on=0;
- if(simTime < endTime && !bus.returning){
-   on=Math.min(s.queue.length, bus.capacity-bus.passengers.length);
- }
+  // CƯỠNG CHẾ XUỐNG: Xuống đúng đích HOẶC đến bất kỳ bến cuối/đầu nào đều bị lọc sạch
+  bus.passengers = bus.passengers.filter(p => {
+    if(p.dest === t || t === "END" || t === "START"){
+      off++;
+      return false;
+    }
+    return true;
+  });
 
- let stopTime =
-   Math.max(0,normal(am,as))*off +
-   Math.max(0,normal(bm,bs))*on;
+  let on = 0;
+  // Không cho khách lên nếu đã quá giờ hoặc đang ở trạm cập bến cuối chuyến đi (index 4)
+  if(simTime < endTime && bus.index !== bus.seq.length - 1){
+    on = Math.min(s.queue.length, bus.capacity - bus.passengers.length);
+  }
 
- bus.passengers.splice(0,off);
- served+=off;
+  let stopTime =
+    Math.max(0, normal(am, as)) * off +
+    Math.max(0, normal(bm, bs)) * on;
+    
+  served += off;
 
- for(let i=0;i<on;i++){
-   bus.passengers.push(s.queue.shift());
- }
+  for(let i = 0; i < on; i++){
+    let r = Math.random();
+    let dest;
 
- let ds=parseFloat(document.getElementById(`d_${bus.route}`).value);
- bus.delay += stopTime + Math.max(0,normal(0,ds));
+    // Gán đích logic dựa trên hướng đi của xe tại trạm đó
+    if(t === "START"){
+      dest = (r < 0.7) ? "END" : "MID";
+    } else if(t === "MID"){
+      dest = (bus.index === 1) ? "END" : "START"; // Index 1: Hướng đi END, Index 3: Hướng về START
+    } else {
+      dest = (r < 0.7) ? "START" : "MID";
+    }
 
- if(bus.index===bus.seq.length-1 && !bus.returning){
-   bus.layover=900;
- }
+    bus.passengers.push(new Passenger(dest));
+    s.queue.shift();
+  }
+
+  let ds = parseFloat(document.getElementById(`d_${bus.route}`).value);
+  bus.delay += stopTime + Math.max(0, normal(0, ds));
+
+  // Gán layover nghỉ giải lao khi hoàn tất 1 vòng
+  if(bus.index === bus.seq.length - 1 && simTime < endTime){
+    bus.layover = 900;
+  }
 }
 
 /* UPDATE */
 function update(dt){
- let simDt = dt * speed;
- simTime += simDt;
-totalSamples++;
+  let simDt=dt*speed;
+  simTime+=simDt;
+  simElapsed+=simDt;
 
- /* ARRIVAL (chỉ trước 19:30) */
- if(simTime < endTime){
-   selectedRoutes.forEach(r=>{
-     ["START","MID","END"].forEach(t=>{
-       let λ=parseFloat(document.getElementById(`arr_${r}_${t}`).value);
-       if(Math.random()<λ*simDt){
-         stationMap[r+"_"+t].queue.push(new Passenger());
-       }
-     });
-   });
- }
+  if(simTime < endTime){
+    selectedRoutes.forEach(r=>{
+      ["START","MID","END"].forEach(t=>{
+        let λ=parseFloat(document.getElementById(`arr_${r}_${t}`).value);
+        let expected = λ * simDt;
+        let count = Math.floor(expected);
+        if(Math.random() < (expected - count)) count++;
+        
+        for(let k=0; k<count; k++){
+            stationMap[r+"_"+t].queue.push(new Passenger());
+        }
+      });
+    });
+  }
 
- buses.forEach(b=>{
+  buses.forEach(b=>{
+    b.loadSum += b.passengers.length * simDt;
 
-   b.loadSum+=b.passengers.length;
+    if(simTime >= endTime) b.returning=true;
 
-   /* sau 19:30 → bật chế độ về depot */
-   if(simTime >= endTime){
-     b.returning=true;
-   }
+    // LOGIC DỪNG HOẠT ĐỘNG: Đã khóa sổ (19:30), xe ở depot (index 0) và trống rỗng
+    let isDone = (simTime >= endTime && b.index === 0 && b.passengers.length === 0);
+    if(isDone) {
+        b.delay = 0;
+        b.layover = 0;
+        return; // Xe bị kẹt lại vĩnh viễn ở trạng thái tắt máy
+    }
 
-   if(b.layover>0){
-     b.layover-=simDt;
-     b.idleTime+=simDt;
-     return;
-   }
+    let timeLeft = simDt;
 
-   if(b.delay>0){
-     b.delay-=simDt;
-     b.idleTime+=simDt;
-     return;
-   }
+    if(b.layover > 0){
+        let spend = Math.min(b.layover, timeLeft);
+        b.layover -= spend;
+        b.idleTime += spend;
+        timeLeft -= spend;
+    }
 
-   b.moveTime+=simDt;
+    if(timeLeft > 0 && b.delay > 0){
+        let spend = Math.min(b.delay, timeLeft);
+        b.delay -= spend;
+        b.idleTime += spend;
+        timeLeft -= spend;
+    }
 
-   let t=b.seq[b.index];
-   let target=stationMap[b.route+"_"+t];
+    if(timeLeft > 0){
+        b.moveTime += timeLeft;
+        let t = b.seq[b.index];
 
-   if(b.segmentTime<=0){
-     let tm=parseFloat(document.getElementById(`tm_${b.route}_${t}`).value);
-     let ts=parseFloat(document.getElementById(`ts_${b.route}_${t}`).value);
+        if(b.segmentTime <= 0){
+          if(b.index === 0) {
+              b.segmentTime = 0.001; // Bước nhảy tức thời tại Depot để thủ tục lên xe diễn ra
+          } else {
+              let tm=parseFloat(document.getElementById(`tm_${b.route}_${t}`).value);
+              let ts=parseFloat(document.getElementById(`ts_${b.route}_${t}`).value);
+              b.segmentTime=Math.max(30,normal(tm,ts)*60);
+          }
+          b.segmentProgress=0;
+        }
 
-     b.segmentTime=Math.max(30,normal(tm,ts)*60);
-     b.segmentProgress=0;
-   }
+        b.segmentProgress += timeLeft;
+        let ratio = Math.min(1, b.segmentProgress / b.segmentTime);
+        
+        // Cập nhật lại phép tính Index lấy trạm trước đó
+        let prevIndex = (b.index - 1 + b.seq.length) % b.seq.length;
+        let prev = b.seq[prevIndex];
+        
+        let startX = stationMap[b.route + "_" + prev].x;
+        let endX = stationMap[b.route + "_" + t].x;
+        
+        b.posX = startX + (endX - startX) * ratio;
 
-   b.segmentProgress+=simDt;
+        if(b.segmentProgress >= b.segmentTime){
+          b.posX = endX;
+          process(b);
 
-   let ratio=b.segmentProgress/b.segmentTime;
-   if(ratio>1) ratio=1;
+          // Xe chỉ luôn đi TIẾN trong seq, không bao giờ tự ý lùi dù là hết giờ
+          b.index = (b.index + 1) % b.seq.length;
+          b.segmentTime = 0;
+        }
+    }
+  });
 
-   let prev=b.seq[(b.index-1+5)%5];
-   let startX=stationMap[b.route+"_"+prev].x;
-   let endX=target.x;
+  // Tự động dừng sim khi mọi xe đã vào vị trí "isDone"
+  let allDone = buses.length > 0 && buses.every(b => 
+    b.index === 0 && b.passengers.length === 0 && simTime >= endTime
+  );
+  if(allDone){ running=false; report(); }
 
-   b.posX = startX + (endX-startX)*ratio;
-
-   if(b.segmentProgress>=b.segmentTime){
-     b.posX=endX;
-     process(b);
-
-     if(b.returning){
-       if(b.index>0) b.index--;
-     } else {
-       b.index=(b.index+1)%b.seq.length;
-     }
-
-     b.segmentTime=0;
-   }
- });
-
- /* điều kiện dừng */
- let allDone = buses.every(b =>
-   b.returning &&
-   b.index===0 &&
-   b.passengers.length===0
- );
-
- if(allDone && simTime >= endTime){
-   running=false;
-   report();
- }
-
- Object.values(stationMap).forEach(s=>{
-   s.qSum+=s.queue.length;
-   s.samples++;
- });
+  Object.values(stationMap).forEach(s=>{ s.qSum+=s.queue.length; s.samples++; });
 }
 
 /* DRAW */
@@ -329,134 +773,199 @@ const canvas=document.getElementById("sim");
 const ctx=canvas.getContext("2d");
 
 function resize(){
- canvas.width=window.innerWidth*0.75;
- canvas.height=window.innerHeight;
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+  recalcStationX();
 }
-resize(); window.onresize=resize;
+
+function recalcStationX(){
+  selectedRoutes.forEach((r,i)=>{
+    ["START","MID","END"].forEach((t,j)=>{
+      if(stationMap[r+"_"+t]){
+        stationMap[r+"_"+t].x = getStationX(j);
+        stationMap[r+"_"+t].y = getRouteY(i);
+      }
+    });
+  });
+}
+
+resize();
+window.onresize=resize;
 
 function draw(){
- ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
- selectedRoutes.forEach((r,i)=>{
-   let y=80+i*100;
+  ctx.strokeStyle="#1e2232";
+  ctx.lineWidth=1;
+  for(let y=0;y<canvas.height;y+=40){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+  }
 
-   ctx.beginPath();
-   ctx.moveTo(100,y);
-   ctx.lineTo(canvas.width-100,y);
-   ctx.stroke();
+  selectedRoutes.forEach((r,i)=>{
+    let y=getRouteY(i);
+    let sStart=stationMap[r+"_START"];
+    let sEnd=stationMap[r+"_END"];
 
-   ctx.fillText("Route "+r,20,y);
+    ctx.strokeStyle="#2e3347";
+    ctx.lineWidth=2;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(sStart.x, y);
+    ctx.lineTo(sEnd.x, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-   ["START","MID","END"].forEach(t=>{
-     let s=stationMap[r+"_"+t];
+    ctx.font="bold 11px 'Barlow Condensed', sans-serif";
+    ctx.fillStyle="#f5c518";
+    ctx.fillText("RT "+r, 20, y+4);
 
-     ctx.beginPath();
-     ctx.arc(s.x,y,5,0,Math.PI*2);
-     ctx.fill();
-     ctx.fillText(t,s.x-15,y-10);
+    ["START","MID","END"].forEach(t=>{
+      let s=stationMap[r+"_"+t];
+      
+      let grd=ctx.createRadialGradient(s.x,y,2,s.x,y,14);
+      grd.addColorStop(0,"rgba(245,197,24,0.3)");
+      grd.addColorStop(1,"rgba(245,197,24,0)");
+      ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.arc(s.x,y,14,0,Math.PI*2); ctx.fill();
 
-     s.queue.slice(0,30).forEach((_,k)=>{
-       ctx.fillRect(s.x-3,y+10+k*5,4,4);
-     });
-   });
- });
+      ctx.beginPath();
+      ctx.arc(s.x,y,6,0,Math.PI*2);
+      ctx.fillStyle="#f5c518";
+      ctx.fill();
+      ctx.strokeStyle="#0f1117";
+      ctx.lineWidth=2;
+      ctx.stroke();
 
- buses.forEach(b=>{
-   ctx.fillStyle = b.returning ? "blue" : "green";
-   ctx.fillRect(b.posX-12,b.y-6,24,12);
+      ctx.font="10px 'Space Mono', monospace";
+      ctx.fillStyle="#7a7f94";
+      ctx.fillText(t,s.x-14,y-12);
 
-   ctx.fillStyle="black";
-   ctx.fillText(`${b.passengers.length}/${b.capacity}`,b.posX-15,b.y-10);
- });
+      let q=Math.min(s.queue.length,20);
+      for(let k=0;k<q;k++){
+        ctx.fillStyle = k<10 ? "#4af0a0" : "#f5c518";
+        ctx.fillRect(s.x-3+k*4, y+12, 3, 5);
+      }
+      if(s.queue.length>0){
+        ctx.font="9px 'Space Mono'";
+        ctx.fillStyle="#7a7f94";
+        ctx.fillText(s.queue.length, s.x+18, y+18);
+      }
+    });
+  });
+
+  buses.forEach(b=>{
+    let col = b.returning ? "#5b8ef5" : "#4af0a0";
+    let load = b.passengers.length/b.capacity;
+
+    ctx.shadowColor=col;
+    ctx.shadowBlur=8;
+
+    ctx.fillStyle=col;
+    ctx.beginPath();
+    ctx.roundRect(b.posX-14, b.y-7, 28, 14, 3);
+    ctx.fill();
+    ctx.shadowBlur=0;
+
+    ctx.fillStyle="rgba(0,0,0,0.4)";
+    ctx.fillRect(b.posX-12, b.y+2, 24, 3);
+    ctx.fillStyle="#fff";
+    ctx.fillRect(b.posX-12, b.y+2, 24*load, 3);
+
+    ctx.font="bold 8px 'Space Mono', monospace";
+    ctx.fillStyle="#0f1117";
+    ctx.textAlign="center";
+    ctx.fillText(b.passengers.length, b.posX, b.y+2);
+    ctx.textAlign="left";
+  });
 }
 
-/* UI */
 function formatTime(sec){
- let h=Math.floor(sec/3600);
- let m=Math.floor((sec%3600)/60);
- return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+  let h=Math.floor(sec/3600);
+  let m=Math.floor((sec%3600)/60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
 }
 
 function updateUI(){
- document.getElementById("clock").innerText=formatTime(simTime);
- document.getElementById("served").innerText=served;
+  document.getElementById("clock").innerText=formatTime(simTime);
+  document.getElementById("served").innerText=served;
 }
 
-/* REPORT */
 function report(){
- let html="<b>REPORT</b><br><table>";
- html+="<tr><th>Metric</th><th>Value</th></tr>";
+  let avgQ=0;
+  Object.values(stationMap).forEach(s=>{ if(s.samples>0) avgQ+=s.qSum/s.samples; });
+  avgQ/=Object.keys(stationMap).length||1;
 
- let avgQ=0;
- Object.values(stationMap).forEach(s=>{
-   if(s.samples>0) avgQ+=s.qSum/s.samples;
- });
- avgQ/=Object.keys(stationMap).length||1;
+  let avgLoad=0;
+  buses.forEach(b=>{ avgLoad+=b.loadSum; });
+  avgLoad = avgLoad / (buses.length * simElapsed || 1);
 
-let avgLoad=0;
-buses.forEach(b=>{
-  avgLoad += b.loadSum;
-});
+  let util=0;
+  buses.forEach(b=>{ util+=b.moveTime/(b.moveTime+b.idleTime+0.0001); });
+  util/=buses.length||1;
 
-avgLoad = avgLoad / (buses.length * totalSamples || 1);
-
- let util=0;
- buses.forEach(b=>{
-   util+=b.moveTime/(b.moveTime+b.idleTime+0.0001);
- });
- util/=buses.length||1;
-
- html+=`<tr><td>Avg Queue</td><td>${avgQ.toFixed(2)}</td></tr>`;
- html+=`<tr><td>Avg Load</td><td>${avgLoad.toFixed(2)}</td></tr>`;
- html+=`<tr><td>Utilization</td><td>${(util*100).toFixed(1)}%</td></tr>`;
- html+=`<tr><td>Total Served</td><td>${served}</td></tr>`;
-
- html+="</table>";
- document.getElementById("report").innerHTML=html;
+  document.getElementById("report").innerHTML=`
+    <table class="report-table">
+      <tr><td>Avg Queue</td><td>${avgQ.toFixed(2)}</td></tr>
+      <tr><td>Avg Load</td><td>${avgLoad.toFixed(2)}</td></tr>
+      <tr><td>Utilization</td><td>${(util*100).toFixed(1)}%</td></tr>
+      <tr><td>Total Served</td><td>${served}</td></tr>
+    </table>`;
+  document.getElementById("reportPanel").style.display="block";
 }
 
-/* LOOP */
 function loop(t){
- if(!running) return;
-
- if(!last) last=t;
- let dt=(t-last)/1000;
- last=t;
-
- update(dt);
- draw();
- updateUI();
-
- requestAnimationFrame(loop);
+  if(!running) return;
+  if(!last) last=t;
+  
+  let dt = (t-last)/1000;
+  if(dt > 0.1) dt = 0.016; 
+  
+  last=t;
+  update(dt);
+  draw();
+  updateUI();
+  requestAnimationFrame(loop);
 }
 
-/* CONTROL */
 function start(){
- speed=parseFloat(document.getElementById("speedInput").value);
- init();
- running=true;
- last=null;
- requestAnimationFrame(loop);
+  speed=parseFloat(document.getElementById("speedInput").value);
+  init();
+  running=true; last=null;
+  document.getElementById("reportPanel").style.display="none";
+  requestAnimationFrame(loop);
 }
 
-function stopSim(){
- running=false;
- report();
-}
+function stopSim(){ running=false; report(); }
 
 function reset(){
- running=false;
- init();
- draw();
- updateUI();
- document.getElementById("report").innerHTML="";
+  running=false; init(); draw(); updateUI();
+  document.getElementById("report").innerHTML="";
+  document.getElementById("reportPanel").style.display="none";
 }
 
-/* INIT */
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+}
+
 buildSelector();
 draw();
 updateUI();
 
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    this.beginPath();
+    this.moveTo(x+r,y);
+    this.lineTo(x+w-r,y);
+    this.quadraticCurveTo(x+w,y,x+w,y+r);
+    this.lineTo(x+w,y+h-r);
+    this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    this.lineTo(x+r,y+h);
+    this.quadraticCurveTo(x,y+h,x,y+h-r);
+    this.lineTo(x,y+r);
+    this.quadraticCurveTo(x,y,x+r,y);
+    this.closePath();
+  };
+}
 </script>
 </body>
 </html>
