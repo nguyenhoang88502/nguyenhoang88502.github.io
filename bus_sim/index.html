@@ -72,6 +72,7 @@ Served: <span id="served">0</span>
 let startTime = 5*3600 + 30*60;
 let endTime   = 19*3600 + 30*60;
 let simTime   = startTime;
+let totalSamples = 0;
 
 /* RANDOM */
 function normal(m,s){
@@ -149,8 +150,8 @@ function buildConfig(){
  let html="";
  selectedRoutes.forEach(r=>{
    html+=`<div class="routeBox"><b>Route ${r}</b><br>
-   Fleet <input id="fleet_${r}" value="3">
-   Headway <input id="headway_${r}" value="600"><br>`;
+   Fleet <input id="fleet_${r}" value="9">
+   Headway <input id="headway_${r}" value="720"><br>`;
 
    ["START","MID","END"].forEach(t=>{
      html+=`
@@ -232,6 +233,7 @@ function process(bus){
 function update(dt){
  let simDt = dt * speed;
  simTime += simDt;
+totalSamples++;
 
  /* ARRIVAL (chỉ trước 19:30) */
  if(simTime < endTime){
@@ -382,7 +384,7 @@ function updateUI(){
 
 /* REPORT */
 function report(){
- let html="<b>ARENA REPORT</b><br><table>";
+ let html="<b>REPORT</b><br><table>";
  html+="<tr><th>Metric</th><th>Value</th></tr>";
 
  let avgQ=0;
@@ -391,9 +393,12 @@ function report(){
  });
  avgQ/=Object.keys(stationMap).length||1;
 
- let avgLoad=0;
- buses.forEach(b=>avgLoad+=b.loadSum);
- avgLoad/=buses.length||1;
+let avgLoad=0;
+buses.forEach(b=>{
+  avgLoad += b.loadSum;
+});
+
+avgLoad = avgLoad / (buses.length * totalSamples || 1);
 
  let util=0;
  buses.forEach(b=>{
