@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Bus Simulation - Route 50 Real Travel Time & Aggregation</title>
+
+<style>
+body { font-family: Arial; margin:0; background:#e9ecef; }
+#container { display:flex; height:100vh; }
+
+#sim { flex:3; background:#fff; }
+
+#ui {
+  flex:1;
+  background:#f8f9fa;
+  border-left:2px solid #ccc;
+  padding:10px;
+  overflow:auto;
+}
+
+.block { border:1px solid #bbb; padding:8px; margin-bottom:10px; background:#fff; }
+.routeBox { border:1px solid #999; padding:6px; margin-bottom:8px; }
+
+input { width:60px; margin:2px; }
+button { margin:3px; padding:5px; }
+
+table { border-collapse: collapse; width:100%; font-size:12px; }
+td, th { border:1px solid #999; padding:4px; text-align:center; }
+</style>
+</head>
+
+<body>
+<div id="container">
+
+<canvas id="sim"></canvas>
+
+<div id="ui">
+
+<div class="block">
+<b>MÔ HÌNH: TUYẾN 50 MẶC ĐỊNH</b><br>
+- Chu kỳ: START → MID → END → MID → START<br>
+- MID (Tổng hợp ~25 trạm dọc tuyến)<br>
+- Khung giờ hoạt động: 05:30 - 18:30<br>
+- Sức chứa: 80 chỗ
+</div>
+
+<div class="block">
+<b>CHỌN TUYẾN</b><br>
+<div id="routeSelect"></div>
+</div>
+
+<div class="block">
+Tốc độ mô phỏng <input id="speedInput" value="50"><br>
+<button onclick="start()">Start</button>
+<button onclick="stopSim()">Stop</button>
+<button onclick="reset()">Reset</button>
+</div>
+
+<div id="config"></div>
+
+<div class="block">
+Clock: <span id="clock">05:30</span><br>
+Served: <span id="served">0</span>
+</div>
+
+<div class="block" id="report"></div>
+
+</div>
+</div>
+
+<script>
+let startTime = 5*3600 + 30*60; 
+let endTime   = 18*3600 + 30*60;
+let simTime   = startTime;
+
+function normal(m,s){
+ let u1=Math.random(),u2=Math.random();
+ return m + Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*s;
+}
+
+const ROUTES=["08","10","19","30","33","50","52","53","99"];
+
+class Passenger{}
+
+class Station{
+ constructor(type,x,y){
+  this.type=type;
+  this.x=x;
+  this.y=y;
+  this.queue=[];
+  this.qSum=0;
+  this.samples=0;
+ }
+}
+
+class Bus{
+ constructor(route,y,delay){
+  this.route=route;
+  this.capacity = (route === "50") ? 80 : 45;
+  this.passengers=[];
+  this.seq = ["START","MID","END","MID","START"]; 
+  this.index=0;
+  this.posX=0;
+  this.y=y;
+  this.delay=delay||0;
+  this.layover=0;
+  this.loadSum=0;
+  this.moveTime=0;
+  this.idleTime=0;
+ }
+}
+
+let selectedRoutes=[];
+let stationMap={}, buses=[], served=0;
+let running=false, speed=1, last;
+
+function buildSelector(){
+ let html="";
+ ROUTES.forEach(r=>{
+  let isChecked = (r === "50") ? "checked" : "";
+  html+=`<label><input type="checkbox" value="${r}" ${isChecked} onchange="updateSelection()"> Route ${r}</label><br>`;
+ });
+ document.getElementById("routeSelect").innerHTML=html;
+ updateSelection();
+}
+
+function updateSelection(){
+ selectedRoutes=[];
+ document.querySelectorAll("#routeSelect input").forEach(c=>{
+  if(c.checked) selectedRoutes.push(c.value);
+ });
+ buildConfig();
+}
+
+function buildConfig(){
+ let html="";
+ 
+ const defConfig = {
+  "50": { fleet: 9, headway: 900, d: 30,
+          START: { arr: 0.05, bm: 2, bs: 0.5, am: 0.0, as: 0.0, tm: 35, ts: 5 },
+          MID:   { arr: 0.06, bm: 2, bs: 0.5, am: 4.0, as: 1.0, tm: 30, ts: 5 },
+          END:   { arr: 0.08, bm: 2, bs: 0.5, am: 8.0, as: 0.0, tm: 25, ts: 5 } },
+  "default": { fleet: 4, headway: 1200, d: 20,
+          START: { arr: 0.03, bm: 2, bs: 0.5, am: 0.0, as: 0.0, tm: 20, ts: 3 },
+          MID:   { arr: 0.02, bm: 2, bs: 0.5, am: 2.0, as: 0.5, tm: 20, ts: 3 },
+          END:   { arr: 0.01, bm: 2, bs: 0.5, am: 4.0, as: 0.5, tm: 20, ts: 3 } }
+ };
+
+ selectedRoutes.forEach(r=>{
+   let cfg = defConfig[r] || defConfig["default"];
+   
+   html+=`<div class="routeBox"><b>Route ${r}</b><br>
+   Fleet <input id="fleet_${r}" value="${cfg.fleet}">
+   Headway <input id="headway_${r}" value="${cfg.headway}"><br>`;
+
+   ["START","MID","END"].forEach(t=>{
+     let tcfg = cfg[t];
+     html+=`
+     <u>${t}</u><br>
+     λ <input id="arr_${r}_${t}" value="${tcfg.arr}">
+     bm <input id="bm_${r}_${t}" value="${tcfg.bm}">
+     bs <input id="bs_${r}_${t}" value="${tcfg.bs}"><br>
+     am <input id="am_${r}_${t}" value="${tcfg.am}">
+     as <input id="as_${r}_${t}" value="${tcfg.as}"><br>
+     tm (min) <input id="tm_${r}_${t}" value="${tcfg.tm}">
+     ts <input id="ts_${r}_${t}" value="${tcfg.ts}"><br>
+     `;
+   });
+
+   html+=`Depart σ <input id="d_${r}" value="${cfg.d}"></div>`;
+ });
+ document.getElementById("config").innerHTML=html;
+}
+
+function init(){
+ stationMap={}; buses=[]; served=0; simTime=startTime;
+
+ selectedRoutes.forEach((r,i)=>{
+   let y=80+i*100;
+
+   ["START","MID","END"].forEach((t,j)=>{
+     stationMap[r+"_"+t]=new Station(t,150+j*250,y);
+   });
+
+   let fleet=parseInt(document.getElementById(`fleet_${r}`).value);
+   let headway=parseFloat(document.getElementById(`headway_${r}`).value);
+
+   for(let k=0;k<fleet;k++){
+     let b=new Bus(r,y,k*headway);
+     b.posX=stationMap[r+"_START"].x;
+     buses.push(b);
+   }
+ });
+}
+
+function process(bus){
+ let t=bus.seq[bus.index];
+ let s=stationMap[bus.route+"_"+t];
+
+ let am=parseFloat(document.getElementById(`am_${bus.route}_${t}`).value);
+ let as=parseFloat(document.getElementById(`as_${bus.route}_${t}`).value);
+
+ let off=Math.min(bus.passengers.length, Math.floor(Math.max(0, normal(am,as))*10));
+ bus.passengers.splice(0,off);
+ served+=off;
+
+ let on=Math.min(s.queue.length, bus.capacity-bus.passengers.length);
+ for(let i=0;i<on;i++){
+   bus.passengers.push(s.queue.shift());
+ }
+
+ let ds=parseFloat(document.getElementById(`d_${bus.route}`).value);
+ bus.delay += Math.max(0,normal(0,ds));
+
+ if(bus.index === bus.seq.length-1){
+   bus.layover = 900;
+ }
+}
+
+function update(dt){
+ simTime += dt*speed;
+
+ selectedRoutes.forEach(r=>{
+   ["START","MID","END"].forEach(t=>{
+     let λ=parseFloat(document.getElementById(`arr_${r}_${t}`).value);
+     if(Math.random()<λ*dt*speed){
+       stationMap[r+"_"+t].queue.push(new Passenger());
+     }
+   });
+ });
+
+ buses.forEach(b=>{
+   b.loadSum += b.passengers.length;
+
+   if(b.layover>0){
+     b.layover-=dt*speed;
+     b.idleTime+=dt*speed;
+     return;
+   }
+
+   if(b.delay>0){
+     b.delay-=dt*speed;
+     b.idleTime+=dt*speed;
+     return;
+   }
+
+   b.moveTime+=dt*speed;
+
+   let t=b.seq[b.index];
+   let target=stationMap[b.route+"_"+t];
+
+   let tm=parseFloat(document.getElementById(`tm_${b.route}_${t}`).value);
+   let ts=parseFloat(document.getElementById(`ts_${b.route}_${t}`).value);
+
+   let travelSec = Math.max(60, normal(tm, ts) * 60);
+   let v = 250 / travelSec;
+
+   let dir=Math.sign(target.x-b.posX);
+   b.posX+=dir*v*dt*speed;
+
+   if(Math.abs(b.posX-target.x) < (v*dt*speed + 1)){
+     b.posX=target.x;
+     process(b);
+     b.index = (b.index+1)%b.seq.length;
+   }
+ });
+
+ Object.values(stationMap).forEach(s=>{
+   s.qSum+=s.queue.length;
+   s.samples++;
+ });
+}
+
+const canvas=document.getElementById("sim");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+ canvas.width=window.innerWidth*0.75;
+ canvas.height=window.innerHeight;
+}
+resize(); window.onresize=resize;
+
+function draw(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+
+ selectedRoutes.forEach((r,i)=>{
+   let y=80+i*100;
+
+   ctx.beginPath();
+   ctx.moveTo(100,y);
+   ctx.lineTo(canvas.width-100,y);
+   ctx.stroke();
+
+   ctx.fillText("Route "+r,20,y);
+
+   ["START","MID","END"].forEach(t=>{
+     let s=stationMap[r+"_"+t];
+
+     ctx.beginPath();
+     ctx.arc(s.x,y,5,0,Math.PI*2);
+     ctx.fill();
+     ctx.fillText(t, s.x-15, y-10);
+
+     ctx.fillStyle="red";
+     s.queue.slice(0, 30).forEach((_,k)=>{
+       ctx.fillRect(s.x-3,y+10+k*5,4,4);
+     });
+     ctx.fillStyle="black";
+   });
+ });
+
+ buses.forEach(b=>{
+   ctx.fillStyle="green";
+   ctx.fillRect(b.posX-12,b.y-6,24,12);
+   ctx.fillStyle="black";
+   ctx.fillText(`${b.passengers.length}/${b.capacity}`,b.posX-15,b.y-10);
+ });
+}
+
+function formatTime(sec){
+ let h=Math.floor(sec/3600);
+ let m=Math.floor((sec%3600)/60);
+ return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+
+function updateUI(){
+ document.getElementById("clock").innerText=formatTime(simTime);
+ document.getElementById("served").innerText=served;
+}
+
+function report(){
+ let html="<b>ARENA REPORT</b><br><table>";
+ html+="<tr><th>Metric</th><th>Value</th></tr>";
+
+ let avgQ=0;
+ Object.values(stationMap).forEach(s=>{
+   if(s.samples > 0) avgQ += s.qSum/s.samples;
+ });
+ avgQ/=Object.keys(stationMap).length || 1;
+
+ let avgLoad=0;
+ buses.forEach(b=> avgLoad+=b.loadSum);
+ avgLoad/= (buses.length * Object.values(stationMap)[0].samples) || 1;
+
+ let util=0;
+ buses.forEach(b=>{
+   util+=b.moveTime/(b.moveTime+b.idleTime+0.0001);
+ });
+ util/=buses.length || 1;
+
+ html+=`<tr><td>Avg Queue</td><td>${avgQ.toFixed(2)}</td></tr>`;
+ html+=`<tr><td>Avg Load</td><td>${avgLoad.toFixed(2)}</td></tr>`;
+ html+=`<tr><td>Utilization</td><td>${(util*100).toFixed(1)}%</td></tr>`;
+ html+=`<tr><td>Total Served</td><td>${served}</td></tr>`;
+
+ html+="</table>";
+
+ document.getElementById("report").innerHTML=html;
+}
+
+function loop(t){
+ if(!running) return;
+
+ if(!last) last=t;
+ let dt=(t-last)/1000;
+ if(dt>0.1) dt=0.016;
+ last=t;
+
+ if(simTime>=endTime){
+   running=false;
+   report();
+   return;
+ }
+
+ update(dt);
+ draw();
+ updateUI();
+
+ requestAnimationFrame(loop);
+}
+
+function start(){
+ speed=parseFloat(document.getElementById("speedInput").value);
+ init();
+ running=true;
+ last=null;
+ requestAnimationFrame(loop);
+}
+
+function stopSim(){
+ running=false;
+ report();
+}
+
+function reset(){
+ running=false;
+ init();
+ draw();
+ updateUI();
+ document.getElementById("report").innerHTML="";
+}
+
+buildSelector();
+draw();
+updateUI();
+
+</script>
+</body>
+</html>
