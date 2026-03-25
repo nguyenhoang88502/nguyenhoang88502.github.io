@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bus Simulation VNU-HCM</title>
+<title>Bus Simulation VNU-HCM — Tuyến 50</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
-
 <style>
 :root {
   --bg: #0f1117;
@@ -22,940 +21,951 @@
   --bus-ret: #5b8ef5;
   --radius: 10px;
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
   font-family: 'Barlow Condensed', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  background: var(--bg); color: var(--text);
+  height: 100vh; overflow: hidden;
+  display: flex; flex-direction: column;
 }
-
-/* HEADER */
 header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  display: flex; align-items: center; gap: 16px;
   padding: 10px 20px;
   background: var(--surface);
   border-bottom: 2px solid var(--accent);
-  flex-shrink: 0;
-  flex-wrap: wrap;
+  flex-shrink: 0; flex-wrap: wrap;
 }
-
 header h1 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--accent);
+  font-size: 1.3rem; font-weight: 800;
+  letter-spacing: 2px; color: var(--accent);
   text-transform: uppercase;
 }
-
 .header-badge {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 12px;
   font-family: 'Space Mono', monospace;
-  font-size: 0.85rem;
-  color: var(--accent2);
+  font-size: 0.85rem; color: var(--accent2);
 }
-
-.header-served {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
+.header-served { color: var(--muted); font-size: 0.9rem; }
 .header-served span { color: var(--accent); font-weight: 700; }
-
 .header-controls {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  margin-left: auto; display: flex;
+  align-items: center; gap: 8px; flex-wrap: wrap;
 }
-
 .speed-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: var(--muted);
+  display: flex; align-items: center;
+  gap: 6px; font-size: 0.85rem; color: var(--muted);
 }
 .speed-wrap input {
-  width: 54px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  padding: 4px 8px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
+  width: 60px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); padding: 4px 8px;
+  font-family: 'Space Mono', monospace; font-size: 0.8rem;
 }
-
 .btn {
   font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 1px;
-  padding: 6px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: opacity .15s, transform .1s;
+  font-weight: 700; font-size: 0.95rem;
+  letter-spacing: 1px; padding: 6px 16px;
+  border: none; border-radius: 6px;
+  cursor: pointer; transition: opacity .15s, transform .1s;
 }
 .btn:active { transform: scale(0.96); }
+.btn-start { background: var(--accent2); color: #0f1117; }
+.btn-stop  { background: var(--danger); color: #fff; }
+.btn-reset { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.btn:hover { opacity: .85; }
 
-.btn-start  { background: var(--accent2); color: #0f1117; }
-.btn-stop   { background: var(--danger);  color: #fff; }
-.btn-reset  { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
-.btn:hover  { opacity: .85; }
-
-/* MAIN LAYOUT */
-#layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* CANVAS */
-#sim {
-  flex: 1;
-  min-width: 0;
-  display: block;
-  background: var(--bg);
-}
-
-/* SIDEBAR */
+#layout { display: flex; flex: 1; overflow: hidden; position: relative; }
+#sim { flex: 1; min-width: 0; display: block; background: var(--bg); }
 #sidebar {
-  width: 330px;
-  flex-shrink: 0;
+  width: 340px; flex-shrink: 0;
   background: var(--surface);
   border-left: 2px solid var(--border);
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: flex; flex-direction: column;
 }
-
-.panel {
-  border-bottom: 1px solid var(--border);
-  padding: 12px 14px;
-}
-
+.panel { border-bottom: 1px solid var(--border); padding: 12px 14px; }
 .panel-title {
-  font-size: 0.7rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 10px;
-  font-weight: 700;
+  font-size: 0.7rem; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 10px; font-weight: 700;
 }
 
-/* ROUTES */
-.route-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* STOP LIST */
+.stop-list-wrap {
+  max-height: 200px; overflow-y: auto;
+  font-size: 0.78rem;
 }
-.route-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-  user-select: none;
+.stop-item-row {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(46,51,71,0.4);
+  color: var(--muted); line-height: 1.5;
 }
-.route-chip input { display: none; }
-.route-chip.active {
-  border-color: var(--accent);
-  background: rgba(245,197,24,0.1);
-  color: var(--accent);
-  font-weight: 700;
+.stop-item-row.terminal { color: var(--accent); font-weight: 700; }
+.sn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; color: var(--accent3);
+  min-width: 22px; text-align: right;
+  flex-shrink: 0;
 }
+.stop-item-row.terminal .sn { color: var(--accent); }
+.sname { flex: 1; }
 
-/* CONFIG ACCORDION & INPUTS */
+/* CONFIG ACCORDION */
 .route-config {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 8px;
-  overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 8px; overflow: hidden;
   background: var(--surface2);
 }
 .route-config-head {
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--accent);
-  transition: background 0.2s;
+  padding: 10px 12px; cursor: pointer;
+  font-weight: 700; font-size: 0.95rem;
+  color: var(--accent); transition: background 0.2s;
 }
-.route-config-head:hover { background: rgba(255, 255, 255, 0.05); }
+.route-config-head:hover { background: rgba(255,255,255,0.05); }
 .route-config-body {
-  display: none;
-  padding: 12px;
+  display: block; padding: 12px;
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
-.route-config-body.open { display: block; }
-
 .cfg-group {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255,255,255,0.03);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
+  border-radius: 6px; padding: 10px;
   margin-bottom: 10px;
 }
 .cfg-group:last-child { margin-bottom: 0; }
 .cfg-group-title {
-  font-size: 0.75rem;
-  color: var(--accent2);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 0.72rem; color: var(--accent2);
+  margin-bottom: 8px; text-transform: uppercase;
+  letter-spacing: 1px; font-weight: 700;
 }
-.cfg-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px 12px;
-}
-.cfg-input-box {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.cfg-input-box.full {
-  grid-column: span 2;
-}
+.cfg-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px 12px; }
+.cfg-input-box { display: flex; flex-direction: column; gap: 4px; }
+.cfg-input-box.full { grid-column: span 2; }
 .cfg-input-box label {
-  font-size: 0.7rem;
-  color: var(--muted);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  font-size: 0.7rem; color: var(--muted);
+  display: flex; justify-content: space-between; align-items: flex-end;
 }
-.cfg-input-box label span {
-  font-size: 0.6rem;
-  color: var(--border);
-}
+.cfg-input-box label span { font-size: 0.6rem; color: var(--border); }
 .cfg-input-box input {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text);
   padding: 5px 8px;
   font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  width: 100%;
+  font-size: 0.8rem; width: 100%;
   transition: all 0.2s;
 }
 .cfg-input-box input:focus {
-  outline: none;
-  border-color: var(--accent);
+  outline: none; border-color: var(--accent);
   background: #111;
   box-shadow: 0 0 0 2px rgba(245,197,24,0.1);
 }
-.input-row-multi {
-  display: flex;
-  gap: 4px;
-}
-.input-row-multi input {
-  width: 50%;
-  text-align: center;
-}
+.input-row-multi { display: flex; gap: 4px; }
+.input-row-multi input { width: 50%; text-align: center; }
 
 /* REPORT */
-.report-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.82rem;
-}
-.report-table td {
-  padding: 5px 6px;
-  border-bottom: 1px solid var(--border);
-}
+.report-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.report-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
 .report-table td:last-child {
   text-align: right;
   font-family: 'Space Mono', monospace;
   color: var(--accent2);
 }
 
-/* MODEL INFO */
-.model-list {
-  list-style: none;
-  font-size: 0.82rem;
-  color: var(--muted);
-  line-height: 1.9;
+/* MODEL LIST */
+.model-list { list-style: none; font-size: 0.82rem; color: var(--muted); line-height: 1.9; }
+.model-list li::before { content: '› '; color: var(--accent); }
+
+/* CANVAS AREA */
+#canvasWrap { position: relative; flex: 1; min-width: 0; }
+.canvas-overlay {
+  position: absolute; bottom: 16px; left: 16px;
+  display: flex; gap: 14px;
+  background: rgba(15,17,23,0.85);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 14px;
+  font-size: 0.75rem; color: var(--muted);
+  pointer-events: none; flex-wrap: wrap;
 }
-.model-list li::before {
-  content: '› ';
-  color: var(--accent);
+.legend-dot {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 2px; margin-right: 5px; vertical-align: middle;
 }
+
+/* TOOLTIP */
+#tooltip {
+  position: absolute; display: none;
+  background: rgba(15,17,23,0.96);
+  border: 1px solid var(--accent);
+  border-radius: 7px; padding: 7px 11px;
+  font-size: 0.78rem; pointer-events: none;
+  z-index: 20; color: var(--text);
+  max-width: 200px; line-height: 1.6;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+#tooltip b { color: var(--accent); display: block; margin-bottom: 2px; }
 
 /* MOBILE TOGGLE */
 #sidebarToggle {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #0f1117;
-  font-size: 1.4rem;
-  border: none;
-  cursor: pointer;
+  display: none; position: fixed; bottom: 20px; right: 20px;
+  z-index: 100; width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent); color: #0f1117;
+  font-size: 1.4rem; border: none; cursor: pointer;
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  align-items: center;
-  justify-content: center;
+  align-items: center; justify-content: center;
 }
 
-/* MOBILE */
-@media (max-width: 768px) {
-  body { overflow: hidden; }
+/* MOBILE REPORT POPUP */
+.report-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 999; display: none;
+}
 
+@media (max-width: 768px) {
   header { padding: 8px 12px; gap: 8px; }
   header h1 { font-size: 1rem; }
   .header-controls { gap: 5px; }
   .btn { padding: 5px 10px; font-size: 0.85rem; }
-
   #layout { position: relative; }
-
   #sidebar {
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 88vw;
-    max-width: 340px;
-    z-index: 50;
-    transform: translateX(100%);
-    transition: transform .3s ease;
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 88vw; max-width: 340px; z-index: 50;
+    transform: translateX(100%); transition: transform .3s ease;
     box-shadow: -4px 0 24px rgba(0,0,0,0.5);
   }
   #sidebar.open { transform: translateX(0); }
-
   #sidebarToggle { display: flex; }
-
   #sim { width: 100%; }
+  
+  #reportPanel.popup-mode {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw; max-width: 350px;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    z-index: 1000;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    display: none;
+  }
+  #reportPanel.popup-mode.show { display: block; }
+  .report-overlay.show { display: block; }
 }
-
-/* SCROLLBAR */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-/* CANVAS LEGEND */
-.canvas-overlay {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  display: flex;
-  gap: 14px;
-  background: rgba(15,17,23,0.8);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 7px 14px;
-  font-size: 0.78rem;
-  color: var(--muted);
-  pointer-events: none;
-}
-.legend-dot {
-  display: inline-block;
-  width: 10px; height: 10px;
-  border-radius: 2px;
-  margin-right: 5px;
-  vertical-align: middle;
-}
-#canvasWrap { position: relative; flex: 1; min-width: 0; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🚌 VNU-HCM Bus Sim</h1>
+  <h1>🚌 Tuyến 50 Sim</h1>
   <div class="header-badge" id="clock">05:30</div>
-  <div class="header-served">Served: <span id="served">0</span></div>
+  <div class="header-served">Run: <span id="runDisplay">0/0</span> | Đón: <span id="served">0</span></div>
   <div class="header-controls">
-    <div class="speed-wrap">
-      ⚡ <input id="speedInput" type="number" value="2000">×
-    </div>
+    <div class="speed-wrap">⚡ <input id="speedInput" type="number" value="2000">×</div>
+    <div class="speed-wrap">🔁 <input id="runsInput" type="number" value="1" min="1" max="100"></div>
     <button class="btn btn-start" onclick="start()">▶ Start</button>
     <button class="btn btn-stop"  onclick="stopSim()">■ Stop</button>
-    <button class="btn btn-reset" onclick="reset()">↺ Reset</button>
   </div>
 </header>
 
 <div id="layout">
+  <div class="report-overlay" id="reportOverlay"></div>
   <div id="canvasWrap">
     <canvas id="sim"></canvas>
     <div class="canvas-overlay">
-      <span><span class="legend-dot" style="background:var(--bus-go)"></span>Active</span>
-      <span><span class="legend-dot" style="background:var(--bus-ret)"></span>Returning/Parked</span>
-      <span><span class="legend-dot" style="background:#f5c518;border-radius:50%"></span>Station</span>
+      <span><span class="legend-dot" style="background:var(--bus-go)"></span>Lượt đi</span>
+      <span><span class="legend-dot" style="background:var(--bus-ret)"></span>Lượt về</span>
+      <span><span class="legend-dot" style="background:#f5c518;border-radius:50%"></span>Đầu/Cuối Bến</span>
+      <span><span class="legend-dot" style="background:#3d5070;border-radius:50%"></span>Trạm Nội Tuyến</span>
     </div>
+    <div id="tooltip"></div>
   </div>
 
   <div id="sidebar">
-
     <div class="panel">
       <div class="panel-title">Model</div>
       <ul class="model-list">
         <li>05:30 → 19:30 hoạt động</li>
-        <li>Sau 19:30: ngừng nhận khách</li>
-        <li>Hoàn tất nốt tuyến đang chạy</li>
-        <li>Xe về lại START & rỗng → dừng</li>
+        <li>29 trạm / tuyến (1S + 23M + 5E)</li>
+        <li>Tự động lặp lại mô phỏng</li>
+        <li>Xả khách hoàn toàn tại S & E4</li>
       </ul>
     </div>
 
     <div class="panel">
-      <div class="panel-title">Chọn Tuyến</div>
-      <div class="route-grid" id="routeSelect"></div>
+      <div class="panel-title">Danh Sách 29 Trạm</div>
+      <div id="stopList"></div>
     </div>
 
     <div class="panel" id="config" style="padding-top:10px;"></div>
 
-    <div class="panel" id="reportPanel" style="display:none;">
-      <div class="panel-title">Report</div>
+    <div class="panel popup-mode" id="reportPanel" style="display:none;">
+      <div class="panel-title">Report Simulation</div>
       <div id="report"></div>
+      <button class="btn btn-stop" id="btnCloseReport" style="width:100%; margin-top:15px; display:none;" onclick="closeReport()">Đóng</button>
     </div>
-
   </div>
 </div>
 
 <button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 
 <script>
-/* TIME */
-let startTime = 5*3600 + 30*60;
-let endTime   = 19*3600 + 30*60;
-let simTime   = startTime;
+const SIM_START = 5*3600 + 30*60;
+const SIM_END   = 19*3600 + 30*60;
+const ROUTE     = "50";
+
+const START_STOP = "HCMUT CS1";
+
+const MID_STOPS = [
+  "Bưu Điện Phú Thọ", "Ngã ba Thành Thái", "Siêu thị Nguyễn Kim", "CMC Tân Bình",
+  "Trạm Cây xăng số 9", "Chợ Tân Bình", "BV Chỉnh hình & Phục hồi CN", "BV Thống Nhất",
+  "Hội chợ Triển lãm Tân Bình", "Nhà hàng Đông Phương", "Phạm Văn Hai",
+  "Cổng trước SVĐ Quân Khu 7", "Rạp Tân Sơn Nhất", "Trung tâm sát hạch lái xe",
+  "Cây xăng Quân đội", "Trường ĐH Kỹ thuật Công nghệ", "Cuối công viên Gia Định",
+  "Ngã ba Đặng Văn Sâm", "Đầu công viên Gia Định", "Nhà hàng tiệc cưới Phố Đôi",
+  "Trạm cầu vượt Linh Xuân", "Vietcombank", "Nghĩa trang TP"
+];
+
+const END_STOPS = [
+  "ĐH Kinh tế Luật", 
+  "Công ty điện tử Samsung", 
+  "ĐH Nông Lâm 1", 
+  "ĐH Nông Lâm 2", 
+  "Đầu bến Đại học Bách Khoa - Cơ sở 2"
+];
+
+const MID_KEYS  = MID_STOPS.map((_,i) => "M"+i);
+const END_KEYS  = END_STOPS.map((_,i) => "E"+i);
+const STOP_KEYS = ["S", ...MID_KEYS, ...END_KEYS];
+const N_STOPS   = STOP_KEYS.length;
+
+const SEQ_TPL = [
+  "S", 
+  ...MID_KEYS, 
+  ...END_KEYS, 
+  ...END_KEYS.slice(0, -1).reverse(), 
+  ...MID_KEYS.slice().reverse(), 
+  "S"
+];
+
+function normal(m, s) {
+  const u1 = Math.random(), u2 = Math.random();
+  return m + Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2) * s;
+}
+
+function stopType(key) {
+  if(key === "S") return "START";
+  if(key.startsWith("E")) return "END";
+  return "MID";
+}
+
+class Passenger { constructor(dest) { this.dest = dest; } }
+
+class Station {
+  constructor(key, x, y) {
+    this.key = key; this.x = x; this.y = y;
+    this.queue = []; this.qSum = 0; this.samples = 0;
+  }
+}
+
+class Bus {
+  constructor(y, delay) {
+    this.route = ROUTE;
+    this.capacity = 80;
+    this.passengers = [];
+    this.index = 0;
+    this.posX = 0; this.y = y;
+    this.delay = delay || 0; this.layover = 0;
+    this.segmentTime = 0; this.segmentProgress = 0;
+    this.loadSum = 0; this.moveTime = 0; this.idleTime = 0;
+  }
+}
+
+let stationMap = {}, buses = [], served = 0;
+let simTime = SIM_START;
 let simElapsed = 0;
+let running = false, speed = 1, last;
 
-function normal(m,s){
-  let u1=Math.random(),u2=Math.random();
-  return m + Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*s;
-}
+let currentRun = 1, totalRuns = 1;
+let aggServed = 0, aggAvgQ = 0, aggAvgLoad = 0, aggUtil = 0;
 
-const ROUTES=["08","10","19","30","33","50","52","53","99"];
-
-class Passenger {
-  constructor(dest) {
-    this.dest = dest;
-  }
-}
-
-class Station{
-  constructor(type,x,y){
-    this.type=type; this.x=x; this.y=y;
-    this.queue=[]; this.qSum=0; this.samples=0;
-  }
-}
-
-class Bus{
-  constructor(route,y,delay){
-    this.route=route;
-    this.capacity=(route==="50")?80:45;
-    this.passengers=[];
-    this.seq=["START","MID","END","MID","START"];
-    this.index=0;
-    this.posX=0; this.y=y;
-    this.delay=delay||0; this.layover=0;
-    this.segmentTime=0; this.segmentProgress=0;
-    this.returning=false; // Chỉ dùng để tô màu xe
-    this.loadSum=0; this.moveTime=0; this.idleTime=0;
-  }
-}
-
-let selectedRoutes=[];
-let stationMap={}, buses=[], served=0;
-let running=false, speed=1, last;
-
-/* UI */
-function buildSelector(){
-  let html="";
-  ROUTES.forEach(r=>{
-    let active=(r==="50")?"active":"";
-    html+=`<label class="route-chip ${active}" id="chip_${r}">
-      <input type="checkbox" value="${r}" ${active?"checked":""} onchange="toggleChip(this,'${r}')">
-      ${r}
-    </label>`;
+function buildStopList() {
+  let html = '<div class="stop-list-wrap">';
+  html += `<div class="stop-item-row terminal"><span class="sn">S</span><span class="sname">${START_STOP}</span></div>`;
+  MID_STOPS.forEach((name, i) => {
+    html += `<div class="stop-item-row"><span class="sn">${i+1}</span><span class="sname">${name}</span></div>`;
   });
-  document.getElementById("routeSelect").innerHTML=html;
-  updateSelection();
-}
-
-function toggleChip(cb, r){
-  let chip=document.getElementById("chip_"+r);
-  chip.classList.toggle("active", cb.checked);
-  updateSelection();
-}
-
-function updateSelection(){
-  selectedRoutes=[];
-  document.querySelectorAll("#routeSelect input").forEach(c=>{
-    if(c.checked) selectedRoutes.push(c.value);
+  END_STOPS.forEach((name, i) => {
+    let isT = i === END_STOPS.length - 1 ? "terminal" : "";
+    html += `<div class="stop-item-row ${isT}"><span class="sn">E${i}</span><span class="sname">${name}</span></div>`;
   });
-  buildConfig();
+  html += '</div>';
+  document.getElementById("stopList").innerHTML = html;
 }
 
-function buildConfig(){
-  let html="<div class='panel-title'>Cấu Hình Tuyến</div>";
-  selectedRoutes.forEach(r=>{
-    html+=`<div class="route-config">
-    <div class="route-config-head" onclick="toggleCfg('cfg_${r}')">
-      <span>🚌 Tuyến ${r}</span><span id="cfgarrow_${r}">▾</span>
+function buildConfig() {
+  let html = `<div class="route-config">
+    <div class="route-config-head">
+      <span>🚌 Tuyến ${ROUTE}</span>
     </div>
-    <div class="route-config-body" id="cfg_${r}">
-      
+    <div class="route-config-body" id="cfg_${ROUTE}">
       <div class="cfg-group">
         <div class="cfg-group-title">⏱ Thông số chung</div>
         <div class="cfg-grid">
           <div class="cfg-input-box">
             <label>Số xe</label>
-            <input id="fleet_${r}" type="number" value="12">
+            <input id="fleet" type="number" value="12" min="1">
           </div>
           <div class="cfg-input-box">
             <label>Giãn cách (s)</label>
-            <input id="headway_${r}" type="number" value="720">
+            <input id="headway" type="number" value="720">
           </div>
-          <div class="cfg-input-box">
-            <label>Độ trễ bến (σ)</label>
-            <input id="d_${r}" type="number" value="10">
+          <div class="cfg-input-box full">
+            <label>Độ trễ bến (σ giây)</label>
+            <input id="d" type="number" value="10">
           </div>
         </div>
       </div>`;
 
-    ["START","MID","END"].forEach(t=>{
-      let icon = t === "START" ? "🏁" : (t === "MID" ? "📍" : "🛑");
-      html+=`<div class="cfg-group">
-        <div class="cfg-group-title">${icon} Trạm ${t}</div>
-        <div class="cfg-grid">
-          <div class="cfg-input-box full">
-            <label>Khách đến (λ - người/s)</label>
-            <input id="arr_${r}_${t}" type="number" value="0.05" step="0.01">
-          </div>
-          <div class="cfg-input-box">
-            <label>Khách Lên <span>(μ / σ)</span></label>
-            <div class="input-row-multi">
-              <input id="bm_${r}_${t}" type="number" value="2" step="0.1" title="Trung bình (s)">
-              <input id="bs_${r}_${t}" type="number" value="0.5" step="0.1" title="Độ lệch (s)">
-            </div>
-          </div>
-          <div class="cfg-input-box">
-            <label>Khách Xuống <span>(μ / σ)</span></label>
-            <div class="input-row-multi">
-              <input id="am_${r}_${t}" type="number" value="2" step="0.1" title="Trung bình (s)">
-              <input id="as_${r}_${t}" type="number" value="0.5" step="0.1" title="Độ lệch (s)">
-            </div>
-          </div>
-          <div class="cfg-input-box full">
-            <label>T/g đi từ trạm trước <span>(μ / σ) - phút</span></label>
-            <div class="input-row-multi">
-              <input id="tm_${r}_${t}" type="number" value="20" title="Trung bình (phút)">
-              <input id="ts_${r}_${t}" type="number" value="5" title="Độ lệch (phút)">
-            </div>
+  const types = ["START", "MID", "END"];
+  types.forEach(t => {
+    const v = {
+      START: { l: 0.08, bm: 2.5, bs: 0.5, am: 0, as: 0, tm: 0, ts: 0 },
+      MID:   { l: 0.005, bm: 2.5, bs: 0.5, am: 2.0, as: 0.5, tm: 2.0, ts: 1.0 },
+      END:   { l: 0.001, bm: 2.5, bs: 0.5, am: 1.5, as: 0.3, tm: 3.5, ts: 1.5 }
+    }[t];
+
+    let icon = t === "START" ? "🏁" : (t === "MID" ? "📍" : "🛑");
+    let title = t === "END" ? "Trạm END (5 Trạm ĐHQG)" : `Trạm ${t}`;
+
+    html += `<div class="cfg-group">
+      <div class="cfg-group-title">${icon} ${title}</div>
+      <div class="cfg-grid">
+        <div class="cfg-input-box full">
+          <label>Khách đến (λ - người/s)</label>
+          <input id="arr_${t}" type="number" value="${v.l}" step="0.001">
+        </div>
+        <div class="cfg-input-box">
+          <label>Khách Lên <span>(μ / σ)</span></label>
+          <div class="input-row-multi">
+            <input id="bm_${t}" type="number" value="${v.bm}" step="0.1" title="Trung bình (s)">
+            <input id="bs_${t}" type="number" value="${v.bs}" step="0.1" title="Độ lệch (s)">
           </div>
         </div>
-      </div>`;
-    });
-
-    html+=`</div></div>`;
+        <div class="cfg-input-box">
+          <label>Khách Xuống <span>(μ / σ)</span></label>
+          <div class="input-row-multi">
+            <input id="am_${t}" type="number" value="${v.am}" step="0.1" title="Trung bình (s)">
+            <input id="as_${t}" type="number" value="${v.as}" step="0.1" title="Độ lệch (s)">
+          </div>
+        </div>
+        <div class="cfg-input-box full">
+          <label>T/g đi từ trạm trước <span>(μ / σ) - phút</span></label>
+          <div class="input-row-multi">
+            <input id="tm_${t}" type="number" value="${v.tm}" step="0.1" title="Trung bình (phút)">
+            <input id="ts_${t}" type="number" value="${v.ts}" step="0.1" title="Độ lệch (phút)">
+          </div>
+        </div>
+      </div>
+    </div>`;
   });
-  document.getElementById("config").innerHTML=html;
+
+  html += `</div></div>`;
+  document.getElementById("config").innerHTML = html;
 }
 
-function toggleCfg(id){
-  let body=document.getElementById(id);
-  body.classList.toggle("open");
+function cfgVal(stopKey, param) {
+  const t = stopType(stopKey);
+  const el = document.getElementById(`${param}_${t}`);
+  return el ? (parseFloat(el.value) || 0) : 0;
 }
 
-/* INIT */
-function init(){
-  stationMap={}; buses=[]; served=0; simTime=startTime; simElapsed=0;
+function formatTime(sec) {
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
 
-  selectedRoutes.forEach((r,i)=>{
-    let y = getRouteY(i);
-    ["START","MID","END"].forEach((t,j)=>{
-      stationMap[r+"_"+t]=new Station(t, getStationX(j), y);
-    });
+const canvas = document.getElementById("sim");
+const ctx    = canvas.getContext("2d");
 
-    let fleet=parseInt(document.getElementById(`fleet_${r}`).value);
-    let headway=parseFloat(document.getElementById(`headway_${r}`).value);
-    for(let k=0;k<fleet;k++){
-      let b=new Bus(r,y,k*headway);
-      b.posX=stationMap[r+"_START"].x;
-      buses.push(b);
+function getRouteY() {
+  return canvas.height / 2;
+}
+
+function getStationX(stopIdx) {
+  const ml = 72, mr = 22;
+  return ml + stopIdx * (canvas.width - ml - mr) / (N_STOPS - 1);
+}
+
+function resize() {
+  canvas.width  = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+  recalcPositions();
+}
+
+function recalcPositions() {
+  const y = getRouteY();
+  STOP_KEYS.forEach((key, si) => {
+    if(stationMap[key]) {
+      stationMap[key].x = getStationX(si);
+      stationMap[key].y = y;
     }
   });
 }
 
-function getRouteY(i){ return 80 + i * 90; }
-function getStationX(j){
-  let w = canvas.width;
-  return 120 + j * ((w - 200) / 2);
+window.onresize = resize;
+
+function initRun() {
+  stationMap = {}; buses = []; served = 0;
+  simTime = SIM_START; simElapsed = 0;
+  const y = getRouteY();
+
+  STOP_KEYS.forEach((key, si) => {
+    stationMap[key] = new Station(key, getStationX(si), y);
+  });
+
+  const fleet   = parseInt(document.getElementById(`fleet`).value) || 1;
+  const headway = parseFloat(document.getElementById(`headway`).value) || 720;
+  for(let k = 0; k < fleet; k++) {
+    const b = new Bus(y, k * headway);
+    b.posX = stationMap["S"].x;
+    buses.push(b);
+  }
 }
 
-/* PROCESS (Boarding/Alighting Logic) */
-function process(bus){
-  let t = bus.seq[bus.index];
-  let s = stationMap[bus.route + "_" + t];
+function process(bus) {
+  const seqIdx  = bus.index;
+  const stopKey = SEQ_TPL[seqIdx];
+  const s       = stationMap[stopKey];
 
-  let am = parseFloat(document.getElementById(`am_${bus.route}_${t}`).value);
-  let as = parseFloat(document.getElementById(`as_${bus.route}_${t}`).value);
-  let bm = parseFloat(document.getElementById(`bm_${bus.route}_${t}`).value);
-  let bs = parseFloat(document.getElementById(`bs_${bus.route}_${t}`).value);
+  const am  = cfgVal(stopKey, "am");
+  const as_ = cfgVal(stopKey, "as");
+  const bm  = cfgVal(stopKey, "bm");
+  const bs  = cfgVal(stopKey, "bs");
+
+  const goingForward = seqIdx < 29; 
 
   let off = 0;
-
-  // CƯỠNG CHẾ XUỐNG: Xuống đúng đích HOẶC đến bất kỳ bến cuối/đầu nào đều bị lọc sạch
-  bus.passengers = bus.passengers.filter(p => {
-    if(p.dest === t || t === "END" || t === "START"){
-      off++;
-      return false;
-    }
-    return true;
-  });
-
-  let on = 0;
-  // Không cho khách lên nếu đã quá giờ hoặc đang ở trạm cập bến cuối chuyến đi (index 4)
-  if(simTime < endTime && bus.index !== bus.seq.length - 1){
-    on = Math.min(s.queue.length, bus.capacity - bus.passengers.length);
+  if ((goingForward && stopKey === "E4") || (!goingForward && stopKey === "S")) {
+      off = bus.passengers.length;
+      bus.passengers = [];
+  } else {
+    bus.passengers = bus.passengers.filter(p => {
+      if(p.dest === stopKey) { off++; return false; }
+      return true;
+    });
   }
-
-  let stopTime =
-    Math.max(0, normal(am, as)) * off +
-    Math.max(0, normal(bm, bs)) * on;
-    
   served += off;
 
-  for(let i = 0; i < on; i++){
-    let r = Math.random();
-    let dest;
+  const canBoard = simTime < SIM_END && seqIdx !== SEQ_TPL.length - 1;
+  let on = 0;
+  
+  if(canBoard) {
+    const maxDwellTime = 180;
+    const avgBoardTime = Math.max(0.1, normal(bm, bs));
+    const maxBoard = Math.floor(maxDwellTime / avgBoardTime);
+    on = Math.min(s.queue.length, bus.capacity - bus.passengers.length, maxBoard);
+  }
 
-    // Gán đích logic dựa trên hướng đi của xe tại trạm đó
-    if(t === "START"){
-      dest = (r < 0.7) ? "END" : "MID";
-    } else if(t === "MID"){
-      dest = (bus.index === 1) ? "END" : "START"; // Index 1: Hướng đi END, Index 3: Hướng về START
+  bus.delay += Math.max(0, normal(am, as_)) * off
+             + Math.max(0, normal(bm, bs))  * on;
+  const ds = parseFloat(document.getElementById(`d`).value) || 0;
+  bus.delay += Math.max(0, normal(0, ds));
+
+  const currentStopIdx = STOP_KEYS.indexOf(stopKey);
+
+  for(let i = 0; i < on; i++) {
+    let pool;
+    if(goingForward) {
+      pool = STOP_KEYS.slice(currentStopIdx + 1);
     } else {
-      dest = (r < 0.7) ? "START" : "MID";
+      pool = STOP_KEYS.slice(0, currentStopIdx).reverse();
     }
-
-    bus.passengers.push(new Passenger(dest));
+    
+    if (pool.length > 0) {
+      const w = pool.map((_, idx) => 1 / (idx + 1));
+      const sum = w.reduce((a, b) => a + b, 0);
+      let r_val = Math.random() * sum;
+      let pIdx = 0;
+      for (; pIdx < w.length; pIdx++) {
+        r_val -= w[pIdx];
+        if (r_val <= 0) break;
+      }
+      const dest = pool[pIdx] || pool[pool.length - 1];
+      bus.passengers.push(new Passenger(dest));
+    }
     s.queue.shift();
   }
 
-  let ds = parseFloat(document.getElementById(`d_${bus.route}`).value);
-  bus.delay += stopTime + Math.max(0, normal(0, ds));
-
-  // Gán layover nghỉ giải lao khi hoàn tất 1 vòng
-  if(bus.index === bus.seq.length - 1 && simTime < endTime){
+  if(seqIdx === SEQ_TPL.length - 1 && simTime < SIM_END) {
     bus.layover = 900;
   }
 }
 
-/* UPDATE */
-function update(dt){
-  let simDt=dt*speed;
-  simTime+=simDt;
-  simElapsed+=simDt;
+function executeRunEnd() {
+  const stns = Object.values(stationMap);
+  let runAvgQ = 0;
+  stns.forEach(s => { if(s.samples>0) runAvgQ += s.qSum/s.samples; });
+  runAvgQ /= stns.length || 1;
 
-  if(simTime < endTime){
-    selectedRoutes.forEach(r=>{
-      ["START","MID","END"].forEach(t=>{
-        let λ=parseFloat(document.getElementById(`arr_${r}_${t}`).value);
-        let expected = λ * simDt;
+  let runTotalLoad = 0;
+  buses.forEach(b => runTotalLoad += b.loadSum);
+  const runAvgLoad = runTotalLoad / ((buses.length * simElapsed) || 1);
+
+  let runUtil = 0;
+  let activeBuses = 0;
+  buses.forEach(b => {
+    if ((b.moveTime + b.idleTime) > 0) {
+      runUtil += b.moveTime / (b.moveTime + b.idleTime);
+      activeBuses++;
+    }
+  });
+  runUtil /= activeBuses || 1;
+
+  aggServed += served;
+  aggAvgQ += runAvgQ;
+  aggAvgLoad += runAvgLoad;
+  aggUtil += runUtil;
+
+  if (currentRun < totalRuns) {
+    currentRun++;
+    initRun();
+  } else {
+    running = false;
+    showReport();
+  }
+}
+
+function update(dt) {
+  const simDt = dt * speed;
+  simTime    += simDt;
+  simElapsed += dt;
+
+  if(simTime < SIM_END) {
+    STOP_KEYS.forEach(key => {
+      const λ = cfgVal(key, "arr");
+      let remain = simDt;
+      while(remain > 0) {
+        const step = Math.min(remain, 1);
+        const expected = λ * step;
         let count = Math.floor(expected);
-        if(Math.random() < (expected - count)) count++;
-        
-        for(let k=0; k<count; k++){
-            stationMap[r+"_"+t].queue.push(new Passenger());
+        if(Math.random() < expected - count) count++;
+        for(let k = 0; k < count; k++) {
+          stationMap[key].queue.push(new Passenger(null));
         }
-      });
+        remain -= step;
+      }
     });
   }
 
-  buses.forEach(b=>{
-    b.loadSum += b.passengers.length * simDt;
+  buses.forEach(b => {
+    b.loadSum += b.passengers.length * dt;
 
-    if(simTime >= endTime) b.returning=true;
+    if (b.index === 0 && b.segmentTime === 0 && b.passengers.length > 0) {
+      served += b.passengers.length;
+      b.passengers = [];
+    }
 
-    // LOGIC DỪNG HOẠT ĐỘNG: Đã khóa sổ (19:30), xe ở depot (index 0) và trống rỗng
-    let isDone = (simTime >= endTime && b.index === 0 && b.passengers.length === 0);
-    if(isDone) {
-        b.delay = 0;
-        b.layover = 0;
-        return; // Xe bị kẹt lại vĩnh viễn ở trạng thái tắt máy
+    if(simTime >= SIM_END && b.passengers.length === 0 && b.index === 0 && b.segmentTime === 0) {
+      b.delay = 0; b.layover = 0;
+      return;
     }
 
     let timeLeft = simDt;
 
-    if(b.layover > 0){
-        let spend = Math.min(b.layover, timeLeft);
-        b.layover -= spend;
-        b.idleTime += spend;
-        timeLeft -= spend;
+    if(b.layover > 0) {
+      const spend = Math.min(b.layover, timeLeft);
+      b.layover -= spend; b.idleTime += spend; timeLeft -= spend;
     }
 
-    if(timeLeft > 0 && b.delay > 0){
-        let spend = Math.min(b.delay, timeLeft);
-        b.delay -= spend;
-        b.idleTime += spend;
-        timeLeft -= spend;
+    if(timeLeft > 0 && b.delay > 0) {
+      const spend = Math.min(b.delay, timeLeft);
+      b.delay -= spend; b.idleTime += spend; timeLeft -= spend;
     }
 
-    if(timeLeft > 0){
-        b.moveTime += timeLeft;
-        let t = b.seq[b.index];
+    if(timeLeft > 0) {
+      b.moveTime += timeLeft;
+      const stopKey = SEQ_TPL[b.index];
 
-        if(b.segmentTime <= 0){
-          if(b.index === 0) {
-              b.segmentTime = 0.001; // Bước nhảy tức thời tại Depot để thủ tục lên xe diễn ra
-          } else {
-              let tm=parseFloat(document.getElementById(`tm_${b.route}_${t}`).value);
-              let ts=parseFloat(document.getElementById(`ts_${b.route}_${t}`).value);
-              b.segmentTime=Math.max(30,normal(tm,ts)*60);
-          }
-          b.segmentProgress=0;
+      if(b.segmentTime === 0) {
+        if(b.index === 0) {
+          b.segmentTime = 0.001; 
+        } else {
+          const tm = cfgVal(stopKey, "tm");
+          const ts = cfgVal(stopKey, "ts");
+          b.segmentTime = Math.max(30, normal(tm, ts) * 60);
         }
-
-        b.segmentProgress += timeLeft;
-        let ratio = Math.min(1, b.segmentProgress / b.segmentTime);
-        
-        // Cập nhật lại phép tính Index lấy trạm trước đó
-        let prevIndex = (b.index - 1 + b.seq.length) % b.seq.length;
-        let prev = b.seq[prevIndex];
-        
-        let startX = stationMap[b.route + "_" + prev].x;
-        let endX = stationMap[b.route + "_" + t].x;
-        
-        b.posX = startX + (endX - startX) * ratio;
-
-        if(b.segmentProgress >= b.segmentTime){
-          b.posX = endX;
-          process(b);
-
-          // Xe chỉ luôn đi TIẾN trong seq, không bao giờ tự ý lùi dù là hết giờ
-          b.index = (b.index + 1) % b.seq.length;
-          b.segmentTime = 0;
-        }
-    }
-  });
-
-  // Tự động dừng sim khi mọi xe đã vào vị trí "isDone"
-  let allDone = buses.length > 0 && buses.every(b => 
-    b.index === 0 && b.passengers.length === 0 && simTime >= endTime
-  );
-  if(allDone){ running=false; report(); }
-
-  Object.values(stationMap).forEach(s=>{ s.qSum+=s.queue.length; s.samples++; });
-}
-
-/* DRAW */
-const canvas=document.getElementById("sim");
-const ctx=canvas.getContext("2d");
-
-function resize(){
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
-  recalcStationX();
-}
-
-function recalcStationX(){
-  selectedRoutes.forEach((r,i)=>{
-    ["START","MID","END"].forEach((t,j)=>{
-      if(stationMap[r+"_"+t]){
-        stationMap[r+"_"+t].x = getStationX(j);
-        stationMap[r+"_"+t].y = getRouteY(i);
+        b.segmentProgress = 0;
       }
-    });
+
+      b.segmentProgress += timeLeft;
+      const ratio    = Math.min(1, b.segmentProgress / b.segmentTime);
+      const prevIdx  = (b.index - 1 + SEQ_TPL.length) % SEQ_TPL.length;
+      const fromKey  = SEQ_TPL[prevIdx];
+      const fromSt   = stationMap[fromKey];
+      const toSt     = stationMap[stopKey];
+
+      if(fromSt && toSt) {
+        b.posX = fromSt.x + (toSt.x - fromSt.x) * ratio;
+      }
+
+      if(b.segmentProgress >= b.segmentTime) {
+        if(toSt) b.posX = toSt.x;
+        process(b);
+        b.index = (b.index + 1) % SEQ_TPL.length;
+        b.segmentTime = 0;
+      }
+    }
   });
+
+  const allDone = buses.length > 0 && buses.every(b =>
+    simTime >= SIM_END && b.passengers.length === 0 && b.index === 0 && b.segmentTime === 0
+  );
+
+  if(allDone) { 
+    executeRunEnd();
+  }
+
+  Object.values(stationMap).forEach(s => { s.qSum += s.queue.length; s.samples++; });
 }
 
-resize();
-window.onresize=resize;
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  ctx.strokeStyle="#1e2232";
-  ctx.lineWidth=1;
-  for(let y=0;y<canvas.height;y+=40){
+  ctx.strokeStyle = "#1a1d2a";
+  ctx.lineWidth = 1;
+  for(let y = 0; y < canvas.height; y += 40) {
     ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
   }
 
-  selectedRoutes.forEach((r,i)=>{
-    let y=getRouteY(i);
-    let sStart=stationMap[r+"_START"];
-    let sEnd=stationMap[r+"_END"];
+  const ry  = getRouteY();
+  const sSt = stationMap["S"];
+  const eSt = stationMap["E4"];
+  if(!sSt || !eSt) return;
 
-    ctx.strokeStyle="#2e3347";
-    ctx.lineWidth=2;
-    ctx.setLineDash([6,4]);
+  ctx.font = "bold 11px 'Barlow Condensed', sans-serif";
+  ctx.fillStyle = "#f5c518";
+  ctx.textAlign = "left";
+  ctx.fillText("RT "+ROUTE, 4, ry+4);
+
+  ctx.strokeStyle = "#243050";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(sSt.x, ry); ctx.lineTo(eSt.x, ry); ctx.stroke();
+  ctx.setLineDash([]);
+
+  STOP_KEYS.forEach((key, si) => {
+    const s  = stationMap[key];
+    if(!s) return;
+    const isT = (key === "S" || key === "E4");
+    const r_  = isT ? 6 : 3;
+
+    if(isT) {
+      const grd = ctx.createRadialGradient(s.x,ry,1,s.x,ry,14);
+      grd.addColorStop(0, "rgba(245,197,24,0.22)");
+      grd.addColorStop(1, "rgba(245,197,24,0)");
+      ctx.fillStyle = grd;
+      ctx.beginPath(); ctx.arc(s.x,ry,14,0,Math.PI*2); ctx.fill();
+    }
+
     ctx.beginPath();
-    ctx.moveTo(sStart.x, y);
-    ctx.lineTo(sEnd.x, y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.font="bold 11px 'Barlow Condensed', sans-serif";
-    ctx.fillStyle="#f5c518";
-    ctx.fillText("RT "+r, 20, y+4);
-
-    ["START","MID","END"].forEach(t=>{
-      let s=stationMap[r+"_"+t];
-      
-      let grd=ctx.createRadialGradient(s.x,y,2,s.x,y,14);
-      grd.addColorStop(0,"rgba(245,197,24,0.3)");
-      grd.addColorStop(1,"rgba(245,197,24,0)");
-      ctx.fillStyle=grd;
-      ctx.beginPath(); ctx.arc(s.x,y,14,0,Math.PI*2); ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(s.x,y,6,0,Math.PI*2);
-      ctx.fillStyle="#f5c518";
-      ctx.fill();
-      ctx.strokeStyle="#0f1117";
-      ctx.lineWidth=2;
-      ctx.stroke();
-
-      ctx.font="10px 'Space Mono', monospace";
-      ctx.fillStyle="#7a7f94";
-      ctx.fillText(t,s.x-14,y-12);
-
-      let q=Math.min(s.queue.length,20);
-      for(let k=0;k<q;k++){
-        ctx.fillStyle = k<10 ? "#4af0a0" : "#f5c518";
-        ctx.fillRect(s.x-3+k*4, y+12, 3, 5);
-      }
-      if(s.queue.length>0){
-        ctx.font="9px 'Space Mono'";
-        ctx.fillStyle="#7a7f94";
-        ctx.fillText(s.queue.length, s.x+18, y+18);
-      }
-    });
-  });
-
-  buses.forEach(b=>{
-    let col = b.returning ? "#5b8ef5" : "#4af0a0";
-    let load = b.passengers.length/b.capacity;
-
-    ctx.shadowColor=col;
-    ctx.shadowBlur=8;
-
-    ctx.fillStyle=col;
-    ctx.beginPath();
-    ctx.roundRect(b.posX-14, b.y-7, 28, 14, 3);
+    ctx.arc(s.x, ry, r_, 0, Math.PI*2);
+    ctx.fillStyle = isT ? "#f5c518" : "#3d5070";
     ctx.fill();
-    ctx.shadowBlur=0;
+    if(isT) {
+      ctx.strokeStyle = "#0f1117"; ctx.lineWidth = 2; ctx.stroke();
+    }
 
-    ctx.fillStyle="rgba(0,0,0,0.4)";
-    ctx.fillRect(b.posX-12, b.y+2, 24, 3);
-    ctx.fillStyle="#fff";
-    ctx.fillRect(b.posX-12, b.y+2, 24*load, 3);
+    ctx.textAlign = "center";
+    if(isT) {
+      ctx.font = "bold 9px 'Barlow Condensed'";
+      ctx.fillStyle = "#f5c518";
+      ctx.fillText(key, s.x, ry - 11);
+    } else if(si % 5 === 0 || si === 1 || si === N_STOPS-2) {
+      ctx.font = "7px 'Space Mono'";
+      ctx.fillStyle = "#46566e";
+      ctx.fillText(si, s.x, ry - 7);
+    }
 
-    ctx.font="bold 8px 'Space Mono', monospace";
-    ctx.fillStyle="#0f1117";
-    ctx.textAlign="center";
-    ctx.fillText(b.passengers.length, b.posX, b.y+2);
-    ctx.textAlign="left";
+    if(s.queue.length > 0) {
+      const qr  = Math.min(6, 1.4 + Math.sqrt(s.queue.length));
+      const col = s.queue.length > 30 ? "#ff5f57"
+                : s.queue.length > 10 ? "#f5c518"
+                : "#4af0a0";
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(s.x, ry+11, qr, 0, Math.PI*2); ctx.fill();
+      if(s.queue.length > 5) {
+        ctx.font = "7px 'Space Mono'";
+        ctx.fillStyle = col;
+        ctx.textAlign = "center";
+        ctx.fillText(s.queue.length, s.x, ry+22);
+      }
+    }
   });
+
+  buses.forEach(b => {
+    const isRet = b.index >= 29;
+    const col   = isRet ? "#5b8ef5" : "#4af0a0";
+    const load  = b.passengers.length / b.capacity;
+
+    ctx.shadowColor = col; ctx.shadowBlur = 7;
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.roundRect(b.posX-11, b.y-6, 22, 12, 3);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(b.posX-9, b.y+2, 18, 2);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(b.posX-9, b.y+2, 18*load, 2);
+
+    ctx.font = "bold 7px 'Space Mono'";
+    ctx.fillStyle = "#0f1117";
+    ctx.textAlign = "center";
+    ctx.fillText(b.passengers.length, b.posX, b.y+1);
+  });
+
+  ctx.textAlign = "left";
 }
 
-function formatTime(sec){
-  let h=Math.floor(sec/3600);
-  let m=Math.floor((sec%3600)/60);
-  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
-}
+canvas.addEventListener("mousemove", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx   = e.clientX - rect.left;
+  const my   = e.clientY - rect.top;
+  const tip  = document.getElementById("tooltip");
+  let found  = false;
 
-function updateUI(){
-  document.getElementById("clock").innerText=formatTime(simTime);
-  document.getElementById("served").innerText=served;
-}
+  for(let si = 0; si < STOP_KEYS.length; si++) {
+    const key = STOP_KEYS[si];
+    const s   = stationMap[key];
+    if(!s) continue;
+    if(Math.hypot(mx-s.x, my-s.y) < 14) {
+      const name = key === "S" ? START_STOP
+                 : key.startsWith("E") ? END_STOPS[parseInt(key.slice(1))]
+                 : MID_STOPS[parseInt(key.slice(1))];
+      tip.style.display = "block";
+      tip.style.left = (mx+16)+"px";
+      tip.style.top  = (my-44)+"px";
+      tip.innerHTML  = `<b>RT ${ROUTE} · Trạm #${si}</b>${name}<br>
+        <span style="color:#4af0a0">Hàng chờ: ${s.queue.length}</span>`;
+      found = true;
+      break;
+    }
+  }
+  
+  if(!found) tip.style.display = "none";
+});
 
-function report(){
-  let avgQ=0;
-  Object.values(stationMap).forEach(s=>{ if(s.samples>0) avgQ+=s.qSum/s.samples; });
-  avgQ/=Object.keys(stationMap).length||1;
+canvas.addEventListener("mouseleave", () => {
+  document.getElementById("tooltip").style.display = "none";
+});
 
-  let avgLoad=0;
-  buses.forEach(b=>{ avgLoad+=b.loadSum; });
-  avgLoad = avgLoad / (buses.length * simElapsed || 1);
+function showReport() {
+  const fAvgQ = aggAvgQ / totalRuns;
+  const fAvgLoad = aggAvgLoad / totalRuns;
+  const fUtil = aggUtil / totalRuns;
+  const fServed = aggServed / totalRuns;
 
-  let util=0;
-  buses.forEach(b=>{ util+=b.moveTime/(b.moveTime+b.idleTime+0.0001); });
-  util/=buses.length||1;
-
-  document.getElementById("report").innerHTML=`
+  document.getElementById("report").innerHTML = `
     <table class="report-table">
-      <tr><td>Avg Queue</td><td>${avgQ.toFixed(2)}</td></tr>
-      <tr><td>Avg Load</td><td>${avgLoad.toFixed(2)}</td></tr>
-      <tr><td>Utilization</td><td>${(util*100).toFixed(1)}%</td></tr>
-      <tr><td>Total Served</td><td>${served}</td></tr>
+      <tr><td>Hàng chờ TB / Trạm</td><td>${fAvgQ.toFixed(2)}</td></tr>
+      <tr><td>Tải trung bình</td><td>${fAvgLoad.toFixed(2)}</td></tr>
+      <tr><td>Utilization</td><td>${(fUtil*100).toFixed(1)}%</td></tr>
+      <tr><td>Khách đón TB/chuyến</td><td>${Math.round(fServed)}</td></tr>
+      <tr><td>Số vòng lặp hoàn thành</td><td>${totalRuns}</td></tr>
+      <tr><td>Tổng xe</td><td>${buses.length}</td></tr>
     </table>`;
-  document.getElementById("reportPanel").style.display="block";
+  
+  const rp = document.getElementById("reportPanel");
+  const ro = document.getElementById("reportOverlay");
+  
+  rp.style.display = "block";
+  if (window.innerWidth <= 768) {
+    rp.classList.add("show");
+    ro.classList.add("show");
+    document.getElementById("btnCloseReport").style.display = "block";
+  }
 }
 
-function loop(t){
+function closeReport() {
+  const rp = document.getElementById("reportPanel");
+  const ro = document.getElementById("reportOverlay");
+  rp.style.display = "none";
+  rp.classList.remove("show");
+  ro.classList.remove("show");
+}
+
+function updateUI() {
+  document.getElementById("clock").innerText = formatTime(simTime);
+  document.getElementById("served").innerText = served;
+  document.getElementById("runDisplay").innerText = `${currentRun}/${totalRuns}`;
+}
+
+function loop(t) {
   if(!running) return;
-  if(!last) last=t;
-  
+  if(!last) last = t;
   let dt = (t-last)/1000;
-  if(dt > 0.1) dt = 0.016; 
-  
-  last=t;
+  if(dt > 0.1) dt = 0.016;
+  last = t;
   update(dt);
   draw();
   updateUI();
   requestAnimationFrame(loop);
 }
 
-function start(){
-  speed=parseFloat(document.getElementById("speedInput").value);
-  init();
-  running=true; last=null;
-  document.getElementById("reportPanel").style.display="none";
+function start() {
+  speed = parseFloat(document.getElementById("speedInput").value) || 1;
+  totalRuns = parseInt(document.getElementById("runsInput").value) || 1;
+  currentRun = 1;
+  aggServed = 0; aggAvgQ = 0; aggAvgLoad = 0; aggUtil = 0;
+  closeReport();
+  initRun(); 
+  running = true; 
+  last = null;
+  document.getElementById("reportPanel").style.display = "none";
   requestAnimationFrame(loop);
 }
 
-function stopSim(){ running=false; report(); }
-
-function reset(){
-  running=false; init(); draw(); updateUI();
-  document.getElementById("report").innerHTML="";
-  document.getElementById("reportPanel").style.display="none";
+function stopSim() { 
+  running = false; 
+  showReport(); 
 }
 
-function toggleSidebar(){
+function reset() {
+  running = false; 
+  currentRun = 1;
+  totalRuns = 1;
+  aggServed = 0; aggAvgQ = 0; aggAvgLoad = 0; aggUtil = 0;
+  initRun(); 
+  draw(); 
+  updateUI();
+  closeReport();
+  document.getElementById("report").innerHTML = "";
+}
+
+function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("open");
 }
 
-buildSelector();
+buildStopList();
+buildConfig();
+resize();
 draw();
 updateUI();
 
-if(!CanvasRenderingContext2D.prototype.roundRect){
-  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+if(!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
     this.beginPath();
-    this.moveTo(x+r,y);
-    this.lineTo(x+w-r,y);
+    this.moveTo(x+r,y); this.lineTo(x+w-r,y);
     this.quadraticCurveTo(x+w,y,x+w,y+r);
     this.lineTo(x+w,y+h-r);
     this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
