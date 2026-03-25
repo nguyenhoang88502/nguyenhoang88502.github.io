@@ -224,16 +224,6 @@ header h1 {
   align-items: center; justify-content: center;
 }
 
-/* MOBILE REPORT POPUP */
-.report-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 999; display: none;
-}
-
-#reportPanel.popup-mode.show { display: block; }
-.report-overlay.show { display: block; }
-
 @media (max-width: 768px) {
   body { height: auto; overflow: auto; }
 
@@ -330,21 +320,6 @@ header h1 {
     flex-direction: row;
   }
 
-  #reportPanel.popup-mode {
-    position: fixed;
-    width: 92vw;
-    max-width: none;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--surface);
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    z-index: 1000;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    display: none;
-  }
-
   .canvas-overlay {
     font-size: 0.65rem;
     padding: 6px 8px;
@@ -371,7 +346,6 @@ header h1 {
 </header>
 
 <div id="layout">
-  <div class="report-overlay" id="reportOverlay"></div>
   <div id="canvasWrap">
     <canvas id="sim"></canvas>
     <div class="canvas-overlay">
@@ -401,10 +375,9 @@ header h1 {
 
     <div class="panel" id="config" style="padding-top:10px;"></div>
 
-    <div class="panel popup-mode" id="reportPanel" style="display:none;">
+    <div class="panel" id="reportPanel" style="display:none;">
       <div class="panel-title">Report Simulation</div>
       <div id="report"></div>
-      <button class="btn btn-stop" id="btnCloseReport" style="width:100%; margin-top:15px; display:none;" onclick="closeReport()">Đóng</button>
     </div>
   </div>
 </div>
@@ -980,23 +953,10 @@ function showReport() {
       <tr><td>Tổng xe</td><td>${buses.length}</td></tr>
     </table>`;
   
-  const rp = document.getElementById("reportPanel");
-  const ro = document.getElementById("reportOverlay");
-  
-  rp.style.display = "block";
+  document.getElementById("reportPanel").style.display = "block";
   if (window.innerWidth <= 768) {
-    rp.classList.add("show");
-    ro.classList.add("show");
-    document.getElementById("btnCloseReport").style.display = "block";
+    document.getElementById("sidebar").classList.add("open");
   }
-}
-
-function closeReport() {
-  const rp = document.getElementById("reportPanel");
-  const ro = document.getElementById("reportOverlay");
-  rp.style.display = "none";
-  rp.classList.remove("show");
-  ro.classList.remove("show");
 }
 
 function updateUI() {
@@ -1022,7 +982,6 @@ function start() {
   totalRuns = parseInt(document.getElementById("runsInput").value) || 1;
   currentRun = 1;
   aggServed = 0; aggAvgQ = 0; aggAvgLoad = 0; aggUtil = 0;
-  closeReport();
   initRun(); 
   running = true; 
   last = null;
@@ -1043,18 +1002,13 @@ function reset() {
   initRun(); 
   draw(); 
   updateUI();
-  closeReport();
+  document.getElementById("reportPanel").style.display = "none";
   document.getElementById("report").innerHTML = "";
 }
 
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("open");
 }
-
-document.getElementById("reportOverlay").onclick = () => {
-  closeReport();
-  document.getElementById("sidebar").classList.remove("open");
-};
 
 buildStopList();
 buildConfig();
