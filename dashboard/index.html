@@ -1,1 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Manufacturing Performance & Downtime Showcase</title>
+    <style>
+        /* CSS Variables from the original sleek theme */
+        :root {
+            --bg-color: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --accent-blue: #5C9CE6; 
+            --accent-orange: #E66C37; 
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            margin: 40px auto;
+            padding-bottom: 60px;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Image Showcase */
+        .showcase-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            display: block;
+        }
+
+        /* Features/Description Section */
+        .details-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .details-section {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .description, .code-section {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .description h2, .code-section h2 {
+            margin-top: 0;
+            color: var(--accent-blue);
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: var(--accent-orange);
+            margin-top: 25px;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        /* Download Section */
+        .download-actions {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 20px;
+            height: fit-content;
+        }
+
+        .download-actions h3 {
+            margin-top: 0;
+            text-align: center;
+            color: var(--accent-orange);
+        }
+
+        /* Button Styling */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1em;
+            transition: background 0.2s ease, transform 0.1s ease;
+            cursor: pointer;
+            border: none;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-pbix {
+            background-color: var(--accent-orange);
+        }
+
+        .btn-pbix:hover {
+            background-color: #d35400;
+        }
+
+        .btn-data {
+            background-color: #34495e; 
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn-data:hover {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Code Block Styling */
+        pre {
+            background-color: #0d0d0d;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            color: #8ed0f9; 
+            border-left: 4px solid var(--accent-orange);
+            font-size: 0.95em;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+        }
+
+        .dax-keyword { color: #ff7b72; }
+        .dax-function { color: #d2a8ff; }
+        .dax-comment { color: #8b949e; font-style: italic; }
+
+        /* --- Added CSS for Gallery Grid and Back Button --- */
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 2rem;
+        }
+        @media (min-width: 640px) {
+            #gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 768px) {
+            #gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 4rem;
+            color: var(--accent-blue);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .back-link:hover {
+            color: #8ed0f9;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Manufacturing Operations Dashboard</h1>
+        <p>An interactive Power BI solution for tracking line efficiency and root cause analysis of production downtime.</p>
+    </header>
+
+    <div class="showcase-card">
+        <img src="workshop.jpg" alt="Manufacturing Power BI Dashboard Screenshot" class="dashboard-img">
+    </div>
+
+    <div class="details-section">
+        <div class="description">
+            <h2>Project Overview</h2>
+            <p>This comprehensive dashboard provides production supervisors and engineering teams with real-time insights into manufacturing line performance. It merges productivity metrics with quality control logs to isolate inefficiencies.</p>
+            <h3>Key Insights:</h3>
+            <ul>
+                <li><strong>Efficiency Tracking:</strong> Monitors daily performance against standard batch times, isolating trends by product and operator.</li>
+                <li><strong>Dynamic Pareto Analysis:</strong> Automatically calculates the "Vital Few" factors causing 80% of total downtime minutes.</li>
+                <li><strong>Error Isolation:</strong> Visualizes operator error frequencies to identify targeted training opportunities.</li>
+            </ul>
+        </div>
+
+        <div class="download-actions">
+            <h3>Project Assets</h3>
+            <a href="workshop.pbix" download class="btn btn-pbix">Download PBIX File</a>
+            <a href="Sythetic production data set.zip" download class="btn btn-data">Download Raw Dataset</a>
+        </div>
+    </div>
+
+    <div class="code-section">
+        <h2>Phase 1: Data Architecture & Modeling</h2>
+        <p>Before building visuals, the raw production logs were cleaned in Power Query and modeled into a robust Star Schema to ensure high performance and accurate filtering.</p>
+        <ul>
+            <li><strong>Data Cleaning:</strong> Handled null values by replacing empty text fields with "Uncategorized" and empty numeric fields with <code>0</code>.</li>
+            <li><strong>Fact Table:</strong> <code>Fact Line Productivity</code> & <code>Line downtime</code> act as the core numerical tables containing Batch IDs, Dates, and Duration minutes.</li>
+            <li><strong>Dimension Tables:</strong> <code>Downtime factors</code> and <code>Products</code> act as lookup tables.</li>
+            <li><strong>Relationships:</strong> 1-to-Many (*) relationships established from Dimension tables filtering the Fact tables, with Single cross-filter direction.</li>
+        </ul>
+    </div>
+
+    <div class="code-section">
+        <h2>Phase 2: Base Productivity Measures</h2>
+        <p>These core DAX formulas establish the baseline KPIs for the executive summary cards and trend lines.</p>
+<pre>
+<span class="dax-comment">// Calculates total time recorded per batch</span>
+Actual Batch Time = <span class="dax-function">SUM</span>('Fact Line Productivity'[Batch time])
+
+<span class="dax-comment">// Calculates expected time based on product standards</span>
+Standard Batch Time = <span class="dax-function">SUM</span>('Fact Line Productivity'[Products.Standard batch time])
+
+<span class="dax-comment">// Core Efficiency Ratio</span>
+Efficiency = <span class="dax-function">DIVIDE</span>([Standard Batch Time], [Actual Batch Time], 0)
+
+<span class="dax-comment">// Base measure for Pareto charting</span>
+Total Downtime = <span class="dax-function">SUM</span>('Line downtime'[Downtime])
+</pre>
+    </div>
+
+    <div class="code-section">
+        <h2>Phase 3: The Pareto Logic</h2>
+        <p>Standard Pareto charts fail in Power BI when data contains tied values. This DAX logic forces the calculation to use the exact Description column on the visual and includes an alphabetical tie-breaker so the cumulative line never flatlines.</p>
+        
+        <h3>1. Cumulative Downtime (Running Total)</h3>
+<pre>
+Cumulative Downtime = 
+<span class="dax-keyword">VAR</span> CurrentDowntime = [Total Downtime]
+<span class="dax-keyword">VAR</span> CurrentDesc = <span class="dax-function">MAX</span>('Downtime factors'[Description])
+
+<span class="dax-keyword">RETURN</span>
+<span class="dax-keyword">IF</span>(
+    <span class="dax-function">ISBLANK</span>(CurrentDowntime), 
+    <span class="dax-function">BLANK</span>(),
+    <span class="dax-function">CALCULATE</span>(
+        [Total Downtime],
+        <span class="dax-function">FILTER</span>(
+            <span class="dax-function">ALLSELECTED</span>('Downtime factors'[Description]),
+            [Total Downtime] > CurrentDowntime || 
+            ([Total Downtime] = CurrentDowntime && 'Downtime factors'[Description] <= CurrentDesc)
+        )
+    )
+)
+</pre>
+
+        <h3>2. Cumulative Percentage</h3>
+<pre>
+Cumulative % = 
+<span class="dax-keyword">IF</span>(
+    <span class="dax-function">ISBLANK</span>([Total Downtime]),
+    <span class="dax-function">BLANK</span>(),
+    <span class="dax-function">DIVIDE</span>(
+        [Cumulative Downtime],
+        <span class="dax-function">CALCULATE</span>([Total Downtime], <span class="dax-function">ALLSELECTED</span>('Downtime factors'[Description]))
+    )
+)
+</pre>
+
+        <h3>3. Dynamic Color Switch (Conditional Formatting)</h3>
+        <p>This measure dynamically assigns a hex color code based on where the bar sits relative to the 80% cutoff line.</p>
+<pre>
+Pareto Bar Color = 
+<span class="dax-keyword">IF</span>(
+    [Cumulative %] <= 0.80,
+    "#E66C37", <span class="dax-comment">// The Orange color for the Top 80% offenders</span>
+    "#5C9CE6"  <span class="dax-comment">// The Blue color for the remaining 20%</span>
+)
+</pre>
+    </div>
+
+    <div class="code-section">
+        <h2>Phase 4: Visual Configuration Guide</h2>
+        <p>The exact settings required to assemble the visuals in the Power BI report canvas.</p>
+
+        <h3>The Pareto Chart</h3>
+        <ol>
+            <li><strong>Visual Type:</strong> Line and clustered column chart.</li>
+            <li><strong>Axes Setup:</strong> 
+                <ul>
+                    <li>X-axis: Ensure it is strictly the <code>Description</code> column from the <code>Downtime factors</code> table.</li>
+                    <li>Column y-axis: <code>Total Downtime</code>.</li>
+                    <li>Line y-axis: <code>Cumulative %</code>.</li>
+                </ul>
+            </li>
+            <li><strong>The Sort:</strong> Click the three dots (...) on the visual -> <strong>Sort axis</strong> -> Choose <code>Total Downtime</code>. Click the dots again and ensure <strong>Sort descending</strong> is selected.</li>
+            <li><strong>Conditional Formatting:</strong> Go to the Format visual tab -> Columns -> Click the <strong>fx</strong> button next to color. Change Format style to <strong>Field value</strong> and select the <code>Pareto Bar Color</code> measure.</li>
+            <li><strong>80% Reference Line:</strong> Analytics Pane -> Constant Line -> Attach to Secondary Y-Axis -> Value: <code>0.8</code> -> Style: Dashed.</li>
+        </ol>
+
+        <h3>Supporting Visuals</h3>
+        <ul>
+            <li><strong>Executive KPIs:</strong> Utilize the 'Card' visual to display <code>Efficiency</code>, <code>Total Batch Time</code>, and <code>Total Downtime</code>.</li>
+            <li><strong>Efficiency by Date:</strong> Line chart plotting <code>Date</code> on the X-axis and <code>Efficiency</code> on the Y-axis.</li>
+            <li><strong>Breakdowns:</strong> Clustered bar charts utilizing <code>Operator</code> and <code>Product</code> dimensions against the <code>Efficiency</code> measure.</li>
+        </ul>
+    </div>
+
+    <div id="gallery"></div>
+
+    <a href="../index.html" class="back-link">← Back</a>
+
+</div>
+
+</body>
+</html>
