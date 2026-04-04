@@ -1,439 +1,1210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nguyen Huy Hoang</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-        }
-        .gradient-text {
-            background: linear-gradient(90deg, #1e40af, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    </style>
-<link rel="icon" type="image/png" href="favicon.png">
-    
-<title>Nguyen Huy Hoang - About </title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nguyen Huy Hoang — Portfolio</title>
 
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Google Fonts: Cormorant (display) + DM Sans (body) -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ══ TOKENS ══ */
+    :root {
+      --navy:    #080f1a;
+      --navy2:   #0d1626;
+      --navy3:   #121e30;
+      --gold:    #c8922a;
+      --gold-lt: #e8b84b;
+      --gold-dk: #9b6d18;
+      --cream:   #f0ece4;
+      --muted:   #7a8fa6;
+      --card-bg: #101c2e;
+      --line:    rgba(200,146,42,.18);
+      --glow:    rgba(200,146,42,.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: #ccd8e8;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* ── Custom cursor ── */
+    #cursor {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform .1s, opacity .3s;
+      mix-blend-mode: screen;
+    }
+    #cursor-ring {
+      position: fixed;
+      width: 32px; height: 32px;
+      border: 1px solid rgba(200,146,42,.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9997;
+      transform: translate(-50%, -50%);
+      transition: transform .22s cubic-bezier(.25,.46,.45,.94), width .25s, height .25s, opacity .3s;
+    }
+    a:hover ~ #cursor-ring, button:hover ~ #cursor-ring { width: 48px; height: 48px; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--navy2); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 2px; }
+
+    /* ── Scroll progress ── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt));
+      z-index: 9996;
+      width: 0%;
+      transition: width .1s linear;
+    }
+
+    /* ── Typography ── */
+    .serif { font-family: 'Cormorant', serif; }
+    .gold { color: var(--gold); }
+    .muted { color: var(--muted); }
+
+    /* ── Navbar ── */
+    #navbar {
+      background: transparent;
+      transition: background .5s, box-shadow .5s;
+      z-index: 1000;
+      padding: 1.2rem 0;
+    }
+    #navbar.scrolled {
+      background: rgba(8,15,26,.88) !important;
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      box-shadow: 0 1px 0 var(--line);
+      padding: .75rem 0;
+    }
+    .nav-brand {
+      font-family: 'Cormorant', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      color: var(--gold) !important;
+      text-decoration: none;
+    }
+    .nav-link {
+      color: var(--muted) !important;
+      font-size: .72rem;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      font-weight: 500;
+      padding: .4rem .8rem !important;
+      position: relative;
+      transition: color .2s;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      width: 0; height: 1px;
+      background: var(--gold);
+      transform: translateX(-50%);
+      transition: width .25s;
+    }
+    .nav-link:hover { color: var(--gold-lt) !important; }
+    .nav-link:hover::after { width: 60%; }
+    .nav-link.active-section { color: var(--gold) !important; }
+    .nav-link.active-section::after { width: 60%; }
+    .navbar-toggler { border: 1px solid var(--line); background: none; padding: .4rem .6rem; }
+    .navbar-toggler:focus { box-shadow: none; }
+
+    /* ── Section scaffold ── */
+    section { padding: 7rem 0; }
+    .section-label {
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: .6rem;
+    }
+    .section-title {
+      font-family: 'Cormorant', serif;
+      font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+      font-weight: 600;
+      color: var(--cream);
+      line-height: 1.05;
+    }
+    .divider {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      margin: 1.4rem 0 2.8rem;
+    }
+    .divider.mx-auto { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+    /* ══ HERO ══ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--navy);
+    }
+
+    /* Animated mesh background */
+    .hero-mesh {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 65% 55% at 75% 38%, rgba(200,146,42,.09) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 45% at 15% 75%, rgba(20,80,180,.08) 0%, transparent 55%),
+        radial-gradient(ellipse 30% 30% at 85% 85%, rgba(200,146,42,.04) 0%, transparent 50%);
+    }
+
+    /* Floating geometric rings */
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(200,146,42,.1);
+      animation: spin-slow linear infinite;
+    }
+    .ring-1 { width: 600px; height: 600px; top: -180px; right: -180px; animation-duration: 60s; }
+    .ring-2 { width: 380px; height: 380px; top: -80px; right: -80px; animation-duration: 45s; animation-direction: reverse; border-color: rgba(200,146,42,.07); }
+    .ring-3 { width: 200px; height: 200px; bottom: 10%; left: 5%; animation-duration: 35s; border-color: rgba(20,80,180,.1); }
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .hero-content { position: relative; z-index: 1; }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .68rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--line);
+      padding: .4rem 1rem;
+      border-radius: 2px;
+      margin-bottom: 2rem;
+      background: rgba(200,146,42,.04);
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 18px; height: 1px;
+      background: var(--gold);
+    }
+
+    .hero-name {
+      font-family: 'Cormorant', serif;
+      font-size: clamp(3.5rem, 9vw, 7.5rem);
+      font-weight: 300;
+      line-height: .95;
+      letter-spacing: -.02em;
+      color: var(--cream);
+      margin-bottom: 1.6rem;
+    }
+    .hero-name em {
+      font-style: italic;
+      font-weight: 600;
+      color: var(--gold);
+      display: block;
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 440px;
+      line-height: 1.8;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-gold {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 600;
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      border: none;
+      padding: .85rem 2rem;
+      border-radius: 2px;
+      text-decoration: none;
+      transition: background .2s, transform .2s, box-shadow .2s;
+    }
+    .btn-gold:hover {
+      background: var(--gold-lt);
+      color: var(--navy);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(200,146,42,.2);
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: transparent;
+      color: var(--muted);
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      border: 1px solid var(--line);
+      padding: .85rem 2rem;
+      border-radius: 2px;
+      text-decoration: none;
+      transition: border-color .2s, color .2s, transform .2s;
+    }
+    .btn-ghost:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      transform: translateY(-3px);
+    }
+
+    /* Hero photo */
+    .hero-photo-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .hero-photo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px rgba(200,146,42,.3);
+      z-index: 2;
+      pointer-events: none;
+    }
+    /* Offset decorative frame */
+    .hero-photo-wrap::after {
+      content: '';
+      position: absolute;
+      top: 20px; left: 20px;
+      right: -20px; bottom: -20px;
+      border: 1px solid rgba(200,146,42,.2);
+      border-radius: 4px;
+      z-index: 0;
+    }
+    .hero-photo {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      border-radius: 4px;
+      position: relative;
+      z-index: 1;
+      display: block;
+      filter: contrast(1.05) saturate(.9);
+    }
+
+    /* Corner accents */
+    .corner {
+      position: absolute;
+      width: 18px; height: 18px;
+      z-index: 3;
+    }
+    .corner::before, .corner::after {
+      content: '';
+      position: absolute;
+      background: var(--gold);
+    }
+    .corner::before { width: 100%; height: 1.5px; }
+    .corner::after { width: 1.5px; height: 100%; }
+    .corner-tl { top: -1px; left: -1px; }
+    .corner-tr { top: -1px; right: -1px; transform: scaleX(-1); }
+    .corner-bl { bottom: -1px; left: -1px; transform: scaleY(-1); }
+    .corner-br { bottom: -1px; right: -1px; transform: scale(-1); }
+
+    /* ══ STATS STRIP ══ */
+    #stats {
+      background: var(--navy2);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 2.5rem 0;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Cormorant', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: .68rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: .4rem;
+    }
+    .stat-divider {
+      width: 1px;
+      background: var(--line);
+      align-self: stretch;
+    }
+
+    /* ══ SKILLS ══ */
+    #skills { background: var(--navy2); }
+    .skill-card {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 2.2rem;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s;
+    }
+    .skill-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(200,146,42,.04) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .skill-card:hover { border-color: rgba(200,146,42,.45); transform: translateY(-5px); }
+    .skill-card:hover::before { opacity: 1; }
+    /* Glow on hover */
+    .skill-card::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: -40px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,146,42,.12) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .skill-card:hover::after { opacity: 1; }
+
+    .skill-num {
+      font-family: 'Cormorant', serif;
+      font-size: .75rem;
+      color: rgba(200,146,42,.35);
+      letter-spacing: .1em;
+      margin-bottom: 1.5rem;
+    }
+    .skill-icon {
+      width: 40px; height: 40px;
+      background: rgba(200,146,42,.1);
+      border: 1px solid rgba(200,146,42,.2);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--gold);
+      margin-bottom: 1.2rem;
+      transition: background .3s;
+    }
+    .skill-card:hover .skill-icon { background: rgba(200,146,42,.2); }
+    .skill-card h5 { font-weight: 600; font-size: .9rem; color: var(--cream); margin-bottom: 1rem; letter-spacing: .02em; }
+    .skill-tag {
+      display: inline-block;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(200,146,42,.15);
+      color: #6a84a0;
+      font-size: .7rem;
+      padding: .22rem .7rem;
+      border-radius: 100px;
+      margin: .18rem .1rem;
+      transition: color .25s, border-color .25s, background .25s;
+    }
+    .skill-card:hover .skill-tag {
+      color: var(--muted);
+      border-color: rgba(200,146,42,.3);
+      background: rgba(200,146,42,.05);
+    }
+
+    /* ══ TIMELINE (Experience & Extra) ══ */
+    .timeline { position: relative; padding-left: 2.8rem; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px; top: 8px;
+      width: 1px;
+      height: calc(100% - 8px);
+      background: linear-gradient(to bottom, var(--gold), transparent);
+    }
+    .timeline-item {
+      position: relative;
+      padding-bottom: 3.5rem;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.8rem;
+      top: 6px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--navy);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 0 4px rgba(200,146,42,.12), 0 0 12px rgba(200,146,42,.2);
+      z-index: 1;
+    }
+    .timeline-date {
+      font-size: .65rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: .5rem;
+    }
+    .timeline-title {
+      font-family: 'Cormorant', serif;
+      font-size: 1.45rem;
+      font-weight: 600;
+      color: var(--cream);
+      line-height: 1.2;
+    }
+    .timeline-role {
+      color: var(--muted);
+      font-size: .82rem;
+      margin: .3rem 0 .9rem;
+    }
+    .timeline-body {
+      color: #6a84a0;
+      font-size: .88rem;
+      line-height: 1.75;
+    }
+    .timeline-body li { margin-bottom: .5rem; padding-left: .2rem; }
+    .timeline-body li::marker { color: var(--gold-dk); font-size: .7em; }
+
+    /* ══ EDUCATION ══ */
+    #education { background: var(--navy3); }
+    .edu-card {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 2.4rem;
+      height: 100%;
+    }
+    .cert-bar-wrap {
+      height: 2px;
+      background: rgba(255,255,255,.06);
+      border-radius: 1px;
+      overflow: hidden;
+      margin: .5rem 0 .3rem;
+    }
+    .cert-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt));
+      border-radius: 1px;
+    }
+
+    /* ══ PROJECTS ══ */
+    #projects { background: var(--navy); }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 295px), 1fr));
+      gap: 1rem;
+    }
+    .project-card {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .project-card:hover {
+      border-color: rgba(200,146,42,.4);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,.3);
+    }
+    .project-card:hover::before { opacity: 1; }
+
+    .proj-num {
+      font-family: 'Cormorant', serif;
+      font-size: .75rem;
+      color: rgba(200,146,42,.25);
+      letter-spacing: .08em;
+      margin-bottom: .5rem;
+    }
+    .proj-cat {
+      font-size: .62rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: .6rem;
+    }
+    .proj-title {
+      font-family: 'Cormorant', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: .8rem;
+      line-height: 1.25;
+    }
+    .proj-title a {
+      color: inherit;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .proj-title a:hover { color: var(--gold); }
+    .proj-desc { color: var(--muted); font-size: .83rem; line-height: 1.7; flex: 1; }
+    .proj-footer {
+      margin-top: 1.4rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(200,146,42,.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .4rem;
+    }
+    .proj-badge {
+      font-size: .62rem;
+      border: 1px solid rgba(200,146,42,.2);
+      color: #5a7490;
+      padding: .2rem .6rem;
+      border-radius: 100px;
+    }
+    .proj-year { font-size: .68rem; color: rgba(138,155,174,.45); }
+    .proj-arrow {
+      font-size: .75rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s, transform .2s;
+    }
+    .proj-arrow:hover { color: var(--gold); transform: translateX(3px) translateY(-3px); }
+
+    /* ══ CONTACT ══ */
+    #contact { background: var(--navy2); }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding: 1.5rem 1.8rem;
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: border-color .25s, color .25s, transform .25s, box-shadow .25s;
+    }
+    .contact-link:hover {
+      border-color: rgba(200,146,42,.5);
+      color: var(--cream);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(0,0,0,.25);
+    }
+    .contact-icon {
+      font-size: 1.3rem;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    .contact-label {
+      font-size: .62rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: .15rem;
+    }
+    .contact-value { font-size: .9rem; color: #c0cfe0; }
+
+    /* ══ FADE-UP ANIMATION ══ */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .7s cubic-bezier(.25,.46,.45,.94),
+                  transform .7s cubic-bezier(.25,.46,.45,.94);
+    }
+    .fade-up.delay-1 { transition-delay: .1s; }
+    .fade-up.delay-2 { transition-delay: .2s; }
+    .fade-up.delay-3 { transition-delay: .3s; }
+    .fade-up.delay-4 { transition-delay: .4s; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ══ FOOTER ══ */
+    footer {
+      background: var(--navy);
+      border-top: 1px solid var(--line);
+      padding: 2.5rem 0;
+    }
+    .footer-name {
+      font-family: 'Cormorant', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 991px) {
+      #hero { padding: 7rem 0 5rem; }
+      .hero-photo { max-width: 260px; }
+      .ring-1, .ring-2, .ring-3 { display: none; }
+    }
+    @media (max-width: 767px) {
+      section { padding: 5rem 0; }
+      .hero-name { font-size: 3.5rem; }
+    }
+    @media (max-width: 575px) {
+      body { cursor: auto; }
+      #cursor, #cursor-ring { display: none; }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body>
 
-<!-- Navigation -->
-<nav class="fixed w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-            <span class="text-xl font-bold gradient-text">About Me</span>
-            <div class="hidden md:flex space-x-8 text-sm font-medium">
-                <a href="#about" class="hover:text-blue-600 transition">About</a>
-                <a href="#skills" class="hover:text-blue-600 transition">Skills</a>
-                <a href="#experience" class="hover:text-blue-600 transition">Experience</a>
-                <a href="#projects" class="hover:text-blue-600 transition">Projects</a>
-                <a href="#education" class="hover:text-blue-600 transition">Education</a>
-                <a href="#contact" class="hover:text-blue-600 transition">Contact</a>
-            </div>
-        </div>
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Scroll progress -->
+<div id="progress-bar"></div>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav id="navbar" class="navbar navbar-expand-lg fixed-top">
+  <div class="container">
+    <a class="nav-brand" href="#hero">About Me</a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-4" style="color:var(--gold);"></i>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+      <ul class="navbar-nav gap-1">
+        <li class="nav-item"><a class="nav-link" href="#about" data-section="about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#skills" data-section="skills">Skills</a></li>
+        <li class="nav-item"><a class="nav-link" href="#experience" data-section="experience">Experience</a></li>
+        <li class="nav-item"><a class="nav-link" href="#extra" data-section="extra">Activities</a></li>
+        <li class="nav-item"><a class="nav-link" href="#projects" data-section="projects">Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="#education" data-section="education">Education</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact" data-section="contact">Contact</a></li>
+      </ul>
     </div>
+  </div>
 </nav>
-    
-    <!-- Hero Section -->
-<section id="about" class="pt-32 pb-20 px-4">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
-        <div class="w-60 h-80 md:w-72 md:h-96 flex-shrink-0 overflow-hidden rounded-2xl shadow-2xl border-4 border-white">
-            <img src="DSC_4906a (1).jpg" 
-                 alt="Nguyen Huy Hoang" 
-                 class="w-full h-full object-cover" 
-                 onerror="this.src='https://via.placeholder.com/300x400?text=Profile+Image'">
+
+<!-- ══════════ HERO ══════════ -->
+<section id="hero">
+  <div class="hero-mesh"></div>
+  <div class="ring ring-1"></div>
+  <div class="ring ring-2"></div>
+  <div class="ring ring-3"></div>
+
+  <div class="container hero-content">
+    <div class="row align-items-center g-5 g-lg-0">
+      <div class="col-lg-7 order-2 order-lg-1">
+        <div class="hero-eyebrow">Industrial Systems Engineer</div>
+        <h1 class="hero-name">
+          Nguyen<br/>
+          <em>Huy Hoang</em>
+        </h1>
+        <p class="hero-desc">
+          ISE student at HCMUT focused on production analytics, operational
+          optimization, and digitalization. Foundational in data analysis, SQL, Power BI,
+          SPC, discrete-event simulation, and lean methodology.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="#contact" class="btn-gold">Contact Me <i class="bi bi-arrow-right"></i></a>
+          <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" class="btn-ghost">
+            <i class="bi bi-linkedin"></i> LinkedIn
+          </a>
+          <a href="resume1.pdf" target="_blank" class="btn-ghost">
+            <i class="bi bi-file-earmark-person"></i> Résumé
+          </a>
         </div>
-            <div class="text-center md:text-left">
-                <h1 class="text-4xl md:text-5xl font-extrabold mb-4 uppercase tracking-tight">Nguyen Huy Hoang</h1>
-                <p class="text-xl text-blue-600 font-semibold mb-6">Industrial Systems Engineer | Production Analytics | Lean Manufacturing</p>
-                <p class="text-gray-600 leading-relaxed max-w-2xl text-lg">
-                    Industrial Systems Engineering student at HCMUT focused on production analytics, operational optimization, and digitalization. Foundational in data analysis, SQL querying, and Microsoft Power Platform. Proficient in statistical process control, discrete-event simulation, data-driven decision making, and lean methodology.
-                </p>
-                <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
-                    <a href="#contact" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-200">Contact Me</a>
-                    <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" class="border border-gray-300 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition">LinkedIn <svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg></a>
-                    <a href="resume1.pdf" target="_blank" class="border border-gray-300 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition">
-Resume
-<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
-                </div>
-            </div>
+      </div>
+
+      <div class="col-lg-5 order-1 order-lg-2 d-flex justify-content-center">
+        <div class="hero-photo-wrap">
+          <span class="corner corner-tl"></span>
+          <span class="corner corner-tr"></span>
+          <span class="corner corner-bl"></span>
+          <span class="corner corner-br"></span>
+          <img src="DSC_4906a (1).jpg" alt="Nguyen Huy Hoang" class="hero-photo"
+               onerror="this.src='https://placehold.co/360x480/0d1626/c8922a?text=N.H.H'" />
         </div>
-    </section>
-
-
-<!-- Education Section -->
-<section id="education" class="py-20 bg-blue-600 text-white">
-    <div class="max-w-6xl mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-8 text-white">Education & Certifications</h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-
-            <!-- Education -->
-            <div class="bg-white/10 p-8 rounded-2xl backdrop-blur-sm">
-                <h3 class="text-xl font-bold mb-2">Ho Chi Minh City University of Technology (HCMUT)</h3>
-                <p class="text-blue-100 mb-4">Bachelor of Engineering in Industrial Systems Engineering</p>
-
-                <div class="flex justify-between items-center border-t border-white/20 pt-4 mt-4">
-                    <span>Expected Graduation: 2027</span>
-                    <span class="font-bold">GPA: 3.3/4 2025-2026</span>
-                </div>
-            </div>
-
-            <!-- Certifications -->
-            <div class="bg-white/10 p-8 rounded-2xl backdrop-blur-sm">
-                <h3 class="text-xl font-bold mb-6">Certifications</h3>
-
-                <div class="space-y-6">
-
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span>TOEIC Listening & Reading</span>
-                            <span>935 / 990</span>
-                        </div>
-                        <div class="w-full bg-white/20 h-2 rounded-full">
-                            <div class="bg-white h-2 rounded-full" style="width:95%"></div>
-                        </div>
-                        <p class="text-blue-100 text-sm mt-2">
-                            Full Professional Proficiency
-                        </p>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span>MOS Associate</span>
-                            <span>Microsoft Office Specialist</span>
-                        </div>
-                        <div class="w-full bg-white/20 h-2 rounded-full">
-                            <div class="bg-white h-2 rounded-full" style="width:90%"></div>
-                        </div>
-                        <p class="text-blue-100 text-sm mt-2">
-                            Office 365 & Office 2019
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
+      </div>
     </div>
+  </div>
 </section>
 
-    <!-- Skills Section -->
-    <section id="skills" class="py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-12 text-center">Technical Skills</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="p-6 bg-gray-50 rounded-xl">
-                    <h3 class="font-bold text-lg mb-4 text-blue-700">Data & Visualization</h3>
-                    <ul class="space-y-2 text-gray-700">
-                        <li>• SQL (Foundational)</li>
-                        <li>• Power BI (Data modeling & Dashboarding)</li>
-                        <li>• Excel (Advanced: Pivot Tables, Modeling)</li>
-                    </ul>
-                </div>
-                <div class="p-6 bg-gray-50 rounded-xl">
-                    <h3 class="font-bold text-lg mb-4 text-blue-700">Optimization & Lean</h3>
-                    <ul class="space-y-2 text-gray-700">
-                        <li>• Lean Six Sigma Foundations (DMAIC)</li>
-                        <li>• SPC, Control Charts, Kaizen</li>
-                        <li>• Cycle Time (CT) Analysis</li>
-                        <li>• AutoCAD 2D</li>
-                    </ul>
-                </div>
-                <div class="p-6 bg-gray-50 rounded-xl">
-                    <h3 class="font-bold text-lg mb-4 text-blue-700">Tools & Automation</h3>
-                    <ul class="space-y-2 text-gray-700">
-                        <li>• Power Apps & Power Automate</li>
-                        <li>• Arena, LINGO, CPLEX, QM</li>
-                        <li>• Minitab</li>
-                    </ul>
-                </div>
-            </div>
+<!-- ══════════ STATS STRIP ══════════ -->
+<section id="stats">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-around align-items-center gap-4 fade-up">
+      <div class="stat-item">
+        <div class="stat-num">3.3<span style="font-size:1.4rem;color:var(--gold-dk);">/4</span></div>
+        <div class="stat-label">GPA (2025–26)</div>
+      </div>
+      <div class="stat-divider d-none d-md-block"></div>
+      <div class="stat-item">
+        <div class="stat-num">935</div>
+        <div class="stat-label">TOEIC LR Score</div>
+      </div>
+       <div class="stat-divider d-none d-md-block"></div>
+      <div class="stat-item">
+        <div class="stat-num">2027</div>
+        <div class="stat-label">Expected Grad</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SKILLS ══════════ -->
+<section id="skills">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-label">Technical Competencies</span>
+      <h2 class="section-title">Skills &amp; Tools</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 fade-up delay-1">
+        <div class="skill-card">
+          <div class="skill-num">01</div>
+          <div class="skill-icon"><i class="bi bi-bar-chart-fill"></i></div>
+          <h5>Data &amp; Visualization</h5>
+          <div>
+            <span class="skill-tag">SQL (Foundational)</span>
+            <span class="skill-tag">Power BI</span>
+            <span class="skill-tag">Data Modeling</span>
+            <span class="skill-tag">Dashboarding</span>
+            <span class="skill-tag">Excel (Advanced)</span>
+            <span class="skill-tag">Pivot Tables</span>
+          </div>
         </div>
-    </section>
-
-      <!-- Experience Section -->
-    <section id="experience" class="py-20">
-        <div class="max-w-4xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-12 text-center">Experience</h2>
-            <div class="space-y-12">
-                <!-- Bach Khoa Ambassador Club -->
-                <div class="relative pl-8 border-l-2 border-blue-200">
-                    <div class="absolute w-4 h-4 bg-blue-600 rounded-full -left-[9px] top-1"></div>
-                    <div class="flex flex-wrap justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold">Bach Khoa Ambassador Club</h3>
-                        <span class="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Nov 2025 - Present</span>
-                    </div>
-                    <p class="text-blue-600 font-medium mb-2">Project Leader for BKFC - Nguyen Huu Canh High School</p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-1">
-                        <li>Led planning and execution of a 6-month university orientation campaign.</li>
-                    </ul>
-                </div>
-
-                <!-- Play & Learn English Club -->
-                <div class="relative pl-8 border-l-2 border-blue-200">
-                    <div class="absolute w-4 h-4 bg-blue-600 rounded-full -left-[9px] top-1"></div>
-                    <div class="flex flex-wrap justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold">Play & Learn English Club</h3>
-                        <span class="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Sep 2024 - Present</span>
-                    </div>
-                    <p class="text-blue-600 font-medium mb-2">HR Member</p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-1">
-                        <li>Coordinated internal tasks and supported project organization workflows.</li>
-                    </ul>
-                </div>
-
-                <!-- Mechanical Engineering Faculty Youth Union -->
-                <div class="relative pl-8 border-l-2 border-blue-200">
-                    <div class="absolute w-4 h-4 bg-blue-600 rounded-full -left-[9px] top-1"></div>
-                    <div class="flex flex-wrap justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold">Mechanical Engineering Faculty Youth Union, HCMUT</h3>
-                        <span class="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Jun 2025 - Nov 2025</span>
-                    </div>
-                    <div class="mb-4">
-                        <p class="text-blue-600 font-medium mb-1 italic">Event MC & Coordinator (Traditional Camp)</p>
-                        <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>Managed MC scripts, award ceremonies, and event logistics for the night program.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <p class="text-blue-600 font-medium mb-1 italic">STEM Team Member (Green Summer Volunteer Campaign)</p>
-                        <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>Organized STEM-focused activities for community engagement.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- 7-Eleven Vietnam -->
-                <div class="relative pl-8 border-l-2 border-blue-200">
-                    <div class="absolute w-4 h-4 bg-blue-600 rounded-full -left-[9px] top-1"></div>
-                    <div class="flex flex-wrap justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold">7-Eleven Vietnam</h3>
-                        <span class="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Jul 2024 - Nov 2024</span>
-                    </div>
-                    <p class="text-blue-600 font-medium mb-2">Store Assistant</p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-1">
-                        <li>Managed daily operations, inventory management, and transaction accuracy.</li>
-                    </ul>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-4 fade-up delay-2">
+        <div class="skill-card">
+          <div class="skill-num">02</div>
+          <div class="skill-icon"><i class="bi bi-gear-fill"></i></div>
+          <h5>Optimization &amp; Lean</h5>
+          <div>
+            <span class="skill-tag">Lean Six Sigma (DMAIC)</span>
+            <span class="skill-tag">SPC</span>
+            <span class="skill-tag">Control Charts</span>
+            <span class="skill-tag">Kaizen</span>
+            <span class="skill-tag">Cycle Time Analysis</span>
+            <span class="skill-tag">AutoCAD 2D</span>
+          </div>
         </div>
-    </section>
+      </div>
+      <div class="col-md-4 fade-up delay-3">
+        <div class="skill-card">
+          <div class="skill-num">03</div>
+          <div class="skill-icon"><i class="bi bi-cpu-fill"></i></div>
+          <h5>Tools &amp; Automation</h5>
+          <div>
+            <span class="skill-tag">Power Apps</span>
+            <span class="skill-tag">Power Automate</span>
+            <span class="skill-tag">Arena (DES)</span>
+            <span class="skill-tag">LINGO</span>
+            <span class="skill-tag">CPLEX</span>
+            <span class="skill-tag">QM</span>
+            <span class="skill-tag">Minitab</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<!-- Featured Projects Section -->
-<section id="projects" class="py-20 bg-white overflow-hidden">
-    <div class="max-w-6xl mx-auto px-4 mb-10">
-        <h2 class="text-3xl font-bold uppercase tracking-tight">Projects</h2>
-        <p class="text-gray-500">Technical engineering, analytical, and media initiatives</p>
+<!-- ══════════ EXPERIENCE ══════════ -->
+<section id="experience" style="background:var(--navy3);">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-label">Professional History</span>
+      <h2 class="section-title">Work Experience</h2>
+      <div class="divider"></div>
     </div>
-    
-    <div class="flex overflow-x-auto gap-6 px-4 md:px-[calc((100vw-72rem)/2)] hide-scrollbar pb-10">
+    <div class="row">
+      <div class="col-lg-9">
+        <div class="timeline">
+          <div class="timeline-item fade-up delay-1">
+            <div class="timeline-date">Mar 2026 — Present</div>
+            <div class="timeline-title">Wahl Clipper Vietnam</div>
+            <div class="timeline-role">New Product Introduction (NPI) Intern · Cần Giuộc, Long An</div>
+            <ul class="timeline-body">
+              <li>Detected critical data mismatches between legacy and updated BOMs across multiple product iterations; reconciled records and standardized documentation, eliminating procurement integration errors and enabling on-time Mass Production authorization.</li>
+              <li>Conducted structured QC inspections against engineering specifications and prepared Finished Goods samples, securing customer sign-off for MP and reducing re-inspection cycles.</li>
+            </ul>
+          </div>
+          <div class="timeline-item fade-up delay-2">
+            <div class="timeline-date">Jul 2024 — Nov 2024</div>
+            <div class="timeline-title">7-Eleven Vietnam</div>
+            <div class="timeline-role">Store Assistant</div>
+            <ul class="timeline-body">
+              <li>Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        
-        <!-- Project: Data Visualization & Dashboarding -->
-<div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-    <div>
-        <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Data Analysis</span>
-        <h3 class="text-2xl font-bold mt-2 mb-4">
-            <a href="dashboard/" class="hover:underline">
-                Data Visualization & Dashboarding Projects
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-                    <path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-                </svg>
-            </a>
-        </h3>
-        <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-            Developed multiple data visualization and dashboarding projects using analytical datasets. Focused on transforming raw data into interactive dashboards, highlighting key metrics, trends, and performance indicators for decision-making.
-        </p>
+<!-- ══════════ EXTRACURRICULAR ══════════ -->
+<section id="extra" style="background:var(--navy);">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-label">Beyond the Classroom</span>
+      <h2 class="section-title">Extracurricular Activities</h2>
+      <div class="divider"></div>
     </div>
-    <div class="flex items-center gap-4">
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Role: Data Analysis, Dashboard Design</span>
-        <span class="text-xs text-gray-400">2025–2026</span>
+    <div class="row">
+      <div class="col-lg-9">
+        <div class="timeline">
+          <div class="timeline-item fade-up delay-1">
+            <div class="timeline-date">Nov 2025 — Present</div>
+            <div class="timeline-title">Bach Khoa Ambassador Club</div>
+            <div class="timeline-role">Project Leader — BKFC @ Nguyen Huu Canh High School</div>
+            <ul class="timeline-body">
+              <li>Redesigned a 6-month university orientation strategy using content performance analytics, growing total views to 6,347 with 89.3% reach from non-followers.</li>
+              <li>Pivoted to short-form video after analyzing engagement data across post types — driving 73.5% of total campaign views while cutting production time per unit of reach.</li>
+            </ul>
+          </div>
+          <div class="timeline-item fade-up delay-2">
+            <div class="timeline-date">Sep 2024 — Present</div>
+            <div class="timeline-title">Play &amp; Learn English Club</div>
+            <div class="timeline-role">HR Member</div>
+            <ul class="timeline-body">
+              <li>Redesigned project workflows and introduced standardized tracking templates across a 15-member team, improving administrative efficiency by 150% and reducing missed deadlines.</li>
+            </ul>
+          </div>
+          <div class="timeline-item fade-up delay-3">
+            <div class="timeline-date">Jun 2025 — Nov 2025</div>
+            <div class="timeline-title">Mechanical Engineering Faculty Youth Union, HCMUT</div>
+            <div class="timeline-role">Event MC &amp; Coordinator (Traditional Camp) · STEM Team Member (Green Summer)</div>
+            <ul class="timeline-body">
+              <li>Built comprehensive MC runbooks and coordinated all award ceremonies and logistics for a 90-participant camp night from scratch — zero scheduling disruptions.</li>
+              <li>Structured STEM project milestones with clear owners and checkpoints, achieving 100% on-time completion across all deliverables ahead of schedule.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
-        
+<!-- ══════════ PROJECTS ══════════ -->
+<section id="projects">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-label">Portfolio</span>
+      <h2 class="section-title">Projects</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="project-grid">
 
-        
-<!-- Project 2: AHP Decision Making -->
-<div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-    <div>
-        <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Decision Analysis</span>
-        <h3 class="text-2xl font-bold mt-2 mb-4">
-<a href="decisionanalysis/" class="hover:underline">
-AHP Customer Segmentation Analysis
-<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
-        </h3>
-        <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-            Utilized the Analytic Hierarchy Process (AHP) to evaluate core customer segments. Evaluated criteria including revenue potential, market growth, customer loyalty, and strategic fit to optimize resource allocation.
-        </p>
-    </div>
-    <div class="flex items-center gap-4">
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Analytical Model</span>
-        <span class="text-xs text-gray-400">October 2025</span>
-    </div>
-</div>
+      <div class="project-card fade-up delay-1">
+        <div class="proj-num">01</div>
+        <div class="proj-cat">Data Analysis</div>
+        <div class="proj-title"><a href="dashboard/">Data Visualization &amp; Dashboarding Projects</a></div>
+        <p class="proj-desc">Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics, trends, and performance indicators for decision-making.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Dashboard Design</span>
+          <span class="proj-year">2025–2026</span>
+          <a href="dashboard/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
 
+      <div class="project-card fade-up delay-2">
+        <div class="proj-num">02</div>
+        <div class="proj-cat">Decision Analysis</div>
+        <div class="proj-title"><a href="decisionanalysis/">AHP Customer Segmentation Analysis</a></div>
+        <p class="proj-desc">Applied Analytic Hierarchy Process to evaluate core customer segments across revenue potential, market growth, customer loyalty, and strategic fit.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Analytical Model</span>
+          <span class="proj-year">Oct 2025</span>
+          <a href="decisionanalysis/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
 
-<!-- Project 4: AutoCAD 2D -->
-<div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-    <div>
-        <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Technical Design</span>
-        <h3 class="text-2xl font-bold mt-2 mb-4">
-<a href="autocad2d/" class="hover:underline">
-AutoCAD 2D Engineering Graphics
-<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 0 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
-        </h3>
-        <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-            Developed technical drawings including orthographic projections and section views. Managed complex layer structures, line weights, and dimensioning standards for engineering documentation.
-        </p>
-    </div>
-    <div class="flex items-center gap-4">
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Technical Skill</span>
-        <span class="text-xs text-gray-400">2024</span>
-    </div>
-</div>
+      <div class="project-card fade-up delay-3">
+        <div class="proj-num">03</div>
+        <div class="proj-cat">Systems Modeling</div>
+        <div class="proj-title"><a href="bus_sim/">VNU-HCM Bus Discrete Event Simulation</a></div>
+        <p class="proj-desc">High-fidelity DES for the VNU-HCM bus network with real-time statistical analysis, dynamic time-scaling, and stochastic passenger flow modeling.</p>
+        <div class="proj-footer">
+          <div class="d-flex gap-1 flex-wrap">
+            <span class="proj-badge">DES Engine</span>
+            <span class="proj-badge">Optimization</span>
+          </div>
+          <span class="proj-year">Mar 2026</span>
+          <a href="bus_sim/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
 
-<!-- Project 1: VNU-HCM Bus Discrete Event Simulation -->
-<div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-    <div>
-        <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Systems Modeling</span>
-        <h3 class="text-2xl font-bold mt-2 mb-4">
-            <a href="bus_sim/" class="hover:underline">
-                VNU-HCM Bus Discrete Event Simulation (On-Going)
-<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-            </a>
-        </h3>
-        <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-            Developed a high-fidelity Discrete Event Simulation (DES) for the VNU-HCM bus network. Features real-time statistical analysis, dynamic time-scaling, and stochastic passenger flow modeling to optimize fleet utilization and reduce station congestion.
-        </p>
-    </div>
-    <div class="flex items-center gap-4">
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">DES Engine</span>
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Optimization</span>
-        <span class="text-xs text-gray-400">March 2026</span>
-    </div>
-</div>
+      <div class="project-card fade-up delay-1">
+        <div class="proj-num">04</div>
+        <div class="proj-cat">Technical Design</div>
+        <div class="proj-title"><a href="autocad2d/">AutoCAD 2D Engineering Graphics</a></div>
+        <p class="proj-desc">Developed orthographic projections, section views, and technical drawings with complex layer structures, line weights, and dimensioning to engineering standards.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Technical Skill</span>
+          <span class="proj-year">2024</span>
+          <a href="autocad2d/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
 
-<!-- Project 3: Ergonomic Project -->
-<div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-    <div>
-        <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Human Factors</span>
-        <h3 class="text-2xl font-bold mt-2 mb-4">
-<a href="ergonomic/" class="hover:underline">
-Ergonomic Kitchen Workspace Design
-<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
-        </h3>
-        <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-            Applied anthropometric data and ergonomic principles to optimize kitchen layouts. Analyzed movement efficiency, storage accessibility, and safety standards to reduce physical strain and improve operational performance.
-        </p>
+      <div class="project-card fade-up delay-2">
+        <div class="proj-num">05</div>
+        <div class="proj-cat">Human Factors</div>
+        <div class="proj-title"><a href="ergonomic/">Ergonomic Kitchen Workspace Design</a></div>
+        <p class="proj-desc">Applied anthropometric data and ergonomic principles to optimize kitchen layouts, movement efficiency, storage accessibility, and safety standards.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Group Project</span>
+          <span class="proj-year">2025</span>
+          <a href="ergonomic/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
+
+      <div class="project-card fade-up delay-3">
+        <div class="proj-num">06</div>
+        <div class="proj-cat">Systems Engineering</div>
+        <div class="proj-title"><a href="systemdesign/">Co-working Space Cafe System Design</a></div>
+        <p class="proj-desc">Designed a 24/7 café integrated with workspace functionality. System life-cycle analysis, pricing strategy (20k–60k VND), and operational process optimization.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Detail Design</span>
+          <span class="proj-year">Nov 2025</span>
+          <a href="systemdesign/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
+
+      <div class="project-card fade-up delay-1">
+        <div class="proj-num">07</div>
+        <div class="proj-cat">Leadership &amp; Communications</div>
+        <div class="proj-title"><a href="https://www.facebook.com/bkfcnhctphcm/" target="_blank">"Tôi Yêu Bách Khoa" &amp; "Vũ Trụ Bách Khoa"</a></div>
+        <p class="proj-desc">Led annual university orientation at Nguyen Huu Canh High School, managed counseling for 14 classes, and produced a video series introducing 11 HCMUT faculties.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Group Leader &amp; MC</span>
+          <span class="proj-year">2025–Present</span>
+          <a href="https://www.facebook.com/bkfcnhctphcm/" target="_blank" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
+
     </div>
-    <div class="flex items-center gap-4">
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Group Project</span>
-        <span class="text-xs text-gray-400">2025</span>
+  </div>
+</section>
+
+<!-- ══════════ EDUCATION ══════════ -->
+<section id="education">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-label">Academic Background</span>
+      <h2 class="section-title">Education &amp; Certifications</h2>
+      <div class="divider"></div>
     </div>
-</div>
-        
-        <!-- Project 1: Cafe System -->
-        <div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+    <div class="row g-4 fade-up">
+      <div class="col-lg-6">
+        <div class="edu-card">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-mortarboard-fill"></i></div>
             <div>
-                <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Systems Engineering</span>
-                <h3 class="text-2xl font-bold mt-2 mb-4">
-                    <a href="systemdesign/" class="hover:underline">Co-working Space Cafe System Design<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;"><path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/></svg></a>
-                </h3>
-                <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-                    Designed a 24/7 cafe integrated with workspace functionality. Conducted system life-cycle analysis, pricing strategy formulation (20k-60k VND), and operational process optimization for the student demographic.
-                </p>
+              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;line-height:1.2;margin-bottom:.2rem;">Ho Chi Minh City University of Technology</h5>
+              <div style="color:var(--muted);font-size:.8rem;">HCMUT · Bach Khoa</div>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Role: Detail Design, Presenter</span>
-                <span class="text-xs text-gray-400">November 2025</span>
-            </div>
+          </div>
+          <p style="color:#6a84a0;font-size:.88rem;margin-bottom:1.5rem;">Bachelor of Engineering — Industrial Systems Engineering</p>
+          <hr style="border-color:rgba(200,146,42,.12);margin:0 0 1.2rem;" />
+          <div class="d-flex justify-content-between mb-2" style="font-size:.85rem;">
+            <span style="color:var(--muted);">Expected Graduation</span>
+            <span style="color:var(--cream);font-weight:600;">2027</span>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size:.85rem;">
+            <span style="color:var(--muted);">GPA (2025–2026)</span>
+            <span style="color:var(--gold);font-weight:600;">3.3 / 4.0</span>
+          </div>
         </div>
-
-
-
-
-
- <!-- Project 5: BKFC Orientation & Media -->
-<div class="min-w-[320px] md:min-w-[450px] bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
-    <div>
-        <span class="text-blue-600 font-bold text-xs uppercase tracking-widest">Leadership & Communications - BKFC</span>
-        <h3 class="text-2xl font-bold mt-2 mb-4">
-           
-            <a href="https://www.facebook.com/bkfcnhctphcm/" target="_blank" class="text-black hover:underline">
-                "BK FC - Tôi Yêu Bách Khoa" & "Vũ Trụ Bách Khoa<svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;"><path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/></svg>"
-            </a>
-        </h3>
-        <p class="text-gray-600 text-sm mb-6 leading-relaxed">
-            Led the annual "Tôi Yêu Bách Khoa" orientation program at Nguyen Huu Canh High School. Managed admissions counseling for 14 classes and produced the "Vũ Trụ Bách Khoa" video series to introduce 11 HCMUT faculties.
-        </p>
+      </div>
+      <div class="col-lg-6">
+        <div class="edu-card">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-patch-check-fill"></i></div>
+            <div>
+              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;">Certifications</h5>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
+              <span style="color:var(--cream);">TOEIC Listening &amp; Reading</span>
+              <span style="color:var(--gold);font-weight:600;">935 / 990</span>
+            </div>
+            <div class="cert-bar-wrap"><div class="cert-bar" style="width:95%;"></div></div>
+            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Full Professional Proficiency</div>
+          </div>
+          <div>
+            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
+              <span style="color:var(--cream);">Microsoft Office Specialist (MOS) Associate</span>
+              <span style="color:var(--gold);font-weight:600;">Office 365</span>
+            </div>
+            <div class="cert-bar-wrap"><div class="cert-bar" style="width:90%;"></div></div>
+            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Office 365 &amp; Office 2019</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="flex items-center gap-4">
-        <span class="text-xs bg-white px-3 py-1 rounded-full border border-gray-200 font-medium text-gray-700">Role: Group Leader & MC</span>
-        <span class="text-xs text-gray-400">2025 - Present</span>
-    </div>
-</div>
+  </div>
 </section>
 
-<style>
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-</style>
-
-   <!-- Contact Section -->
-    <section id="contact" class="py-20">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-            <h2 class="text-3xl font-bold mb-12">Contact Information</h2>
-            <div class="flex flex-wrap justify-center gap-8 text-lg">
-                <a href="mailto:nguyenhoang88502@gmail.com" class="flex items-center gap-3 hover:text-blue-600 transition">
-                    <span class="p-3 bg-blue-50 rounded-full">✉️</span>
-                    nguyenhoang88502@gmail.com
-                </a>
-                <a href="tel:+84369412005" class="flex items-center gap-3 hover:text-blue-600 transition">
-                    <span class="p-3 bg-blue-50 rounded-full">📞</span>
-                    +84 369 412 005
-                </a>
-                <div class="flex items-center gap-3">
-                    <span class="p-3 bg-blue-50 rounded-full">📍</span>
-                    Ho Chi Minh City, Vietnam
-                </div>
-            </div>
+<!-- ══════════ CONTACT ══════════ -->
+<section id="contact">
+  <div class="container">
+    <div class="fade-up text-center mb-5">
+      <span class="section-label">Let's Connect</span>
+      <h2 class="section-title">Get In Touch</h2>
+      <div class="divider mx-auto"></div>
+    </div>
+    <div class="row g-3 justify-content-center">
+      <div class="col-sm-6 col-lg-4 fade-up delay-1">
+        <a href="mailto:nguyenhoang88502@gmail.com" class="contact-link">
+          <i class="bi bi-envelope-fill contact-icon"></i>
+          <div>
+            <div class="contact-label">Email</div>
+            <div class="contact-value">nguyenhoang88502@gmail.com</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4 fade-up delay-2">
+        <a href="tel:+84369412005" class="contact-link">
+          <i class="bi bi-telephone-fill contact-icon"></i>
+          <div>
+            <div class="contact-label">Phone</div>
+            <div class="contact-value">+84 369 412 005</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4 fade-up delay-3">
+        <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" class="contact-link">
+          <i class="bi bi-linkedin contact-icon"></i>
+          <div>
+            <div class="contact-label">LinkedIn</div>
+            <div class="contact-value">nguyenhoang88502</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-4 fade-up delay-4">
+        <div class="contact-link" style="cursor:default;">
+          <i class="bi bi-geo-alt-fill contact-icon"></i>
+          <div>
+            <div class="contact-label">Location</div>
+            <div class="contact-value">Ho Chi Minh City, Vietnam</div>
+          </div>
         </div>
-    </section>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Footer -->
-    <footer class="py-10 border-t border-gray-100 text-center text-gray-500 text-sm">
-        <p>© 2026 Nguyen Huy Hoang.</p>
-    </footer>
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <div class="container">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+      <div class="footer-name">Nguyen Huy Hoang</div>
+      <div style="color:var(--muted);font-size:.75rem;letter-spacing:.05em;">© 2026 · Built with Bootstrap 5</div>
+      <div class="d-flex gap-3">
+        <a href="mailto:nguyenhoang88502@gmail.com" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-envelope-fill"></i></a>
+        <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-linkedin"></i></a>
+        <a href="resume1.pdf" target="_blank" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-file-earmark-person"></i></a>
+      </div>
+    </div>
+  </div>
+</footer>
 
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /* ── Cursor ── */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx = -100, my = -100, rx = -100, ry = -100;
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    rx += (mx - rx) * .12; ry += (my - ry) * .12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  /* Scale ring on interactive elements */
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '52px'; ring.style.height = '52px';
+      ring.style.borderColor = 'rgba(200,146,42,.7)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px'; ring.style.height = '32px';
+      ring.style.borderColor = 'rgba(200,146,42,.5)';
+    });
+  });
+
+  /* ── Scroll progress ── */
+  const progressBar = document.getElementById('progress-bar');
+  function updateProgress() {
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (window.scrollY / docHeight * 100) + '%';
+  }
+
+  /* ── Navbar scroll ── */
+  const navbar = document.getElementById('navbar');
+  function onScroll() {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+    updateProgress();
+    highlightNav();
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* ── Active nav link ── */
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[data-section]');
+  function highlightNav() {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 200) current = s.id;
+    });
+    navLinks.forEach(l => {
+      l.classList.toggle('active-section', l.dataset.section === current);
+    });
+  }
+
+  /* ── Intersection observer (fade-up) ── */
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
 </body>
 </html>
