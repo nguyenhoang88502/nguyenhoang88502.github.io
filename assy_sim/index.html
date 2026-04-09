@@ -3,80 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monte Carlo Project Simulation (Crystal Ball Style)</title>
+    <title>Monte Carlo Project Simulation</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-            background-color: #f4f7f6;
-        }
-        h1, h2 { color: #2c3e50; }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .task-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .task-row input {
-            width: 70px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; color: #333; background-color: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .task-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+        .task-row input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .task-row input.num { width: 70px; }
+        .task-row input.name { width: 150px; font-weight: bold; }
         .task-row label { font-size: 0.9em; display: flex; flex-direction: column; }
-        button {
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        button:hover { background-color: #2980b9; }
-        button.remove-btn { background-color: #e74c3c; padding: 5px 10px; }
-        button.remove-btn:hover { background-color: #c0392b; }
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .controls input {
-            width: 100px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        #summary-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-box {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-            border: 1px solid #d0e7f0;
-        }
+        button { padding: 10px 15px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { opacity: 0.9; }
+        .remove-btn { background-color: #e74c3c; padding: 5px 10px; }
+        .controls { display: flex; gap: 15px; align-items: center; margin-top: 20px; justify-content: space-between; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #e8f4f8; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #d0e7f0; }
         .stat-box span { display: block; font-size: 1.5em; font-weight: bold; color: #2c3e50; }
         #chart { width: 100%; height: 400px; }
+        .export-btn { background-color: #27ae60; display: none; }
+        .data-link { background-color: #8e44ad; text-decoration: none; padding: 10px 15px; border-radius: 4px; color: white; font-weight: bold; display: inline-block;}
     </style>
 </head>
 <body>
@@ -84,23 +30,27 @@
     <h1>Project Time Simulation</h1>
     
     <div class="card">
-        <h2>Tasks (Sequential)</h2>
-        <div id="task-list">
-            </div>
-        <button onclick="addTask()">+ Add Task</button>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Project Tasks (Sequential)</h2>
+            <a href="data_collection.html" class="data-link">📊 Estimate Task from Data</a>
+        </div>
+        
+        <div id="task-list"></div>
+        <button onclick="addTask()">+ Add Blank Task</button>
 
         <div class="controls">
-            <label>
-                <strong>Iterations:</strong>
-                <input type="number" id="iterations" value="1000" min="100" max="100000">
-            </label>
-            <button onclick="runSimulation()" style="background-color: #2ecc71;">Run Simulation</button>
+            <div>
+                <label><strong>Iterations:</strong> 
+                <input type="number" id="iterations" value="1000" min="100" max="100000" style="padding: 5px; width: 80px;"></label>
+                <button onclick="runSimulation()" style="background-color: #2ecc71; margin-left: 10px;">▶ Run Simulation</button>
+            </div>
+            <button class="export-btn" id="export-btn" onclick="exportToExcel()">⬇ Export Results to Excel</button>
         </div>
     </div>
 
     <div class="card" id="results-card" style="display: none;">
         <h2>Simulation Results</h2>
-        <div id="summary-stats">
+        <div class="stat-grid">
             <div class="stat-box">Expected (Mean)<br><span id="stat-mean">0</span></div>
             <div class="stat-box">Minimum Time<br><span id="stat-min">0</span></div>
             <div class="stat-box">Maximum Time<br><span id="stat-max">0</span></div>
@@ -111,145 +61,128 @@
 
     <script>
         let taskCount = 0;
+        let globalDurations = []; // Stores results for Excel export
 
-        // Initialize with default tasks
         window.onload = () => {
-            addTask(3, 5, 8);
-            addTask(2, 4, 9);
-            addTask(4, 6, 10);
+            // Check if data was sent from the data_collection page
+            const pendingTasks = JSON.parse(localStorage.getItem('pendingTasks'));
+            
+            if (pendingTasks && pendingTasks.length > 0) {
+                // Load imported tasks
+                pendingTasks.forEach(t => addTask(t.name, t.a, t.m, t.b));
+                // Clear storage so they don't load twice
+                localStorage.removeItem('pendingTasks');
+            } else {
+                // Default tasks if nothing is pending
+                addTask("Task 1", 3, 5, 8);
+                addTask("Task 2", 2, 4, 9);
+            }
         };
 
-        function addTask(opt = 1, ml = 5, pess = 10) {
+        function addTask(name = "", opt = 1, ml = 5, pess = 10) {
             taskCount++;
+            if (!name) name = `Task ${taskCount}`;
             const id = `task-${Date.now()}-${taskCount}`;
             const html = `
                 <div class="task-row" id="${id}">
-                    <strong style="width: 70px;">Task ${taskCount}</strong>
-                    <label>Optimistic (a) <input type="number" class="opt" value="${opt}" step="0.1"></label>
-                    <label>Most Likely (m) <input type="number" class="ml" value="${ml}" step="0.1"></label>
-                    <label>Pessimistic (b) <input type="number" class="pess" value="${pess}" step="0.1"></label>
+                    <input type="text" class="name" value="${name}">
+                    <label>Optimistic (a) <input type="number" class="opt num" value="${opt}" step="0.01"></label>
+                    <label>Most Likely (m) <input type="number" class="ml num" value="${ml}" step="0.01"></label>
+                    <label>Pessimistic (b) <input type="number" class="pess num" value="${pess}" step="0.01"></label>
                     <button class="remove-btn" onclick="document.getElementById('${id}').remove()">X</button>
                 </div>
             `;
             document.getElementById('task-list').insertAdjacentHTML('beforeend', html);
         }
 
-        // Random generator for Triangular Distribution
+        // Triangular Distribution Logic
         function randomTriangular(a, m, b) {
             const U = Math.random();
             const F = (m - a) / (b - a);
-            if (U < F) {
-                return a + Math.sqrt(U * (b - a) * (m - a));
-            } else {
-                return b - Math.sqrt((1 - U) * (b - a) * (b - m));
-            }
+            if (U < F) return a + Math.sqrt(U * (b - a) * (m - a));
+            return b - Math.sqrt((1 - U) * (b - a) * (b - m));
         }
 
         function runSimulation() {
             const iterations = parseInt(document.getElementById('iterations').value);
             const tasks = [];
             
-            // Gather input data
             document.querySelectorAll('.task-row').forEach(row => {
                 const a = parseFloat(row.querySelector('.opt').value);
                 const m = parseFloat(row.querySelector('.ml').value);
                 const b = parseFloat(row.querySelector('.pess').value);
-                if (a <= m && m <= b) {
-                    tasks.push({ a, m, b });
-                } else {
-                    alert("Logic Error: Optimistic must be <= Most Likely <= Pessimistic.");
-                    throw new Error("Invalid inputs");
-                }
+                if (a <= m && m <= b) tasks.push({ a, m, b });
             });
 
             if (tasks.length === 0) return;
 
-            const projectDurations = [];
+            globalDurations = []; // Reset global array
 
-            // Monte Carlo Loop
             for (let i = 0; i < iterations; i++) {
                 let totalTime = 0;
-                for (let task of tasks) {
-                    totalTime += randomTriangular(task.a, task.m, task.b);
-                }
-                projectDurations.push(totalTime);
+                for (let task of tasks) totalTime += randomTriangular(task.a, task.m, task.b);
+                globalDurations.push(totalTime);
             }
 
-            // Calculate Statistics
-            projectDurations.sort((x, y) => x - y);
-            const sum = projectDurations.reduce((acc, val) => acc + val, 0);
-            const mean = sum / iterations;
-            const min = projectDurations[0];
-            const max = projectDurations[iterations - 1];
-            const p90Index = Math.floor(iterations * 0.90);
-            const p90 = projectDurations[p90Index];
-
-            // Update DOM
+            globalDurations.sort((x, y) => x - y);
+            const mean = globalDurations.reduce((acc, val) => acc + val, 0) / iterations;
+            
             document.getElementById('results-card').style.display = 'block';
+            document.getElementById('export-btn').style.display = 'block';
             document.getElementById('stat-mean').innerText = mean.toFixed(2);
-            document.getElementById('stat-min').innerText = min.toFixed(2);
-            document.getElementById('stat-max').innerText = max.toFixed(2);
-            document.getElementById('stat-p90').innerText = p90.toFixed(2) + ' or less';
+            document.getElementById('stat-min').innerText = globalDurations[0].toFixed(2);
+            document.getElementById('stat-max').innerText = globalDurations[iterations - 1].toFixed(2);
+            document.getElementById('stat-p90').innerText = globalDurations[Math.floor(iterations * 0.90)].toFixed(2);
 
-            drawHistogram(projectDurations);
+            drawHistogram(globalDurations);
         }
 
+        function exportToExcel() {
+            if (globalDurations.length === 0) return;
+            
+            // Create a CSV string
+            let csvContent = "data:text/csv;charset=utf-8,Iteration,Total_Project_Time\n";
+            globalDurations.forEach((time, index) => {
+                csvContent += `${index + 1},${time.toFixed(4)}\n`;
+            });
+
+            // Encode and trigger download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Simulation_Results.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // D3 Histogram Rendering
         function drawHistogram(data) {
             const container = document.getElementById('chart');
-            container.innerHTML = ''; // Clear previous
-
+            container.innerHTML = ''; 
             const margin = {top: 20, right: 30, bottom: 40, left: 40};
             const width = container.clientWidth - margin.left - margin.right;
             const height = container.clientHeight - margin.top - margin.bottom;
 
-            const svg = d3.select("#chart")
-                .append("svg")
+            const svg = d3.select("#chart").append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
+                .append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-            // X axis
-            const x = d3.scaleLinear()
-                .domain([d3.min(data) * 0.95, d3.max(data) * 1.05])
-                .range([0, width]);
-            
-            svg.append("g")
-                .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x));
+            const x = d3.scaleLinear().domain([d3.min(data) * 0.95, d3.max(data) * 1.05]).range([0, width]);
+            svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
 
-            // Setup bins
-            const histogram = d3.bin()
-                .domain(x.domain())
-                .thresholds(x.ticks(40)); // Number of bins
-
+            const histogram = d3.bin().domain(x.domain()).thresholds(x.ticks(40));
             const bins = histogram(data);
 
-            // Y axis
-            const y = d3.scaleLinear()
-                .range([height, 0])
-                .domain([0, d3.max(bins, d => d.length)]);
-                
-            svg.append("g")
-                .call(d3.axisLeft(y));
+            const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(bins, d => d.length)]);
+            svg.append("g").call(d3.axisLeft(y));
 
-            // Append bars
-            svg.selectAll("rect")
-                .data(bins)
-                .join("rect")
-                .attr("x", 1)
+            svg.selectAll("rect").data(bins).join("rect").attr("x", 1)
                 .attr("transform", d => `translate(${x(d.x0)}, ${y(d.length)})`)
                 .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
                 .attr("height", d => height - y(d.length))
-                .style("fill", "#3498db")
-                .style("opacity", 0.8);
-                
-            // X-axis label
-            svg.append("text")
-                .attr("text-anchor", "end")
-                .attr("x", width / 2 + margin.left)
-                .attr("y", height + margin.top + 15)
-                .text("Total Project Duration");
+                .style("fill", "#3498db").style("opacity", 0.8);
         }
     </script>
 </body>
