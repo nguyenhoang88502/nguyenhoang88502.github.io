@@ -469,27 +469,38 @@
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  // MODIFIED FUNCTION FOR SNAP-BACK RECORDING
+  /* ── FULLY REWRITTEN SNAP-BACK LOGIC ── */
   function recordTime() {
-    if (difference === 0) { showToast('Start the stopwatch first'); return; }
-    
-    // Log the current time
-    const secs = +(difference / 1000).toFixed(2);
-    readings.push(secs);
-    renderReadings();
-
-    // Check if we should snap-back or just reset
-    if (running) {
-      // Snap-back: Reset the start time to NOW so it restarts seamlessly at 0
-      startTime = Date.now();
-      difference = 0;
-      document.getElementById('sw-status').textContent = 'Logged ✓ — Auto-started next cycle';
-    } else {
-      // Stopwatch was stopped, so just reset to zero completely
-      resetTimer();
-      document.getElementById('sw-status').textContent = 'Logged ✓ — Ready for next cycle';
+    if (difference === 0 && !running) { 
+      showToast('Start the stopwatch first'); 
+      return; 
     }
 
+    // 1. Accurately calculate the exact cycle time
+    // If running, capture exact millisecond. If stopped, use the paused 'difference'.
+    let cycleTime = running ? (Date.now() - startTime) : difference;
+
+    // Log it
+    if (cycleTime > 0) {
+      const secs = +(cycleTime / 1000).toFixed(2);
+      readings.push(secs);
+      renderReadings();
+    }
+
+    // 2. FORCE reset and auto-start the next cycle
+    clearInterval(tInterval); // Kill old timer to prevent overlap bugs
+    difference = 0;
+    startTime = Date.now();
+    tInterval = setInterval(tick, 16);
+    running = true;
+
+    // 3. Instantly update the UI to show the next cycle has begun
+    document.getElementById('sw-display').textContent = '00:00.00';
+    document.getElementById('sw-display').className = 'sw-display running';
+    document.getElementById('sw-status').textContent = 'Logged ✓ — Auto-started next cycle';
+    document.getElementById('btn-start').style.opacity = '0.4';
+
+    // Button flash animation
     const btn = document.getElementById('record-btn');
     btn.classList.add('logged');
     document.getElementById('record-icon').textContent = '✔';
