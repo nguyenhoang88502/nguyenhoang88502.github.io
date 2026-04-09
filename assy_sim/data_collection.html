@@ -43,7 +43,7 @@
                 <button class="sw-btn sw-stop" onclick="stopTimer()">Stop</button>
                 <button class="sw-btn sw-reset" onclick="resetTimer()">Reset</button>
             </div>
-            <button class="sw-btn sw-record" id="record-btn" onclick="recordTime()">⏱ Record Cycle Time to Data</button>
+            <button class="sw-btn sw-record" id="record-btn" onclick="recordTime()">⏱ Record Cycle Time & Reset</button>
         </div>
 
         <label>Raw Data Points (in seconds):</label>
@@ -120,13 +120,16 @@
                 textArea.value += ", " + totalSeconds;
             }
             
+            // SNAP-BACK LOGIC: Auto-Reset the timer to 0
+            resetTimer();
+            
             // Button flash animation to confirm recording
             let btn = document.getElementById('record-btn');
-            let originalText = btn.innerText;
-            btn.innerText = "✔ Recorded!";
+            btn.innerText = "✔ Logged & Reset!";
             btn.style.backgroundColor = "#27ae60";
+            
             setTimeout(() => {
-                btn.innerText = originalText;
+                btn.innerText = "⏱ Record Cycle Time & Reset";
                 btn.style.backgroundColor = "#3498db";
             }, 600);
         }
