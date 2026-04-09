@@ -174,7 +174,7 @@
 
     .readings-list {
       display: flex; flex-direction: column; gap: 6px;
-      max-height: 200px; overflow-y: auto;
+      max-height: 200px; overflow-y: auto; scroll-behavior: smooth;
     }
     .reading-item {
       display: flex; align-items: center; gap: 10px;
@@ -226,9 +226,9 @@
     .add-manual-btn:active { opacity: 0.8; }
     
     .raw-data-area {
-      width: 100%; padding: 10px 14px; background: #0f1117; border: 1.5px solid #252b3b;
+      width: 100%; padding: 12px 14px; background: #0f1117; border: 1.5px solid #252b3b;
       border-radius: 8px; color: var(--amber); font-family: var(--mono); font-size: 14px;
-      resize: vertical; min-height: 60px; margin-top: 8px;
+      resize: vertical; min-height: 80px; margin-top: 8px; scroll-behavior: smooth;
     }
 
     /* ── STATS ── */
@@ -438,36 +438,35 @@
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  /* ── FLAWLESS SNAP-BACK LOGIC ── */
+  /* ── TRUE STOP & RESET LOGIC ── */
   function recordTime() {
     if (!running && difference === 0) { 
       showToast('Start the stopwatch first'); 
       return; 
     }
     
-    // Calculate exact split
+    // 1. Calculate exact split
     let cycleTime = running ? (Date.now() - startTime) : difference;
     
-    // Log the data
+    // 2. Log the data
     if (cycleTime > 0) {
       const secs = +(cycleTime / 1000).toFixed(2);
       readings.push(secs);
       renderReadings();
     }
 
-    if (running) {
-      // Snap-Back Magic: We don't stop the setInterval engine. 
-      // We just shift the starting line up to this exact millisecond.
-      startTime = Date.now();
-      document.getElementById('sw-status').textContent = 'Logged ✓ — Auto-started next cycle';
-    } else {
-      // If it was already stopped when they hit record, reset it to zero.
-      difference = 0;
-      document.getElementById('sw-display').textContent = '00:00.00';
-      document.getElementById('sw-status').textContent = 'Logged ✓ — Ready';
-    }
+    // 3. FORCE Stop & Reset to zero
+    clearInterval(tInterval);
+    running = false;
+    difference = 0;
+    
+    // Update visual state to strictly Stopped and Zeroed
+    document.getElementById('sw-display').textContent = '00:00.00';
+    document.getElementById('sw-display').className = 'sw-display';
+    document.getElementById('sw-status').textContent = 'Logged ✓ — Stopped & Ready';
+    document.getElementById('btn-start').style.opacity = '1';
 
-    // Button Flash Animation
+    // 4. Button Flash Animation
     const btn = document.getElementById('record-btn');
     btn.classList.add('logged');
     document.getElementById('record-icon').textContent = '✔';
@@ -517,7 +516,7 @@
     sendBtn.disabled = false;
     noR.style.display = 'none';
 
-    // Update the visual bar list
+    // 1. Update the visual bar list
     const maxVal = Math.max(...readings);
     list.innerHTML = readings.map((v, i) => `
       <div class="reading-item">
@@ -530,8 +529,14 @@
       </div>
     `).join('');
 
-    // Keep the Raw Comma-Separated Data Box updated
-    rawBox.value = readings.join(', ');
+    // 2. Format the Raw Numbers Box explicitly
+    rawBox.value = readings.map((v, i) => `Cycle #${String(i + 1).padStart(2, '0')} -> ${v.toFixed(2)}s`).join('\n');
+
+    // 3. Auto-scroll both lists to the bottom so newest data is always visible
+    setTimeout(() => {
+      list.scrollTop = list.scrollHeight;
+      rawBox.scrollTop = rawBox.scrollHeight;
+    }, 10);
 
     updateStats();
     document.getElementById('stats-card').style.display = 'block';
