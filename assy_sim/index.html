@@ -51,7 +51,6 @@
 
     .brand {
       font-family: var(--head);
-      /* Fluid Typography applied here */
       font-size: clamp(16px, 4vw, 22px);
       font-weight: 900;
       letter-spacing: 0.06em;
@@ -667,7 +666,7 @@
 
   /* ── Init ── */
   window.onload = () => {
-    const saved = JSON.parse(localStorage.getItem('Tasks') || '[]');
+    const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     if (saved.length) {
       saved.forEach(t => addTask(t.name, t.a, t.m, t.b, t));
     } else {
@@ -718,7 +717,7 @@
     if (!confirm('Delete all tasks?')) return;
     document.getElementById('task-list').innerHTML = '';
     taskCount = 0;
-    localStorage.removeItem('Tasks');
+    localStorage.removeItem('projectTasks');
   }
 
   /* ── Triangular RNG ── */
@@ -776,7 +775,7 @@
     document.getElementById('export-results-btn').style.display = 'flex';
 
     // Save task state
-    localStorage.setItem('Tasks', JSON.stringify(tasks));
+    localStorage.setItem('projectTasks', JSON.stringify(tasks));
   }
 
   /* ── Render Results ── */
@@ -924,193 +923,194 @@
     drawHistogram(data, mean, p(90));
   }
 
- /* ── Target Analysis ── */
-function analyzeTarget() {
-  const target = parseFloat(document.getElementById('target-val').value);
-  if (isNaN(target) || !simResults.length) return;
- 
-  const countBelow = simResults.filter(v => v <= target).length;
-  const pctBelow = (countBelow / simResults.length * 100).toFixed(1);
-  const pctAbove = (100 - pctBelow).toFixed(1);
-  const color = pctBelow >= 90 ? 'green' : pctBelow >= 70 ? 'amber' : 'red';
- 
-  document.getElementById('risk-grid').innerHTML = `
-    <div class="risk-box" style="grid-column:1/-1;border-color:var(--${color})">
-      <span class="risk-label">Probability of completing within ${target} seconds</span>
-      <span class="risk-value ${color}" style="font-size:2rem">${pctBelow}%</span>
-    </div>
-    <div class="risk-box">
-      <span class="risk-label">Percentage ≤ Target</span>
-      <span class="risk-value">${pctBelow}%</span>
-    </div>
-    <div class="risk-box">
-      <span class="risk-label">Percentage > Target</span>
-      <span class="risk-value red">${pctAbove}%</span>
-    </div>
-  `;
-}
+  /* ── Target Analysis ── */
+  function analyzeTarget() {
+    const target = parseFloat(document.getElementById('target-val').value);
+    if (isNaN(target) || !simResults.length) return;
 
-/* ── Histogram Visualization ── */
-function drawHistogram(data, mean, p90) {
-  const container = document.getElementById('chart');
-  if (!container || !data.length) return;
-  container.innerHTML = '';
+    const countBelow = simResults.filter(v => v <= target).length;
+    const pctBelow = (countBelow / simResults.length * 100).toFixed(1);
+    const pctAbove = (100 - pctBelow).toFixed(1);
+    const color = pctBelow >= 90 ? 'green' : pctBelow >= 70 ? 'amber' : 'red';
 
-  const margin = { top: 18, right: 24, bottom: 48, left: 48 };
-  const W = container.clientWidth - margin.left - margin.right;
-  const H = container.clientHeight - margin.top - margin.bottom;
+    document.getElementById('risk-grid').innerHTML = `
+      <div class="risk-box" style="grid-column:1/-1;border-color:var(--${color})">
+        <span class="risk-label">Probability of completing within ${target} seconds</span>
+        <span class="risk-value ${color}" style="font-size:2rem">${pctBelow}%</span>
+      </div>
+      <div class="risk-box">
+        <span class="risk-label">Percentage ≤ Target</span>
+        <span class="risk-value">${pctBelow}%</span>
+      </div>
+      <div class="risk-box">
+        <span class="risk-label">Percentage > Target</span>
+        <span class="risk-value red">${pctAbove}%</span>
+      </div>
+    `;
+  }
 
-  const svg = d3.select('#chart').append('svg')
-    .attr('width', W + margin.left + margin.right)
-    .attr('height', H + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
+  /* ── Histogram Visualization ── */
+  function drawHistogram(data, mean, p90) {
+    const container = document.getElementById('chart');
+    if (!container || !data.length) return;
+    container.innerHTML = '';
 
-  const x = d3.scaleLinear()
-    .domain([Math.max(0, d3.min(data) * 0.95), d3.max(data) * 1.05])
-    .range([0, W]);
+    const margin = { top: 18, right: 24, bottom: 48, left: 48 };
+    const W = container.clientWidth - margin.left - margin.right;
+    const H = container.clientHeight - margin.top - margin.bottom;
 
-  const bins = d3.bin()
-    .domain(x.domain())
-    .thresholds(30)(data);
+    const svg = d3.select('#chart').append('svg')
+      .attr('width', W + margin.left + margin.right)
+      .attr('height', H + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(bins, d => d.length)])
-    .range([H, 0]);
+    const x = d3.scaleLinear()
+      .domain([Math.max(0, d3.min(data) * 0.95), d3.max(data) * 1.05])
+      .range([0, W]);
 
-  // X axis + label
-  svg.append('g')
-    .attr('transform', `translate(0,${H})`)
-    .call(d3.axisBottom(x).ticks(8).tickSize(-H))
-    .call(g => {
-      g.selectAll('line').attr('stroke', '#252b3b').attr('stroke-dasharray', '2,3');
-      g.selectAll('text').attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '11');
-      g.select('.domain').attr('stroke', '#252b3b');
+    const bins = d3.bin()
+      .domain(x.domain())
+      .thresholds(30)(data);
+
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(bins, d => d.length)])
+      .range([H, 0]);
+
+    // X axis + label
+    svg.append('g')
+      .attr('transform', `translate(0,${H})`)
+      .call(d3.axisBottom(x).ticks(8).tickSize(-H))
+      .call(g => {
+        g.selectAll('line').attr('stroke', '#252b3b').attr('stroke-dasharray', '2,3');
+        g.selectAll('text').attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '11');
+        g.select('.domain').attr('stroke', '#252b3b');
+      });
+    svg.append('text')
+      .attr('x', W/2).attr('y', H + 38)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '12')
+      .text('Total Time');
+
+    // Y axis + label
+    svg.append('g')
+      .call(d3.axisLeft(y).ticks(5))
+      .call(g => {
+        g.selectAll('text').attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '11');
+        g.select('.domain').attr('stroke', '#252b3b');
+        g.selectAll('.tick line').attr('stroke', 'none');
+      });
+    svg.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -H/2).attr('y', -34)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '12')
+      .text('Frequency');
+
+    // Bars - uniform color
+    svg.selectAll('rect').data(bins).join('rect')
+      .attr('x', d => x(d.x0) + 1)
+      .attr('y', d => y(d.length))
+      .attr('width', d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+      .attr('height', d => H - y(d.length))
+      .attr('fill', '#3b82f6')
+      .attr('opacity', 0.85).attr('rx', 2);
+
+    // Mean line + label
+    svg.append('line')
+      .attr('x1', x(mean)).attr('x2', x(mean))
+      .attr('y1', 0).attr('y2', H)
+      .attr('stroke', '#f59e0b').attr('stroke-width', 2).attr('stroke-dasharray', '4,3');
+    svg.append('text')
+      .attr('x', x(mean)).attr('y', -6)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#f59e0b').attr('font-family', 'IBM Plex Mono').attr('font-size', '11')
+      .text('Mean');
+
+    // P90 line + label
+    svg.append('line')
+      .attr('x1', x(p90)).attr('x2', x(p90))
+      .attr('y1', 0).attr('y2', H)
+      .attr('stroke', '#ef4444').attr('stroke-width', 2).attr('stroke-dasharray', '4,3');
+    svg.append('text')
+      .attr('x', x(p90)).attr('y', -6)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#ef4444').attr('font-family', 'IBM Plex Mono').attr('font-size', '11')
+      .text('P90');
+  }
+
+  /* ── Data Exports ── */
+  function exportTasksCSV() {
+    const rows = [['Task', 'Optimistic', 'MostLikely', 'Pessimistic']];
+    document.querySelectorAll('.task-row').forEach(row => {
+      rows.push([
+        row.querySelector('.task-name-input').value,
+        row.querySelector('.opt').value,
+        row.querySelector('.ml').value,
+        row.querySelector('.pess').value
+      ]);
     });
-  svg.append('text')
-    .attr('x', W/2).attr('y', H + 38)
-    .attr('text-anchor', 'middle')
-    .attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '12')
-    .text('Total Time');
+    downloadCSV(rows, 'Tasks_Input.csv');
+  }
 
-  // Y axis + label
-  svg.append('g')
-    .call(d3.axisLeft(y).ticks(5))
-    .call(g => {
-      g.selectAll('text').attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '11');
-      g.select('.domain').attr('stroke', '#252b3b');
-      g.selectAll('.tick line').attr('stroke', 'none');
+  function exportResultsCSV() {
+    if (!simResults.length) return;
+    const iters = simResults.length;
+    const sorted = [...simResults].sort((a,b)=>a-b);
+    const mean = simResults.reduce((a,b)=>a+b,0)/iters;
+    const median = iters%2?sorted[Math.floor(iters/2)]:(sorted[iters/2-1]+sorted[iters/2])/2;
+    const minVal = sorted[0];
+    const maxVal = sorted[iters-1];
+    const variance = simResults.reduce((acc,v)=>acc+Math.pow(v-mean,2),0)/iters;
+    const stdDev = Math.sqrt(variance);
+    const p90 = sorted[Math.floor(0.9*iters)]||maxVal;
+
+    let rows = [
+      ['SUMMARY STATISTICS (for all charts)'],
+      ['Metric','Value'],
+      ['Iterations',iters],
+      ['Mean',mean.toFixed(4)],
+      ['Median',median.toFixed(4)],
+      ['StdDev',stdDev.toFixed(4)],
+      ['Min',minVal.toFixed(4)],
+      ['Max',maxVal.toFixed(4)],
+      ['P90',p90.toFixed(4)],
+      [],
+      ['Iteration','TotalTime','CumulativePct']
+    ];
+    simResults.forEach((v,i)=>{rows.push([i+1,v.toFixed(4),((i+1)/iters*100).toFixed(2)]);});
+    downloadCSV(rows, 'Simulation_Results.csv');
+  }
+
+  function exportParetoCSV() {
+    const tasks = [];
+    document.querySelectorAll('.task-row').forEach(row => {
+      const name = row.querySelector('.task-name-input').value||'Task';
+      const o = parseFloat(row.querySelector('.opt').value)||0;
+      const m = parseFloat(row.querySelector('.ml').value)||0;
+      const p = parseFloat(row.querySelector('.pess').value)||0;
+      const expected = (o+4*m+p)/6;
+      tasks.push({name,expected});
     });
-  svg.append('text')
-    .attr('transform', 'rotate(-90)')
-    .attr('x', -H/2).attr('y', -34)
-    .attr('text-anchor', 'middle')
-    .attr('fill', '#6b7280').attr('font-family', 'IBM Plex Mono').attr('font-size', '12')
-    .text('Frequency');
+    tasks.sort((a,b)=>b.expected-a.expected);
+    const total = tasks.reduce((s,t)=>s+t.expected,0)||1;
+    let cum = 0;
+    const rows = [['Task','Expected','Pct','CumPct']];
+    tasks.forEach(t=>{
+      const pct = t.expected/total*100;
+      cum += pct;
+      rows.push([t.name,t.expected.toFixed(2),pct.toFixed(2),cum.toFixed(2)]);
+    });
+    downloadCSV(rows, 'Pareto_Chart.csv');
+  }
 
-  // Bars - uniform color
-  svg.selectAll('rect').data(bins).join('rect')
-    .attr('x', d => x(d.x0) + 1)
-    .attr('y', d => y(d.length))
-    .attr('width', d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-    .attr('height', d => H - y(d.length))
-    .attr('fill', '#3b82f6')
-    .attr('opacity', 0.85).attr('rx', 2);
-
-  // Mean line + label
-  svg.append('line')
-    .attr('x1', x(mean)).attr('x2', x(mean))
-    .attr('y1', 0).attr('y2', H)
-    .attr('stroke', '#f59e0b').attr('stroke-width', 2).attr('stroke-dasharray', '4,3');
-  svg.append('text')
-    .attr('x', x(mean)).attr('y', -6)
-    .attr('text-anchor', 'middle')
-    .attr('fill', '#f59e0b').attr('font-family', 'IBM Plex Mono').attr('font-size', '11')
-    .text('Mean');
-
-  // P90 line + label
-  svg.append('line')
-    .attr('x1', x(p90)).attr('x2', x(p90))
-    .attr('y1', 0).attr('y2', H)
-    .attr('stroke', '#ef4444').attr('stroke-width', 2).attr('stroke-dasharray', '4,3');
-  svg.append('text')
-    .attr('x', x(p90)).attr('y', -6)
-    .attr('text-anchor', 'middle')
-    .attr('fill', '#ef4444').attr('font-family', 'IBM Plex Mono').attr('font-size', '11')
-    .text('P90');
-}
-/* ── Data Exports ── */
-function exportTasksCSV() {
-  const rows = [['Task', 'Optimistic', 'MostLikely', 'Pessimistic']];
-  document.querySelectorAll('.task-row').forEach(row => {
-    rows.push([
-      row.querySelector('.task-name-input').value,
-      row.querySelector('.opt').value,
-      row.querySelector('.ml').value,
-      row.querySelector('.pess').value
-    ]);
-  });
-  downloadCSV(rows, 'Tasks_Input.csv');
-}
-
-function exportResultsCSV() {
-  if (!simResults.length) return;
-  const iters = simResults.length;
-  const sorted = [...simResults].sort((a,b)=>a-b);
-  const mean = simResults.reduce((a,b)=>a+b,0)/iters;
-  const median = iters%2?sorted[Math.floor(iters/2)]:(sorted[iters/2-1]+sorted[iters/2])/2;
-  const minVal = sorted[0];
-  const maxVal = sorted[iters-1];
-  const variance = simResults.reduce((acc,v)=>acc+Math.pow(v-mean,2),0)/iters;
-  const stdDev = Math.sqrt(variance);
-  const p90 = sorted[Math.floor(0.9*iters)]||maxVal;
-
-  let rows = [
-    ['SUMMARY STATISTICS (for all charts)'],
-    ['Metric','Value'],
-    ['Iterations',iters],
-    ['Mean',mean.toFixed(4)],
-    ['Median',median.toFixed(4)],
-    ['StdDev',stdDev.toFixed(4)],
-    ['Min',minVal.toFixed(4)],
-    ['Max',maxVal.toFixed(4)],
-    ['P90',p90.toFixed(4)],
-    [],
-    ['Iteration','TotalTime','CumulativePct']
-  ];
-  simResults.forEach((v,i)=>{rows.push([i+1,v.toFixed(4),((i+1)/iters*100).toFixed(2)]);});
-  downloadCSV(rows, 'Simulation_Results.csv');
-}
-
-function exportParetoCSV() {
-  const tasks = [];
-  document.querySelectorAll('.task-row').forEach(row => {
-    const name = row.querySelector('.task-name-input').value||'Task';
-    const o = parseFloat(row.querySelector('.opt').value)||0;
-    const m = parseFloat(row.querySelector('.ml').value)||0;
-    const p = parseFloat(row.querySelector('.pess').value)||0;
-    const expected = (o+4*m+p)/6;
-    tasks.push({name,expected});
-  });
-  tasks.sort((a,b)=>b.expected-a.expected);
-  const total = tasks.reduce((s,t)=>s+t.expected,0)||1;
-  let cum = 0;
-  const rows = [['Task','Expected','Pct','CumPct']];
-  tasks.forEach(t=>{
-    const pct = t.expected/total*100;
-    cum += pct;
-    rows.push([t.name,t.expected.toFixed(2),pct.toFixed(2),cum.toFixed(2)]);
-  });
-  downloadCSV(rows, 'Pareto_Chart.csv');
-}
-
-function downloadCSV(rows, filename) {
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = filename;
-  a.click();
-}
+  function downloadCSV(rows, filename) {
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = filename;
+    a.click();
+  }
 </script>
 </body>
 </html>
