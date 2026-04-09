@@ -57,9 +57,10 @@
     }
     .back-btn:hover { background: rgba(245,158,11,0.1); }
     .topbar-title {
-      font-family: var(--head); font-size: 18px; font-weight: 700;
+      font-family: var(--head); font-size: clamp(14px, 4vw, 18px); font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase;
       color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .topbar-sub {
       font-family: var(--mono); font-size: 11px; color: var(--muted);
@@ -104,111 +105,195 @@
     /* ── STOPWATCH ── */
     .sw-display {
       font-family: var(--mono);
-      font-size: clamp(3rem, 14vw, 5rem);
+      font-size: 56px;
       font-weight: 600;
       text-align: center;
       color: var(--text);
-      letter-spacing: 2px;
-      padding: 10px 0 6px;
-      transition: color 0.2s;
+      letter-spacing: -0.02em;
+      margin: 10px 0 4px;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
-    .sw-display.running { color: var(--green); }
-    .sw-display.stopped { color: var(--amber); }
-
+    .sw-display.running { 
+      color: var(--amber); 
+      text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+    .sw-display.stopped { 
+      color: var(--red); 
+    }
     .sw-status {
       text-align: center;
-      font-family: var(--head); font-size: 12px; letter-spacing: 0.15em;
-      text-transform: uppercase; color: var(--muted);
-      margin-bottom: 16px; height: 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
     }
 
+    /* ── STOPWATCH CONTROLS ── */
     .sw-controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      display: flex;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
     .sw-btn {
-      padding: 14px 8px;
-      border: none; border-radius: 8px;
-      font-family: var(--head); font-size: 16px; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      cursor: pointer; transition: opacity 0.15s, transform 0.1s;
-      -webkit-user-select: none;
+      flex: 1;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      font-family: var(--head);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .sw-btn:active { transform: scale(0.95); opacity: 0.85; }
-    .sw-start { background: var(--green); color: #0a1a0f; }
-    .sw-stop  { background: var(--red);   color: #fff; }
-    .sw-reset { background: #374151; color: var(--text-dim); }
+    .sw-btn:active { transform: scale(0.96); }
+    .sw-start:hover { border-color: var(--green); color: var(--green); }
+    .sw-stop:hover { border-color: var(--red); color: var(--red); }
+    .sw-reset:hover { border-color: var(--muted); }
 
+    /* ── GIANT RECORD BUTTON ── */
     .record-btn {
-      width: 100%; padding: 18px;
-      border: none; border-radius: 10px;
-      background: var(--amber); color: #1a0f00;
-      font-family: var(--head); font-size: 20px; font-weight: 800;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-      transition: opacity 0.15s, transform 0.1s, background 0.2s;
-      -webkit-user-select: none;
+      width: 100%;
+      padding: 20px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 2px dashed var(--amber-dim);
+      border-radius: 12px;
+      color: var(--amber);
+      font-family: var(--head);
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.1s ease-out;
     }
-    .record-btn:active { transform: scale(0.97); }
-    .record-btn.logged { background: var(--green); color: #0a1a0f; }
-    .record-btn:disabled { background: #374151; color: var(--muted); cursor: not-allowed; }
+    .record-btn:active { 
+      transform: scale(0.98); 
+      background: rgba(245, 158, 11, 0.15); 
+    }
+    .record-btn.logged { 
+      background: var(--amber); 
+      color: #0f1117; 
+      border-style: solid; 
+      border-color: var(--amber);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+    }
+    #record-icon { font-size: 22px; }
 
-    /* ── READINGS LIST ── */
+    /* ── READINGS HEADER & EMPTY STATE ── */
     .readings-header {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 12px;
     }
     .readings-count {
-      font-family: var(--mono); font-size: 13px; color: var(--amber);
-      background: rgba(245,158,11,0.1); padding: 2px 8px; border-radius: 20px;
+      background: var(--border);
+      color: var(--text);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
     }
     .clear-link {
-      font-family: var(--head); font-size: 12px; font-weight: 600;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--red); cursor: pointer; padding: 4px 8px;
-      border-radius: 4px; transition: background 0.15s;
+      font-family: var(--head);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      opacity: 0.7;
     }
-    .clear-link:hover { background: rgba(239,68,68,0.1); }
+    .clear-link:hover { opacity: 1; text-decoration: underline; }
+    
+    .no-readings {
+      text-align: center;
+      padding: 30px 20px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: var(--body);
+      font-size: 14px;
+    }
 
+    /* ── READINGS LIST ITEMS ── */
     .readings-list {
-      display: flex; flex-direction: column; gap: 6px;
-      max-height: 200px; overflow-y: auto; scroll-behavior: smooth;
+      max-height: 240px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
     }
+    .readings-list::-webkit-scrollbar { width: 4px; }
+    .readings-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    
     .reading-item {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 6px; padding: 10px 12px;
-      animation: slideIn 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      animation: slideIn 0.2s ease-out forwards;
     }
     @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .reading-num {
-      font-family: var(--mono); font-size: 11px; color: var(--muted);
-      min-width: 28px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      width: 24px;
     }
-    .reading-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
-    .reading-bar { height: 100%; background: var(--amber); border-radius: 2px; transition: width 0.3s; }
+    .reading-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .reading-bar {
+      height: 100%;
+      background: var(--amber);
+      border-radius: 3px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
     .reading-val {
-      font-family: var(--mono); font-size: 14px; font-weight: 600;
-      color: var(--text); min-width: 60px; text-align: right;
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      width: 60px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
     .reading-del {
-      background: none; border: none; color: var(--muted);
-      cursor: pointer; font-size: 16px; padding: 2px 4px;
-      border-radius: 4px; transition: color 0.15s, background 0.15s;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
       line-height: 1;
+      padding: 0 4px;
+      transition: color 0.15s;
     }
-    .reading-del:hover { color: var(--red); background: rgba(239,68,68,0.1); }
-
-    .no-readings {
-      text-align: center; padding: 24px;
-      font-family: var(--head); font-size: 14px; letter-spacing: 0.08em;
-      color: var(--muted); text-transform: uppercase;
-    }
+    .reading-del:hover { color: var(--red); }
 
     /* ── MANUAL INPUT & RAW DATA ── */
     .manual-row { display: flex; gap: 8px; }
@@ -323,7 +408,7 @@
     </div>
     <button class="record-btn" id="record-btn" onclick="recordTime()">
       <span id="record-icon">⏱</span>
-      <span id="record-label">Record &amp; Reset</span>
+      <span id="record-label">Record &amp; Auto-Start</span>
     </button>
   </div>
 
@@ -336,9 +421,8 @@
       </div>
     </div>
     
-    <div class="readings-list" id="readings-list">
-      <div class="no-readings" id="no-readings">No readings yet — start the stopwatch</div>
-    </div>
+    <div class="no-readings" id="no-readings">No readings yet — start the stopwatch</div>
+    <div class="readings-list" id="readings-list"></div>
 
     <div style="margin-top:12px; border-top: 1px solid var(--border); padding-top:12px;">
       <div class="card-label">All Cycle Numbers (Raw Data)</div>
@@ -403,7 +487,7 @@
   function startTimer() {
     if (running) return;
     startTime = Date.now() - difference;
-    tInterval = setInterval(tick, 16);
+    tInterval = setInterval(tick, 10);
     running = true;
     document.getElementById('sw-display').className = 'sw-display running';
     document.getElementById('sw-status').textContent = 'Running…';
@@ -438,35 +522,35 @@
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  /* ── TRUE STOP & RESET LOGIC ── */
   function recordTime() {
     if (!running && difference === 0) { 
       showToast('Start the stopwatch first'); 
       return; 
     }
     
-    // 1. Calculate exact split
+    // 1. CAPTURE THE SPLIT
     let cycleTime = running ? (Date.now() - startTime) : difference;
-    
-    // 2. Log the data
     if (cycleTime > 0) {
       const secs = +(cycleTime / 1000).toFixed(2);
       readings.push(secs);
-      renderReadings();
+      renderReadings(); 
     }
 
-    // 3. FORCE Stop & Reset to zero
+    // 2. RESET THE STOPWATCH
     clearInterval(tInterval);
-    running = false;
-    difference = 0;
-    
-    // Update visual state to strictly Stopped and Zeroed
-    document.getElementById('sw-display').textContent = '00:00.00';
-    document.getElementById('sw-display').className = 'sw-display';
-    document.getElementById('sw-status').textContent = 'Logged ✓ — Stopped & Ready';
-    document.getElementById('btn-start').style.opacity = '1';
+    difference = 0;            
+    document.getElementById('sw-display').textContent = '00:00.00'; 
 
-    // 4. Button Flash Animation
+    // 3. AUTO-START IT IMMEDIATELY FROM ZERO
+    startTime = Date.now();
+    tInterval = setInterval(tick, 10);
+    running = true;
+    
+    document.getElementById('sw-display').className = 'sw-display running';
+    document.getElementById('sw-status').textContent = 'Auto-started cycle ' + (readings.length + 1) + '...';
+    document.getElementById('btn-start').style.opacity = '0.4';
+
+    // Button Flash Animation
     const btn = document.getElementById('record-btn');
     btn.classList.add('logged');
     document.getElementById('record-icon').textContent = '✔';
@@ -474,7 +558,7 @@
     setTimeout(() => {
       btn.classList.remove('logged');
       document.getElementById('record-icon').textContent = '⏱';
-      document.getElementById('record-label').textContent = 'Record & Reset';
+      document.getElementById('record-label').textContent = 'Record & Auto-Start';
     }, 700);
   }
 
@@ -504,9 +588,8 @@
     document.getElementById('cycle-count').textContent = readings.length + ' cycle' + (readings.length !== 1 ? 's' : '');
 
     if (readings.length === 0) {
-      noR.style.display = 'block';
+      if (noR) noR.style.display = 'block';
       list.innerHTML = '';
-      list.appendChild(noR);
       rawBox.value = "";
       document.getElementById('stats-card').style.display = 'none';
       sendBtn.disabled = true;
@@ -514,9 +597,8 @@
     }
 
     sendBtn.disabled = false;
-    noR.style.display = 'none';
+    if (noR) noR.style.display = 'none';
 
-    // 1. Update the visual bar list
     const maxVal = Math.max(...readings);
     list.innerHTML = readings.map((v, i) => `
       <div class="reading-item">
@@ -529,10 +611,8 @@
       </div>
     `).join('');
 
-    // 2. Format the Raw Numbers Box explicitly
     rawBox.value = readings.map((v, i) => `Cycle #${String(i + 1).padStart(2, '0')} -> ${v.toFixed(2)}s`).join('\n');
 
-    // 3. Auto-scroll both lists to the bottom so newest data is always visible
     setTimeout(() => {
       list.scrollTop = list.scrollHeight;
       rawBox.scrollTop = rawBox.scrollHeight;
@@ -549,10 +629,9 @@
 
   function updateStats() {
     if (!readings.length) return;
-    const n   = readings.length;
     const min = Math.min(...readings);
     const max = Math.max(...readings);
-    const avg = readings.reduce((a, b) => a + b, 0) / n;
+    const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
     
     document.getElementById('s-min').textContent = min.toFixed(2);
     document.getElementById('s-avg').textContent = avg.toFixed(2);
