@@ -158,7 +158,7 @@
       border-radius: 8px;
       padding: 12px 14px;
       display: grid;
-      grid-template-columns: 1fr 72px 72px 72px 32px;
+      grid-template-columns: 1fr 72px 72px 72px 28px 28px;
       gap: 8px;
       align-items: center;
       transition: border-color 0.2s;
@@ -218,21 +218,23 @@
     .num-input.opt:focus { border-color: var(--green); }
     .num-input.pess:focus { border-color: var(--red); }
 
-    .del-btn {
+    .icon-action-btn {
       background: none;
       border: none;
       color: var(--muted);
       cursor: pointer;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1;
       padding: 4px;
       border-radius: 4px;
       transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-
-    .del-btn:hover {
-      color: var(--red);
-    }
+    
+    .icon-action-btn:hover { color: var(--amber); }
+    .icon-action-btn.del:hover { color: var(--red); }
 
     .task-badge {
       grid-column: 1 / -1;
@@ -618,7 +620,7 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title"> Tasks — Sequential</span>
-        <a href="data_collection.html" class="link-btn">
+        <a href="javascript:void(0)" onclick="goToDataCollection()" class="link-btn" title="Add a completely new data collection task">
           ⏱ Collect Data
         </a>
       </div>
@@ -668,29 +670,41 @@
   window.onload = () => {
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     if (saved.length) {
-      saved.forEach(t => addTask(t.name, t.a, t.m, t.b, t));
+      saved.forEach(t => addTask(t.name, t.a, t.m, t.b, t.meta));
     }
-    // Default task generation has been removed. It will now load empty if no data is saved.
   };
 
-  /* ── Add Task ── */
+  /* ── Core Task Management ── */
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.toString()
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   function addTask(name = '', opt = 1, ml = 5, pess = 10, meta = null) {
     taskCount++;
     const safeName = name || `Task ${taskCount}`;
     const id = `t-${Date.now()}-${taskCount}`;
 
     let badgeHTML = '';
-    if (meta?.readings?.length) {
+    if (meta && meta.readings && meta.readings.length) {
       badgeHTML = `
         <div class="task-badge">
           <span>n=${meta.readings.length} cycles</span>
-          ${meta.notes ? `<span title="${meta.notes}">📝 ${meta.notes.substring(0, 40)}${meta.notes.length > 40 ? '…' : ''}</span>` : ''}
+          ${meta.notes ? `<span title="${escapeHtml(meta.notes)}">📝 ${escapeHtml(meta.notes).substring(0, 40)}${meta.notes.length > 40 ? '…' : ''}</span>` : ''}
           ${meta.timestamp ? `<span>${new Date(meta.timestamp).toLocaleString()}</span>` : ''}
         </div>`;
     }
+    
+    // Safely store object to pull later
+    const metaString = meta ? escapeHtml(JSON.stringify(meta)) : '{}';
 
     const html = `
-      <div class="task-row" id="${id}">
+      <div class="task-row" id="${id}" data-meta="${metaString}">
         <input type="text" class="task-name-input" value="${safeName}" placeholder="Task name">
         <div class="num-group">
           <span class="num-label">Opt (a)</span>
@@ -704,11 +718,29 @@
           <span class="num-label">Pess (b)</span>
           <input type="number" class="num-input pess" value="${pess}" step="0.01" min="0">
         </div>
-        <button class="del-btn" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
+        <button class="icon-action-btn" onclick="collectDataForTask('${id}')" title="Collect real data for this task">⏱</button>
+        <button class="icon-action-btn del" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
         ${badgeHTML}
       </div>
     `;
     document.getElementById('task-list').insertAdjacentHTML('beforeend', html);
+  }
+
+  function saveCurrentTasks() {
+    const tasks = [];
+    document.querySelectorAll('.task-row').forEach(row => {
+      const a = parseFloat(row.querySelector('.opt').value) || 0;
+      const m = parseFloat(row.querySelector('.ml').value) || 0;
+      const b = parseFloat(row.querySelector('.pess').value) || 0;
+      const name = row.querySelector('.task-name-input').value || 'Task';
+      let meta = null;
+      try {
+        const metaStr = row.getAttribute('data-meta');
+        if (metaStr) meta = JSON.parse(metaStr);
+      } catch(e){}
+      tasks.push({ a, m, b, name, meta });
+    });
+    localStorage.setItem('projectTasks', JSON.stringify(tasks));
   }
 
   function clearAllTasks() {
@@ -716,6 +748,27 @@
     document.getElementById('task-list').innerHTML = '';
     taskCount = 0;
     localStorage.removeItem('projectTasks');
+  }
+
+  /* ── Syncing With Data Collection ── */
+  function collectDataForTask(taskId) {
+    saveCurrentTasks(); // Persist everything exactly as it is
+    const row = document.getElementById(taskId);
+    const rowsArray = Array.from(document.querySelectorAll('.task-row'));
+    const taskIndex = rowsArray.indexOf(row);
+    const taskName = row.querySelector('.task-name-input').value;
+
+    // Send context so data_collection.html overrides THIS task instead of duplicating
+    localStorage.setItem('pendingTaskIndex', taskIndex);
+    localStorage.setItem('pendingTaskName', taskName);
+    window.location.href = 'data_collection.html';
+  }
+
+  function goToDataCollection() {
+    saveCurrentTasks();
+    localStorage.removeItem('pendingTaskIndex'); 
+    localStorage.removeItem('pendingTaskName');
+    window.location.href = 'data_collection.html';
   }
 
   /* ── Triangular RNG ── */
@@ -729,30 +782,22 @@
 
   /* ── Run Simulation ── */
   function runSimulation() {
-    const iters = parseInt(document.getElementById('iterations').value, 10) || 1000;
-    const tasks = [];
+    saveCurrentTasks(); // Ensure local changes are captured
+    const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
 
-    document.querySelectorAll('.task-row').forEach(row => {
-      const a = parseFloat(row.querySelector('.opt').value);
-      const m = parseFloat(row.querySelector('.ml').value);
-      const b = parseFloat(row.querySelector('.pess').value);
-      const name = row.querySelector('.task-name-input').value || 'Task';
-      if (!isNaN(a) && !isNaN(m) && !isNaN(b) && a <= m && m <= b) {
-        tasks.push({ a, m, b, name });
-      }
-    });
-
-    if (!tasks.length) { 
+    if (!validTasks.length) { 
       alert('Add at least one valid task (a ≤ m ≤ b).'); 
       return; 
     }
 
+    const iters = parseInt(document.getElementById('iterations').value, 10) || 1000;
     simResults = [];
-    const perTaskSums = Array(tasks.length).fill(0);
+    const perTaskSums = Array(validTasks.length).fill(0);
 
     for (let i = 0; i < iters; i++) {
       let total = 0;
-      tasks.forEach((t, j) => {
+      validTasks.forEach((t, j) => {
         const v = triangular(t.a, t.m, t.b);
         perTaskSums[j] += v;
         total += v;
@@ -762,8 +807,8 @@
 
     simResults.sort((a, b) => a - b);
 
-    const taskMeans = tasks.map((t, j) => ({
-      name: t.name,
+    const taskMeans = validTasks.map((t, j) => ({
+      name: t.name || 'Task',
       mean: perTaskSums[j] / iters,
       a: t.a, m: t.m, b: t.b
     }));
@@ -771,9 +816,6 @@
     renderResults(simResults, iters, taskMeans);
     document.getElementById('header-status').textContent = `${iters.toLocaleString()} iterations`;
     document.getElementById('export-results-btn').style.display = 'flex';
-
-    // Save task state
-    localStorage.setItem('projectTasks', JSON.stringify(tasks));
   }
 
   /* ── Render Results ── */
@@ -873,7 +915,7 @@
                   const pct = (t.mean / totalMean * 100).toFixed(1);
                   return `<tr>
                     <td style="color:var(--text)">${t.name}</td>
-                    <td>${t.mean.toFixed(2)}</td>
+                    <td style="t.mean.toFixed(2)">${t.mean.toFixed(2)}</td>
                     <td>
                       <span style="color:var(--blue)">${pct}%</span>
                       <div class="contrib-bar-wrap">
@@ -1078,28 +1120,6 @@
     ];
     simResults.forEach((v,i)=>{rows.push([i+1,v.toFixed(4),((i+1)/iters*100).toFixed(2)]);});
     downloadCSV(rows, 'Simulation_Results.csv');
-  }
-
-  function exportParetoCSV() {
-    const tasks = [];
-    document.querySelectorAll('.task-row').forEach(row => {
-      const name = row.querySelector('.task-name-input').value||'Task';
-      const o = parseFloat(row.querySelector('.opt').value)||0;
-      const m = parseFloat(row.querySelector('.ml').value)||0;
-      const p = parseFloat(row.querySelector('.pess').value)||0;
-      const expected = (o+4*m+p)/6;
-      tasks.push({name,expected});
-    });
-    tasks.sort((a,b)=>b.expected-a.expected);
-    const total = tasks.reduce((s,t)=>s+t.expected,0)||1;
-    let cum = 0;
-    const rows = [['Task','Expected','Pct','CumPct']];
-    tasks.forEach(t=>{
-      const pct = t.expected/total*100;
-      cum += pct;
-      rows.push([t.name,t.expected.toFixed(2),pct.toFixed(2),cum.toFixed(2)]);
-    });
-    downloadCSV(rows, 'Pareto_Chart.csv');
   }
 
   function downloadCSV(rows, filename) {
