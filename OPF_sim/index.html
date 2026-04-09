@@ -621,13 +621,13 @@
       <div class="panel-header">
         <span class="panel-title"> Tasks — Sequential</span>
         <a href="javascript:void(0)" onclick="goToDataCollection()" class="link-btn" title="Add a completely new data collection task">
-          ⏱ Collect Data
+          Collect Time Data
         </a>
       </div>
       <div class="panel-body">
         <div class="task-list" id="task-list"></div>
         <div style="margin-top:12px">
-          <button class="add-task-btn" onclick="addTask()">+ Add Task</button>
+          <button class="add-task-btn" onclick="addTask()">Add Task</button>
         </div>
 
         <div class="task-controls">
@@ -635,12 +635,12 @@
             <span class="iter-label">Iterations</span>
             <input type="number" class="iter-input" id="iterations" value="5000" min="100" max="100000">
           </div>
-          <button class="run-btn" onclick="runSimulation()">▶ Run</button>
+          <button class="run-btn" onclick="runSimulation()">Run</button>
         </div>
 
         <div class="action-bar">
-          <button class="icon-btn green" onclick="exportTasksCSV()">⬇ Task CSV</button>
-          <button class="icon-btn" id="export-results-btn" onclick="exportResultsCSV()" style="display:none">⬇ Results CSV</button>
+          <button class="icon-btn green" onclick="exportTasksCSV()">Task CSV</button>
+          <button class="icon-btn" id="export-results-btn" onclick="exportResultsCSV()" style="display:none">Results CSV</button>
           <button class="icon-btn" onclick="clearAllTasks()" style="color:var(--red);border-color:rgba(239,68,68,0.3)">✕ Clear All</button>
         </div>
       </div>
