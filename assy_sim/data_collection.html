@@ -155,11 +155,6 @@
     .record-btn.logged { background: var(--green); color: #0a1a0f; }
     .record-btn:disabled { background: #374151; color: var(--muted); cursor: not-allowed; }
 
-    /* Toggle Switch */
-    .toggle-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; }
-    .toggle-wrap input { width: 18px; height: 18px; accent-color: var(--amber); cursor: pointer; }
-    .toggle-label { font-family: var(--head); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
-
     /* ── READINGS LIST ── */
     .readings-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -215,7 +210,7 @@
       color: var(--muted); text-transform: uppercase;
     }
 
-    /* ── MANUAL INPUT & TEXTAREA ── */
+    /* ── MANUAL INPUT & RAW DATA ── */
     .manual-row { display: flex; gap: 8px; }
     .manual-input {
       flex: 1; padding: 10px 12px; background: var(--bg); border: 1.5px solid var(--border);
@@ -261,6 +256,15 @@
       display: block; margin-top: 2px;
     }
 
+    /* ── NOTES ── */
+    .notes-input {
+      width: 100%; padding: 10px 14px; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: var(--body); font-size: 14px;
+      resize: vertical; min-height: 72px; transition: border-color 0.2s;
+    }
+    .notes-input:focus { outline: none; border-color: var(--blue); }
+    .notes-input::placeholder { color: var(--muted); }
+
     /* ── BOTTOM ACTION BAR ── */
     .bottom-bar {
       background: var(--surface);
@@ -270,21 +274,15 @@
       display: flex; gap: 10px;
     }
     .send-btn {
-      flex: 1; padding: 16px;
-      background: var(--green); color: #0a1a0f;
-      border: none; border-radius: 10px;
-      font-family: var(--head); font-size: 18px; font-weight: 800;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      cursor: pointer; transition: opacity 0.15s;
+      flex: 1; padding: 16px; background: var(--green); color: #0a1a0f;
+      border: none; border-radius: 10px; font-family: var(--head); font-size: 18px; font-weight: 800;
+      letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
     }
-    .send-btn:disabled {
-      background: #374151; color: var(--muted); cursor: not-allowed;
-    }
+    .send-btn:disabled { background: #374151; color: var(--muted); cursor: not-allowed; }
     .send-btn:not(:disabled):active { opacity: 0.85; }
     .export-btn {
-      padding: 16px 14px; background: #374151; color: var(--text-dim);
-      border: none; border-radius: 10px; font-family: var(--head); font-size: 15px; font-weight: 700;
-      cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
+      padding: 16px 14px; background: #374151; color: var(--text-dim); border: none; border-radius: 10px;
+      font-family: var(--head); font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
     }
     .export-btn:active { opacity: 0.8; }
 
@@ -294,9 +292,7 @@
       color: var(--green); padding: 10px 20px; border-radius: 999px;
       font-family: var(--head); font-size: 14px; font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase;
-      pointer-events: none; opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 999;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 999;
     }
     .toast.show { opacity: 1; }
   </style>
@@ -329,11 +325,6 @@
       <span id="record-icon">⏱</span>
       <span id="record-label">Record &amp; Reset</span>
     </button>
-    
-    <div class="toggle-wrap">
-      <input type="checkbox" id="auto-restart">
-      <label class="toggle-label" for="auto-restart">Auto-Start Next Cycle</label>
-    </div>
   </div>
 
   <div class="card">
@@ -382,6 +373,11 @@
         <span class="stat-unit">sec</span>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Field Notes (optional)</div>
+    <textarea class="notes-input" id="notes" placeholder="Operator, conditions, anomalies…"></textarea>
   </div>
 
 </div>
@@ -442,38 +438,36 @@
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  /* ── FIXED RECORD LOGIC ── */
+  /* ── FLAWLESS SNAP-BACK LOGIC ── */
   function recordTime() {
-    if (difference === 0 && !running) { showToast('Start the stopwatch first'); return; }
+    if (!running && difference === 0) { 
+      showToast('Start the stopwatch first'); 
+      return; 
+    }
     
-    // Log the current time
+    // Calculate exact split
     let cycleTime = running ? (Date.now() - startTime) : difference;
+    
+    // Log the data
     if (cycleTime > 0) {
       const secs = +(cycleTime / 1000).toFixed(2);
       readings.push(secs);
       renderReadings();
     }
 
-    // Check the User's Preference from the Checkbox
-    const wantsAutoRestart = document.getElementById('auto-restart').checked;
-
-    if (wantsAutoRestart) {
-      // Keep going (Snap-back)
-      clearInterval(tInterval);
-      difference = 0;
+    if (running) {
+      // Snap-Back Magic: We don't stop the setInterval engine. 
+      // We just shift the starting line up to this exact millisecond.
       startTime = Date.now();
-      tInterval = setInterval(tick, 16);
-      running = true;
-      document.getElementById('sw-display').textContent = '00:00.00';
-      document.getElementById('sw-display').className = 'sw-display running';
       document.getElementById('sw-status').textContent = 'Logged ✓ — Auto-started next cycle';
-      document.getElementById('btn-start').style.opacity = '0.4';
     } else {
-      // Stop completely after recording
-      resetTimer();
-      document.getElementById('sw-status').textContent = 'Logged ✓ — Stopwatch Reset and Stopped';
+      // If it was already stopped when they hit record, reset it to zero.
+      difference = 0;
+      document.getElementById('sw-display').textContent = '00:00.00';
+      document.getElementById('sw-status').textContent = 'Logged ✓ — Ready';
     }
 
+    // Button Flash Animation
     const btn = document.getElementById('record-btn');
     btn.classList.add('logged');
     document.getElementById('record-icon').textContent = '✔';
@@ -523,7 +517,7 @@
     sendBtn.disabled = false;
     noR.style.display = 'none';
 
-    // Update the UI list
+    // Update the visual bar list
     const maxVal = Math.max(...readings);
     list.innerHTML = readings.map((v, i) => `
       <div class="reading-item">
@@ -536,7 +530,7 @@
       </div>
     `).join('');
 
-    // Update the text box with raw comma-separated numbers
+    // Keep the Raw Comma-Separated Data Box updated
     rawBox.value = readings.join(', ');
 
     updateStats();
