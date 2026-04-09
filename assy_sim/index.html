@@ -664,15 +664,13 @@
   let taskCount = 0;
   let simResults = [];
 
-  /* ── Init ── */
+ /* ── Init ── */
   window.onload = () => {
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     if (saved.length) {
       saved.forEach(t => addTask(t.name, t.a, t.m, t.b, t));
-    } else {
-      addTask('Task 1', 3, 5, 8);
-      addTask('Task 2', 2, 4, 9);
     }
+    // Default task generation has been removed. It will now load empty if no data is saved.
   };
 
   /* ── Add Task ── */
