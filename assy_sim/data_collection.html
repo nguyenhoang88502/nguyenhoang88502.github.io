@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Data Collection</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 100px; resize: vertical; }
+        .results { margin-top: 20px; padding: 15px; background: #e8f4f8; border-radius: 6px; border: 1px solid #d0e7f0; display: none; }
+        .btn-group { margin-top: 20px; display: flex; gap: 10px; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; }
+        .calc-btn { background-color: #f39c12; }
+        .send-btn { background-color: #2ecc71; display: none; }
+        .back-btn { background-color: #95a5a6; text-decoration: none; display: inline-block; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Process Time Study Collection</h2>
+        <p>Enter historical data points to calculate the Triangular Distribution parameters for your simulation.</p>
+
+        <label>Task / Process Name:</label>
+        <input type="text" id="task-name" placeholder="e.g., PCB Assembly, Packaging, etc.">
+
+        <label>Raw Data Points (comma separated):</label>
+        <textarea id="raw-data" placeholder="e.g., 4.5, 5.2, 4.8, 6.1, 5.0, 4.9"></textarea>
+
+        <div class="btn-group">
+            <button class="calc-btn" onclick="calculateParameters()">Calculate Parameters</button>
+            <a href="index.html" class="back-btn">Back to Simulator</a>
+        </div>
+
+        <div class="results" id="results-panel">
+            <h3>Calculated Parameters</h3>
+            <p><strong>Optimistic (Min):</strong> <span id="calc-min">0</span></p>
+            <p><strong>Most Likely (Average):</strong> <span id="calc-avg">0</span></p>
+            <p><strong>Pessimistic (Max):</strong> <span id="calc-max">0</span></p>
+            
+            <button class="send-btn" id="send-btn" onclick="sendToSimulator()">Add to Project Simulation</button>
+        </div>
+    </div>
+
+    <script>
+        let taskData = {};
+
+        function calculateParameters() {
+            const rawInput = document.getElementById('raw-data').value;
+            const nameInput = document.getElementById('task-name').value || "New Task";
+            
+            // Parse comma-separated numbers
+            const dataPoints = rawInput.split(',')
+                .map(n => parseFloat(n.trim()))
+                .filter(n => !isNaN(n));
+
+            if (dataPoints.length === 0) {
+                alert("Please enter valid numeric data points.");
+                return;
+            }
+
+            const min = Math.min(...dataPoints);
+            const max = Math.max(...dataPoints);
+            const sum = dataPoints.reduce((acc, val) => acc + val, 0);
+            const avg = sum / dataPoints.length;
+
+            taskData = {
+                name: nameInput,
+                a: min.toFixed(2),
+                m: avg.toFixed(2),
+                b: max.toFixed(2)
+            };
+
+            document.getElementById('calc-min').innerText = taskData.a;
+            document.getElementById('calc-avg').innerText = taskData.m;
+            document.getElementById('calc-max').innerText = taskData.b;
+            
+            document.getElementById('results-panel').style.display = 'block';
+            document.getElementById('send-btn').style.display = 'inline-block';
+        }
+
+        function sendToSimulator() {
+            // Retrieve existing tasks or create new array
+            let pendingTasks = JSON.parse(localStorage.getItem('pendingTasks')) || [];
+            pendingTasks.push(taskData);
+            
+            // Save back to local storage
+            localStorage.setItem('pendingTasks', JSON.stringify(pendingTasks));
+            
+            // Redirect to index
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
