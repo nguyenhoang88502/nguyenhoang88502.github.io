@@ -640,21 +640,49 @@
 
   function sendToSimulator() {
     if (!readings.length) return;
+    
+    // Prevent double clicking from saving duplicates
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
     const name = document.getElementById('task-name').value.trim() || 'New Task';
     const min = Math.min(...readings);
     const max = Math.max(...readings);
     const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
+    const notes = document.getElementById('notes').value.trim();
 
     const task = {
       name,
       a: +min.toFixed(2),
       m: +avg.toFixed(2),
-      b: +max.toFixed(2)
+      b: +max.toFixed(2),
+      meta: {
+        readings: [...readings],
+        notes: notes,
+        timestamp: Date.now()
+      }
     };
 
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
-    saved.push(task);
+    const pendingIndex = localStorage.getItem('pendingTaskIndex');
+
+    // Overwrite the existing task row if it was clicked from index.html
+    if (pendingIndex !== null && pendingIndex !== "" && !isNaN(pendingIndex)) {
+      const idx = parseInt(pendingIndex, 10);
+      if (idx >= 0 && idx < saved.length) {
+        saved[idx] = task; // Update precisely the same item
+      } else {
+        saved.push(task);
+      }
+    } else {
+      saved.push(task); // Normal append if they clicked the global "Collect Data" button
+    }
+
     localStorage.setItem('projectTasks', JSON.stringify(saved));
+    localStorage.removeItem('pendingTaskIndex');
+    localStorage.removeItem('pendingTaskName');
+    
     window.location.href = 'index.html';
   }
 
