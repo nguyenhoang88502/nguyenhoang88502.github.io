@@ -1,181 +1,621 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Data Collection</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        label { display: block; margin-top: 15px; font-weight: bold; }
-        input[type="text"], textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        textarea { height: 80px; resize: vertical; font-family: monospace; }
-        .results { margin-top: 20px; padding: 15px; background: #e8f4f8; border-radius: 6px; border: 1px solid #d0e7f0; display: none; }
-        .btn-group { margin-top: 20px; display: flex; gap: 10px; }
-        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
-        .calc-btn { background-color: #f39c12; }
-        .send-btn { background-color: #2ecc71; display: none; }
-        .back-btn { background-color: #95a5a6; text-decoration: none; display: inline-block; text-align: center; }
-        
-        /* Stopwatch Styles */
-        .stopwatch-container { background: #2c3e50; padding: 20px; border-radius: 6px; margin-top: 15px; text-align: center; color: white; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
-        .time-display { font-size: 2.5em; font-weight: bold; font-family: 'Courier New', Courier, monospace; margin-bottom: 15px; letter-spacing: 2px; }
-        .sw-btn { padding: 8px 15px; margin: 0 5px; color: white; }
-        .sw-start { background-color: #27ae60; }
-        .sw-stop { background-color: #e74c3c; }
-        .sw-reset { background-color: #7f8c8d; }
-        .sw-record { background-color: #3498db; width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Time Study — Data Collection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0f1117;
+      --surface:  #181c27;
+      --border:   #252b3b;
+      --amber:    #f59e0b;
+      --amber-dim:#92610a;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --blue:     #3b82f6;
+      --muted:    #6b7280;
+      --text:     #e2e8f0;
+      --text-dim: #94a3b8;
+      --mono:     'IBM Plex Mono', monospace;
+      --head:     'Barlow Condensed', sans-serif;
+      --body:     'Barlow', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ── TOP NAV ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--head); font-weight: 700; font-size: 13px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--amber); text-decoration: none;
+      padding: 6px 10px; border: 1px solid var(--amber-dim);
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .back-btn:hover { background: rgba(245,158,11,0.1); }
+    .topbar-title {
+      font-family: var(--head); font-size: 18px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--text);
+    }
+    .topbar-sub {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* ── SCROLL AREA ── */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .card-label {
+      font-family: var(--head); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+    }
+
+    /* ── TASK NAME ── */
+    .task-input {
+      width: 100%; padding: 12px 14px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: var(--head); font-size: 20px; font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: border-color 0.2s;
+    }
+    .task-input:focus { outline: none; border-color: var(--amber); }
+    .task-input::placeholder { color: var(--muted); }
+
+    /* ── STOPWATCH ── */
+    .sw-display {
+      font-family: var(--mono);
+      font-size: clamp(3rem, 14vw, 5rem);
+      font-weight: 600;
+      text-align: center;
+      color: var(--text);
+      letter-spacing: 2px;
+      padding: 10px 0 6px;
+      transition: color 0.2s;
+    }
+    .sw-display.running { color: var(--green); }
+    .sw-display.stopped { color: var(--amber); }
+
+    .sw-status {
+      text-align: center;
+      font-family: var(--head); font-size: 12px; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 16px; height: 18px;
+    }
+
+    .sw-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .sw-btn {
+      padding: 14px 8px;
+      border: none; border-radius: 8px;
+      font-family: var(--head); font-size: 16px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+      -webkit-user-select: none;
+    }
+    .sw-btn:active { transform: scale(0.95); opacity: 0.85; }
+    .sw-start { background: var(--green); color: #0a1a0f; }
+    .sw-stop  { background: var(--red);   color: #fff; }
+    .sw-reset { background: #374151; color: var(--text-dim); }
+
+    .record-btn {
+      width: 100%; padding: 18px;
+      border: none; border-radius: 10px;
+      background: var(--amber); color: #1a0f00;
+      font-family: var(--head); font-size: 20px; font-weight: 800;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: opacity 0.15s, transform 0.1s, background 0.2s;
+      -webkit-user-select: none;
+    }
+    .record-btn:active { transform: scale(0.97); }
+    .record-btn.logged { background: var(--green); color: #0a1a0f; }
+    .record-btn:disabled { background: #374151; color: var(--muted); cursor: not-allowed; }
+
+    /* ── READINGS LIST ── */
+    .readings-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .readings-count {
+      font-family: var(--mono); font-size: 13px; color: var(--amber);
+      background: rgba(245,158,11,0.1); padding: 2px 8px; border-radius: 20px;
+    }
+    .clear-link {
+      font-family: var(--head); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--red); cursor: pointer; padding: 4px 8px;
+      border-radius: 4px; transition: background 0.15s;
+    }
+    .clear-link:hover { background: rgba(239,68,68,0.1); }
+
+    .readings-list {
+      display: flex; flex-direction: column; gap: 6px;
+      max-height: 260px; overflow-y: auto;
+    }
+    .reading-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 12px;
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .reading-num {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      min-width: 28px;
+    }
+    .reading-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+    .reading-bar { height: 100%; background: var(--amber); border-radius: 2px; transition: width 0.3s; }
+    .reading-val {
+      font-family: var(--mono); font-size: 14px; font-weight: 600;
+      color: var(--text); min-width: 60px; text-align: right;
+    }
+    .reading-del {
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 16px; padding: 2px 4px;
+      border-radius: 4px; transition: color 0.15s, background 0.15s;
+      line-height: 1;
+    }
+    .reading-del:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+
+    .no-readings {
+      text-align: center; padding: 24px;
+      font-family: var(--head); font-size: 14px; letter-spacing: 0.08em;
+      color: var(--muted); text-transform: uppercase;
+    }
+
+    /* ── MANUAL INPUT ── */
+    .manual-row {
+      display: flex; gap: 8px;
+    }
+    .manual-input {
+      flex: 1; padding: 10px 12px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: var(--mono); font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    .manual-input:focus { outline: none; border-color: var(--blue); }
+    .manual-input::placeholder { color: var(--muted); }
+    .add-manual-btn {
+      padding: 10px 14px; background: var(--blue); color: white;
+      border: none; border-radius: 8px;
+      font-family: var(--head); font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .add-manual-btn:active { opacity: 0.8; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .stat-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 10px; text-align: center;
+    }
+    .stat-box.highlight { border-color: var(--amber); }
+    .stat-label {
+      font-family: var(--head); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .stat-value {
+      font-family: var(--mono); font-size: 20px; font-weight: 600;
+      color: var(--text);
+    }
+    .stat-value.amber { color: var(--amber); }
+    .stat-unit {
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+      display: block; margin-top: 2px;
+    }
+
+    /* ── NOTES ── */
+    .notes-input {
+      width: 100%; padding: 10px 14px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: var(--body); font-size: 14px;
+      resize: vertical; min-height: 72px;
+      transition: border-color 0.2s;
+    }
+    .notes-input:focus { outline: none; border-color: var(--blue); }
+    .notes-input::placeholder { color: var(--muted); }
+
+    /* ── BOTTOM ACTION BAR ── */
+    .bottom-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      display: flex; gap: 10px;
+    }
+    .send-btn {
+      flex: 1; padding: 16px;
+      background: var(--green); color: #0a1a0f;
+      border: none; border-radius: 10px;
+      font-family: var(--head); font-size: 18px; font-weight: 800;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .send-btn:disabled {
+      background: #374151; color: var(--muted); cursor: not-allowed;
+    }
+    .send-btn:not(:disabled):active { opacity: 0.85; }
+    .export-btn {
+      padding: 16px 14px;
+      background: #374151; color: var(--text-dim);
+      border: none; border-radius: 10px;
+      font-family: var(--head); font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .export-btn:active { opacity: 0.8; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: var(--surface); border: 1px solid var(--green);
+      color: var(--green); padding: 10px 20px; border-radius: 999px;
+      font-family: var(--head); font-size: 14px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+  </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Process Time Study Collection</h2>
-        
-        <label>Task / Process Name:</label>
-        <input type="text" id="task-name" placeholder="e.g., Assemble Housing Bottom">
+<div class="topbar">
+  <a href="index.html" class="back-btn">← Sim</a>
+  <span class="topbar-title">Time Study</span>
+  <span class="topbar-sub" id="cycle-count">0 cycles</span>
+</div>
 
-        <div class="stopwatch-container">
-            <div class="time-display" id="display">00:00.00</div>
-            <div>
-                <button class="sw-btn sw-start" onclick="startTimer()">Start</button>
-                <button class="sw-btn sw-stop" onclick="stopTimer()">Stop</button>
-                <button class="sw-btn sw-reset" onclick="resetTimer()">Reset</button>
-            </div>
-            <button class="sw-btn sw-record" id="record-btn" onclick="recordTime()">⏱ Record Cycle Time & Reset</button>
-        </div>
+<div class="scroll-area">
 
-        <label>Raw Data Points (in seconds):</label>
-        <textarea id="raw-data" placeholder="Use the stopwatch or type manually: 4.50, 5.23, 4.81"></textarea>
+  <!-- TASK NAME -->
+  <div class="card">
+    <div class="card-label">Task / Process</div>
+    <input type="text" class="task-input" id="task-name" placeholder="e.g. Assemble Housing Bottom">
+  </div>
 
-        <div class="btn-group">
-            <button class="calc-btn" onclick="calculateParameters()">Calculate Parameters</button>
-            <a href="index.html" class="back-btn">Back to Simulator</a>
-        </div>
+  <!-- STOPWATCH -->
+  <div class="card">
+    <div class="card-label">Stopwatch</div>
+    <div class="sw-display" id="sw-display">00:00.00</div>
+    <div class="sw-status" id="sw-status">Ready</div>
+    <div class="sw-controls">
+      <button class="sw-btn sw-start" id="btn-start" onclick="startTimer()">Start</button>
+      <button class="sw-btn sw-stop"  id="btn-stop"  onclick="stopTimer()">Stop</button>
+      <button class="sw-btn sw-reset" onclick="resetTimer()">Reset</button>
+    </div>
+    <button class="record-btn" id="record-btn" onclick="recordTime()">
+      <span id="record-icon">⏱</span>
+      <span id="record-label">Record &amp; Reset</span>
+    </button>
+  </div>
 
-        <div class="results" id="results-panel">
-            <h3>Calculated Parameters</h3>
-            <p><strong>Optimistic (Min):</strong> <span id="calc-min">0</span> sec</p>
-            <p><strong>Most Likely (Average):</strong> <span id="calc-avg">0</span> sec</p>
-            <p><strong>Pessimistic (Max):</strong> <span id="calc-max">0</span> sec</p>
-            
-            <button class="send-btn" id="send-btn" onclick="sendToSimulator()">Add to Project Simulation</button>
-        </div>
+  <!-- READINGS -->
+  <div class="card">
+    <div class="readings-header">
+      <div class="card-label" style="margin-bottom:0">Cycle Readings</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="readings-count" id="readings-count">0</span>
+        <span class="clear-link" onclick="clearReadings()">Clear All</span>
+      </div>
+    </div>
+    <div class="readings-list" id="readings-list">
+      <div class="no-readings" id="no-readings">No readings yet — start the stopwatch</div>
     </div>
 
-    <script>
-        // --- STOPWATCH LOGIC ---
-        let startTime, updatedTime, difference = 0, tInterval;
-        let running = false;
+    <!-- manual add -->
+    <div style="margin-top:12px; border-top: 1px solid var(--border); padding-top:12px;">
+      <div class="card-label">Add Manually (seconds)</div>
+      <div class="manual-row">
+        <input type="number" class="manual-input" id="manual-val" placeholder="e.g. 4.72" step="0.01" min="0">
+        <button class="add-manual-btn" onclick="addManual()">+ Add</button>
+      </div>
+    </div>
+  </div>
 
-        function startTimer() {
-            if (!running) {
-                startTime = new Date().getTime() - difference;
-                tInterval = setInterval(updateTime, 10);
-                running = true;
-            }
-        }
+  <!-- LIVE STATS -->
+  <div class="card" id="stats-card" style="display:none">
+    <div class="card-label">Live Statistics</div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <span class="stat-label">Min</span>
+        <span class="stat-value" id="s-min">—</span>
+        <span class="stat-unit">sec</span>
+      </div>
+      <div class="stat-box highlight">
+        <span class="stat-label">Average</span>
+        <span class="stat-value amber" id="s-avg">—</span>
+        <span class="stat-unit">sec</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Max</span>
+        <span class="stat-value" id="s-max">—</span>
+        <span class="stat-unit">sec</span>
+      </div>
+    </div>
+    <div class="stats-grid" style="margin-top:8px">
+      <div class="stat-box">
+        <span class="stat-label">Std Dev</span>
+        <span class="stat-value" id="s-std">—</span>
+        <span class="stat-unit">sec</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">CoV</span>
+        <span class="stat-value" id="s-cov">—</span>
+        <span class="stat-unit">%</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Range</span>
+        <span class="stat-value" id="s-rng">—</span>
+        <span class="stat-unit">sec</span>
+      </div>
+    </div>
+  </div>
 
-        function stopTimer() {
-            if (running) {
-                clearInterval(tInterval);
-                running = false;
-            }
-        }
+  <!-- NOTES -->
+  <div class="card">
+    <div class="card-label">Field Notes (optional)</div>
+    <textarea class="notes-input" id="notes" placeholder="Operator, conditions, anomalies…"></textarea>
+  </div>
 
-        function resetTimer() {
-            clearInterval(tInterval);
-            difference = 0;
-            running = false;
-            document.getElementById('display').innerText = "00:00.00";
-        }
+</div>
 
-        function updateTime() {
-            updatedTime = new Date().getTime();
-            difference = updatedTime - startTime;
-            
-            let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-            let seconds = Math.floor((difference % (1000 * 60)) / 1000);
-            let milliseconds = Math.floor((difference % 1000) / 10);
-            
-            minutes = (minutes < 10) ? "0" + minutes : minutes;
-            seconds = (seconds < 10) ? "0" + seconds : seconds;
-            milliseconds = (milliseconds < 10) ? "0" + milliseconds : milliseconds;
-            
-            document.getElementById('display').innerText = minutes + ':' + seconds + '.' + milliseconds;
-        }
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="send-btn" id="send-btn" onclick="sendToSimulator()" disabled>
+    ✓ Add to Simulation
+  </button>
+  <button class="export-btn" onclick="exportCSV()" title="Export CSV">⬇ CSV</button>
+</div>
 
-        function recordTime() {
-            if (difference === 0) return; // Ignore if stopwatch is at 0
-            
-            // Convert to total seconds with 2 decimal places
-            let totalSeconds = (difference / 1000).toFixed(2);
-            let textArea = document.getElementById('raw-data');
-            
-            // Append to text area
-            if (textArea.value.trim() === "") {
-                textArea.value = totalSeconds;
-            } else {
-                textArea.value += ", " + totalSeconds;
-            }
-            
-            // SNAP-BACK LOGIC: Auto-Reset the timer to 0
-            resetTimer();
-            
-            // Button flash animation to confirm recording
-            let btn = document.getElementById('record-btn');
-            btn.innerText = "✔ Logged & Reset!";
-            btn.style.backgroundColor = "#27ae60";
-            
-            setTimeout(() => {
-                btn.innerText = "⏱ Record Cycle Time & Reset";
-                btn.style.backgroundColor = "#3498db";
-            }, 600);
-        }
+<div class="toast" id="toast"></div>
 
-        // --- DATA CALCULATION LOGIC ---
-        let taskData = {};
+<script>
+  /* ── State ── */
+  let readings = [];
+  let startTime, tInterval, difference = 0, running = false;
 
-        function calculateParameters() {
-            const rawInput = document.getElementById('raw-data').value;
-            const nameInput = document.getElementById('task-name').value || "New Task";
-            
-            const dataPoints = rawInput.split(',')
-                .map(n => parseFloat(n.trim()))
-                .filter(n => !isNaN(n));
+  /* ── Init ── */
+  window.onload = () => {
+    const savedName = localStorage.getItem('pendingTaskName');
+    if (savedName) document.getElementById('task-name').value = savedName;
+  };
 
-            if (dataPoints.length === 0) {
-                alert("Please enter or record valid numeric data points.");
-                return;
-            }
+  /* ── Timer ── */
+  function startTimer() {
+    if (running) return;
+    startTime = Date.now() - difference;
+    tInterval = setInterval(tick, 16);
+    running = true;
+    document.getElementById('sw-display').className = 'sw-display running';
+    document.getElementById('sw-status').textContent = 'Running…';
+    document.getElementById('btn-start').style.opacity = '0.4';
+  }
 
-            const min = Math.min(...dataPoints);
-            const max = Math.max(...dataPoints);
-            const sum = dataPoints.reduce((acc, val) => acc + val, 0);
-            const avg = sum / dataPoints.length;
+  function stopTimer() {
+    if (!running) return;
+    clearInterval(tInterval);
+    running = false;
+    document.getElementById('sw-display').className = 'sw-display stopped';
+    document.getElementById('sw-status').textContent = 'Stopped — tap Record to log';
+    document.getElementById('btn-start').style.opacity = '1';
+  }
 
-            taskData = {
-                name: nameInput,
-                a: min.toFixed(2),
-                m: avg.toFixed(2),
-                b: max.toFixed(2)
-            };
+  function resetTimer() {
+    clearInterval(tInterval);
+    difference = 0; running = false;
+    document.getElementById('sw-display').textContent = '00:00.00';
+    document.getElementById('sw-display').className = 'sw-display';
+    document.getElementById('sw-status').textContent = 'Ready';
+    document.getElementById('btn-start').style.opacity = '1';
+  }
 
-            document.getElementById('calc-min').innerText = taskData.a;
-            document.getElementById('calc-avg').innerText = taskData.m;
-            document.getElementById('calc-max').innerText = taskData.b;
-            
-            document.getElementById('results-panel').style.display = 'block';
-            document.getElementById('send-btn').style.display = 'inline-block';
-        }
+  function tick() {
+    difference = Date.now() - startTime;
+    const ms = Math.floor((difference % 1000) / 10);
+    const s  = Math.floor((difference / 1000) % 60);
+    const m  = Math.floor(difference / 60000);
+    document.getElementById('sw-display').textContent =
+      pad(m) + ':' + pad(s) + '.' + pad(ms);
+  }
 
-        function sendToSimulator() {
-            let savedTasks = JSON.parse(localStorage.getItem('projectTasks')) || [];
-            savedTasks.push(taskData);
-            localStorage.setItem('projectTasks', JSON.stringify(savedTasks));
-            window.location.href = 'index.html';
-        }
-    </script>
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function recordTime() {
+    if (difference === 0) { showToast('Start the stopwatch first'); return; }
+    stopTimer();
+    const secs = +(difference / 1000).toFixed(2);
+    readings.push(secs);
+    renderReadings();
+    resetTimer();
+    document.getElementById('sw-status').textContent = 'Logged ✓ — ready for next cycle';
+
+    const btn = document.getElementById('record-btn');
+    btn.classList.add('logged');
+    document.getElementById('record-icon').textContent = '✔';
+    document.getElementById('record-label').textContent = 'Logged!';
+    setTimeout(() => {
+      btn.classList.remove('logged');
+      document.getElementById('record-icon').textContent = '⏱';
+      document.getElementById('record-label').textContent = 'Record & Reset';
+    }, 700);
+  }
+
+  function addManual() {
+    const v = parseFloat(document.getElementById('manual-val').value);
+    if (isNaN(v) || v <= 0) { showToast('Enter a valid time'); return; }
+    readings.push(+v.toFixed(2));
+    document.getElementById('manual-val').value = '';
+    renderReadings();
+  }
+
+  function clearReadings() {
+    if (!readings.length) return;
+    if (!confirm('Clear all ' + readings.length + ' readings?')) return;
+    readings = [];
+    renderReadings();
+  }
+
+  /* ── Render readings + stats ── */
+  function renderReadings() {
+    const list = document.getElementById('readings-list');
+    const noR  = document.getElementById('no-readings');
+    const cnt  = document.getElementById('readings-count');
+    const sendBtn = document.getElementById('send-btn');
+
+    cnt.textContent = readings.length;
+    document.getElementById('cycle-count').textContent = readings.length + ' cycle' + (readings.length !== 1 ? 's' : '');
+
+    if (readings.length === 0) {
+      noR.style.display = 'block';
+      list.innerHTML = '';
+      list.appendChild(noR);
+      document.getElementById('stats-card').style.display = 'none';
+      sendBtn.disabled = true;
+      return;
+    }
+
+    sendBtn.disabled = false;
+    noR.style.display = 'none';
+
+    const maxVal = Math.max(...readings);
+    list.innerHTML = readings.map((v, i) => `
+      <div class="reading-item">
+        <span class="reading-num">#${i + 1}</span>
+        <div class="reading-bar-wrap">
+          <div class="reading-bar" style="width:${(v / maxVal * 100).toFixed(1)}%"></div>
+        </div>
+        <span class="reading-val">${v.toFixed(2)}s</span>
+        <button class="reading-del" onclick="deleteReading(${i})" title="Delete">×</button>
+      </div>
+    `).join('');
+
+    updateStats();
+    document.getElementById('stats-card').style.display = 'block';
+  }
+
+  function deleteReading(i) {
+    readings.splice(i, 1);
+    renderReadings();
+  }
+
+  function updateStats() {
+    if (!readings.length) return;
+    const n   = readings.length;
+    const min = Math.min(...readings);
+    const max = Math.max(...readings);
+    const avg = readings.reduce((a, b) => a + b, 0) / n;
+    const variance = readings.reduce((acc, v) => acc + (v - avg) ** 2, 0) / n;
+    const std = Math.sqrt(variance);
+    const cov = avg ? (std / avg * 100) : 0;
+
+    document.getElementById('s-min').textContent = min.toFixed(2);
+    document.getElementById('s-avg').textContent = avg.toFixed(2);
+    document.getElementById('s-max').textContent = max.toFixed(2);
+    document.getElementById('s-std').textContent = std.toFixed(2);
+    document.getElementById('s-cov').textContent = cov.toFixed(1);
+    document.getElementById('s-rng').textContent = (max - min).toFixed(2);
+  }
+
+  /* ── Send to Simulator ── */
+  function sendToSimulator() {
+    if (!readings.length) return;
+    const name = document.getElementById('task-name').value.trim() || 'New Task';
+    const notes = document.getElementById('notes').value.trim();
+    const min = Math.min(...readings);
+    const max = Math.max(...readings);
+    const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
+
+    const task = {
+      name,
+      a: +min.toFixed(2),
+      m: +avg.toFixed(2),
+      b: +max.toFixed(2),
+      notes,
+      readings: [...readings],
+      timestamp: new Date().toISOString()
+    };
+
+    const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    saved.push(task);
+    localStorage.setItem('projectTasks', JSON.stringify(saved));
+    window.location.href = 'index.html';
+  }
+
+  /* ── Export CSV ── */
+  function exportCSV() {
+    if (!readings.length) { showToast('No data to export'); return; }
+    const name = document.getElementById('task-name').value.trim() || 'task';
+    let csv = 'Cycle,Time_sec\n';
+    readings.forEach((v, i) => csv += `${i + 1},${v}\n`);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = name.replace(/\s+/g, '_') + '_readings.csv';
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  /* ── Toast ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+</script>
 </body>
 </html>
