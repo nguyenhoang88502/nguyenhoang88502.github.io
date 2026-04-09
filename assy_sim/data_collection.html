@@ -323,13 +323,11 @@
 
 <div class="scroll-area">
 
-  <!-- TASK NAME -->
   <div class="card">
     <div class="card-label">Task / Process</div>
     <input type="text" class="task-input" id="task-name" placeholder="e.g. Assemble Housing Bottom">
   </div>
 
-  <!-- STOPWATCH -->
   <div class="card">
     <div class="card-label">Stopwatch</div>
     <div class="sw-display" id="sw-display">00:00.00</div>
@@ -345,7 +343,6 @@
     </button>
   </div>
 
-  <!-- READINGS -->
   <div class="card">
     <div class="readings-header">
       <div class="card-label" style="margin-bottom:0">Cycle Readings</div>
@@ -358,7 +355,6 @@
       <div class="no-readings" id="no-readings">No readings yet — start the stopwatch</div>
     </div>
 
-    <!-- manual add -->
     <div style="margin-top:12px; border-top: 1px solid var(--border); padding-top:12px;">
       <div class="card-label">Add Manually (seconds)</div>
       <div class="manual-row">
@@ -368,7 +364,6 @@
     </div>
   </div>
 
-  <!-- LIVE STATS -->
   <div class="card" id="stats-card" style="display:none">
     <div class="card-label">Live Statistics</div>
     <div class="stats-grid">
@@ -407,7 +402,6 @@
     </div>
   </div>
 
-  <!-- NOTES -->
   <div class="card">
     <div class="card-label">Field Notes (optional)</div>
     <textarea class="notes-input" id="notes" placeholder="Operator, conditions, anomalies…"></textarea>
@@ -415,7 +409,6 @@
 
 </div>
 
-<!-- BOTTOM BAR -->
 <div class="bottom-bar">
   <button class="send-btn" id="send-btn" onclick="sendToSimulator()" disabled>
     ✓ Add to Simulation
@@ -476,14 +469,26 @@
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
+  // MODIFIED FUNCTION FOR SNAP-BACK RECORDING
   function recordTime() {
     if (difference === 0) { showToast('Start the stopwatch first'); return; }
-    stopTimer();
+    
+    // Log the current time
     const secs = +(difference / 1000).toFixed(2);
     readings.push(secs);
     renderReadings();
-    resetTimer();
-    document.getElementById('sw-status').textContent = 'Logged ✓ — ready for next cycle';
+
+    // Check if we should snap-back or just reset
+    if (running) {
+      // Snap-back: Reset the start time to NOW so it restarts seamlessly at 0
+      startTime = Date.now();
+      difference = 0;
+      document.getElementById('sw-status').textContent = 'Logged ✓ — Auto-started next cycle';
+    } else {
+      // Stopwatch was stopped, so just reset to zero completely
+      resetTimer();
+      document.getElementById('sw-status').textContent = 'Logged ✓ — Ready for next cycle';
+    }
 
     const btn = document.getElementById('record-btn');
     btn.classList.add('logged');
