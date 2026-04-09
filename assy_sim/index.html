@@ -22,7 +22,7 @@
         .stat-box span { display: block; font-size: 1.5em; font-weight: bold; color: #2c3e50; }
         #chart { width: 100%; height: 400px; }
         .export-btn { background-color: #27ae60; display: none; }
-        .data-link { background-color: #8e44ad; text-decoration: none; padding: 10px 15px; border-radius: 4px; color: white; font-weight: bold; display: inline-block;}
+        .data-link { background-color: #8e44ad; }
     </style>
 </head>
 <body>
@@ -32,11 +32,15 @@
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>Project Tasks (Sequential)</h2>
-            <a href="data_collection.html" class="data-link">📊 Estimate Task from Data</a>
+            <button onclick="goToDataCollection()" class="data-link">📊 Estimate Task from Data</button>
         </div>
         
         <div id="task-list"></div>
-        <button onclick="addTask()">+ Add Blank Task</button>
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="addTask()">+ Add Blank Task</button>
+            <button onclick="clearAllTasks()" style="background-color: #95a5a6;">Clear All Tasks</button>
+        </div>
 
         <div class="controls">
             <div>
@@ -61,23 +65,44 @@
 
     <script>
         let taskCount = 0;
-        let globalDurations = []; // Stores results for Excel export
+        let globalDurations = [];
 
         window.onload = () => {
-            // Check if data was sent from the data_collection page
-            const pendingTasks = JSON.parse(localStorage.getItem('pendingTasks'));
+            // Read the full project list from memory
+            const savedTasks = JSON.parse(localStorage.getItem('projectTasks'));
             
-            if (pendingTasks && pendingTasks.length > 0) {
-                // Load imported tasks
-                pendingTasks.forEach(t => addTask(t.name, t.a, t.m, t.b));
-                // Clear storage so they don't load twice
-                localStorage.removeItem('pendingTasks');
+            if (savedTasks && savedTasks.length > 0) {
+                // If there are saved tasks, render all of them
+                savedTasks.forEach(t => addTask(t.name, t.a, t.m, t.b));
             } else {
-                // Default tasks if nothing is pending
+                // Initial defaults if memory is completely empty
                 addTask("Task 1", 3, 5, 8);
                 addTask("Task 2", 2, 4, 9);
             }
         };
+
+        // Captures current inputs on the screen and saves to memory before navigating away
+        function goToDataCollection() {
+            const tasks = [];
+            document.querySelectorAll('.task-row').forEach(row => {
+                const name = row.querySelector('.name').value;
+                const a = parseFloat(row.querySelector('.opt').value) || 0;
+                const m = parseFloat(row.querySelector('.ml').value) || 0;
+                const b = parseFloat(row.querySelector('.pess').value) || 0;
+                tasks.push({ name, a, m, b });
+            });
+            
+            localStorage.setItem('projectTasks', JSON.stringify(tasks));
+            window.location.href = 'data_collection.html';
+        }
+
+        function clearAllTasks() {
+            if (confirm("Are you sure you want to delete all tasks?")) {
+                localStorage.removeItem('projectTasks');
+                document.getElementById('task-list').innerHTML = '';
+                taskCount = 0;
+            }
+        }
 
         function addTask(name = "", opt = 1, ml = 5, pess = 10) {
             taskCount++;
@@ -95,7 +120,6 @@
             document.getElementById('task-list').insertAdjacentHTML('beforeend', html);
         }
 
-        // Triangular Distribution Logic
         function randomTriangular(a, m, b) {
             const U = Math.random();
             const F = (m - a) / (b - a);
@@ -116,7 +140,7 @@
 
             if (tasks.length === 0) return;
 
-            globalDurations = []; // Reset global array
+            globalDurations = [];
 
             for (let i = 0; i < iterations; i++) {
                 let totalTime = 0;
@@ -140,13 +164,11 @@
         function exportToExcel() {
             if (globalDurations.length === 0) return;
             
-            // Create a CSV string
             let csvContent = "data:text/csv;charset=utf-8,Iteration,Total_Project_Time\n";
             globalDurations.forEach((time, index) => {
                 csvContent += `${index + 1},${time.toFixed(4)}\n`;
             });
 
-            // Encode and trigger download
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -156,7 +178,6 @@
             document.body.removeChild(link);
         }
 
-        // D3 Histogram Rendering
         function drawHistogram(data) {
             const container = document.getElementById('chart');
             container.innerHTML = ''; 
