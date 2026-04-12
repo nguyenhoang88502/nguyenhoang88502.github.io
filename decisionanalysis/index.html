@@ -1,658 +1,523 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AHP Strategic Analysis — Nguyen Huy Hoang</title>
+  <meta name="description" content="Analytic Hierarchy Process (AHP) strategic decision analysis case study for the EVLotus electric vehicle project." />
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* ══ DOSSIER THEME TOKENS ══ */
+    :root {
+      --bg-base:    #0a1118;
+      --bg-surface: #111a26;
+      --bg-alt:     #0e1620;
+      --gold:       #c8922a;
+      --gold-dim:   rgba(200,146,42,0.3);
+      --text-main:  #e2e8f0;
+      --text-muted: #8b9eb3;
+      --border:     rgba(200,146,42,0.15);
+    }
 
-<title>AHP Strategic Decision Analysis</title>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
 
-<meta name="description" content="Analytic Hierarchy Process (AHP) strategic decision analysis case study for the EVLotus electric vehicle project.">
+    /* ── Bootstrap Text Overrides (Fixing the black text issue) ── */
+    p, span, div, li { color: var(--text-main); }
+    .text-muted { color: var(--text-muted) !important; }
+    .text-dark, .text-body { color: var(--text-main) !important; }
 
-<link rel="icon" type="image/png" href="../favicon.png">
+    /* ── Typography ── */
+    h1, h2, h3, h4, .serif {
+      font-family: 'Cormorant', serif;
+      color: var(--text-main);
+    }
+    
+    .dossier-title {
+      font-size: clamp(3rem, 6vw, 4.5rem);
+      font-weight: 500;
+      line-height: 1.05;
+      color: var(--text-main);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
 
-<script src="https://cdn.tailwindcss.com"></script>
+    .chapter-num {
+      font-family: 'Cormorant', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    .chapter-title {
+      font-size: 2.2rem;
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      color: var(--text-main);
+    }
 
-<style>
-body{
-font-family:'Inter',sans-serif;
-scroll-behavior:smooth;
-}
-</style>
+    .body-lead {
+      font-size: 1.15rem;
+      color: var(--text-muted) !important;
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
 
+    /* ── Layout & Components ── */
+    .dossier-nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 17, 24, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 0;
+    }
+
+    .nav-brand {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-brand:hover { color: var(--gold); }
+
+    .dossier-header {
+      padding: 10rem 0 6rem;
+      border-bottom: 4px double var(--border);
+      background: linear-gradient(180deg, var(--bg-alt) 0%, var(--bg-base) 100%);
+    }
+
+    section {
+      padding: 6rem 0;
+    }
+
+    /* ── Cards & Callouts ── */
+    .data-card {
+      background: var(--bg-surface);
+      border-top: 2px solid var(--gold);
+      padding: 2rem;
+      height: 100%;
+    }
+
+    .callout-box {
+      border-left: 3px solid var(--gold);
+      padding: 1.5rem 2rem;
+      background: rgba(200,146,42,0.03);
+      margin-bottom: 2rem;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-family: 'Cormorant', serif;
+      font-size: 2.5rem;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Chart Containers ── */
+    .chart-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      width: 100%;
+      position: relative; 
+      height: 400px;      
+    }
+    
+    .chart-box.chart-sm {
+      height: 280px; 
+    }
+
+    /* ── Buttons ── */
+    .btn-outline-gold {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-main); border: 1px solid var(--gold-dim);
+      padding: 0.8rem 1.5rem; text-decoration: none;
+      transition: all 0.2s;
+      background: transparent;
+    }
+    .btn-outline-gold:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(200,146,42,0.05);
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: rgba(200,146,42,0.4); }
+  </style>
 </head>
+<body>
 
-<body class="bg-gray-50 text-gray-900">
+<nav class="dossier-nav fixed-top">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a href="../index.html" class="nav-brand"><i class="bi bi-arrow-left me-2"></i> Return to Index</a>
+    <span class="nav-brand d-none d-sm-block" style="color: var(--gold);">Document Ref: AHP-04</span>
+  </div>
+</nav>
 
-<div class="max-w-4xl mx-auto py-20 px-6 md:px-8">
+<header class="dossier-header">
+  <div class="container">
+    <div class="row align-items-end">
+      <div class="col-lg-8">
+        <div class="metric-label" style="color: var(--gold);">Strategic Decision Analysis</div>
+        <h1 class="dossier-title">Mastering Strategy via the Analytic Hierarchy Process</h1>
+        <p class="body-lead mt-4" style="max-width: 700px;">
+          An exploration of multi-criteria decision making (MCDM). This dossier details the application of AHP to resolve complex strategic bottlenecks for the EVLotus electric vehicle project.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+        <div class="d-flex flex-column gap-3 align-items-lg-end">
+          <a href="casestudy.pdf" target="_blank" class="btn-outline-gold w-100 w-lg-auto justify-content-center">
+            <i class="bi bi-file-pdf"></i> Read Full Case Study
+          </a>
+          <a href="Presentation.pdf" target="_blank" class="btn-outline-gold w-100 w-lg-auto justify-content-center">
+            <i class="bi bi-easel2"></i> View Presentation
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-<h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-Mastering Strategic Decision-Making with the Analytic Hierarchy Process (AHP)
-</h1>
-
-<p class="text-gray-600 text-lg mb-12 leading-relaxed">
-In complex business environments, choosing the optimal strategy requires balancing technical data, business priorities, and expert judgement. This case study explores the Analytic Hierarchy Process (AHP), a structured multi-criteria decision framework, through the strategic planning of the EVLotus electric vehicle project.
-</p>
-
-<div class="flex flex-wrap gap-4 mb-16">
-
-<a href="casestudy.pdf" target="_blank" rel="noopener"
-class="border border-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition">
-Case Study
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
-
-<a href="Presentation.pdf" target="_blank" rel="noopener"
-class="border border-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition">
-Presentation Slides <svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
-
-</div>
-
-
-<h2 class="text-2xl font-bold mb-4">Executive Summary</h2>
-
-<p class="text-gray-700 leading-relaxed mb-8">
-The AHP analysis for the EVLotus project provides a mathematically grounded roadmap for market entry and operational scaling. By decomposing complex strategic decisions into pairwise comparisons, the optimal business strategy was identified across customer segmentation, partner selection, product positioning, and distribution channels.
-</p>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategic Market Segment Analysis - EVLotus</title>
-    <meta name="description" content="Strategic market segment analysis for EVLotus using Weighted Sum Model.">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-    </style>
-</head>
-
-<div class="max-w-5xl mx-auto px-4 py-12">
-
-<div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-<canvas id="strategySummaryChart" height="140"></canvas>
-</div>
-
-</div>
-
-<script>
-
-const summaryCtx = document.getElementById('strategySummaryChart').getContext('2d');
-
-new Chart(summaryCtx,{
-type:'bar',
-data:{
-labels:[
-'Market Segment (B2B)',
-'Battery Supplier (Supplier B)',
-'Marketing Strategy (Co-branding)',
-'Vehicle Model (E-S35)'
-],
-datasets:[
-{
-label:'AHP Final Score',
-data:[0.466,0.4993,0.271,0.40],
-backgroundColor:[
-'#6366f1',
-'#10b981',
-'#f59e0b',
-'#3b82f6'
-]
-}
-]
-},
-options:{
-indexAxis:'y',
-responsive:true,
-plugins:{
-legend:{display:false},
-tooltip:{
-callbacks:{
-label:(context)=>'Score: '+context.parsed.x.toFixed(3)
-}
-}
-},
-scales:{
-x:{
-beginAtZero:true,
-title:{display:true,text:'Final AHP Priority Score'}
-}
-}
-}
-});
-
-</script>
-
-
-
-<h2 class="text-2xl font-bold mb-4">What is the Analytic Hierarchy Process?</h2>
-
-<p class="text-gray-700 leading-relaxed mb-12">
-The Analytic Hierarchy Process (AHP) is a structured decision-making framework used to analyze complex problems involving multiple criteria. It breaks a large decision into smaller comparisons, allowing decision makers to quantify subjective judgments and determine the relative importance of each factor. Through weighted matrices and consistency checks, AHP produces decisions that are both logical and mathematically consistent.
-</p>
-
-
-<h2 class="text-2xl font-bold mb-4">Phase 1 &mdash; Defining Key Customer</h2>
-
-<p class="text-gray-700 leading-relaxed mb-6">
-The first stage of AHP involves defining decision criteria and assigning their relative importance. In the EVLotus analysis, four key metrics determined the priority customer segment:
-</p>
-<p class="text-gray-700 leading-relaxed mb-12">
-AHP relies on pairwise comparisons, where decision makers evaluate two factors at a time using a structured importance scale. This approach reduces bias and ensures logical consistency in decision making.
-</p>
-<ul class="list-disc pl-6 space-y-2 text-gray-700 mb-12">
-
-
-<body class="bg-slate-50 text-slate-900">
-
-    <div class="max-w-6xl mx-auto px-4 py-12">
-
-        <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-1 space-y-4">
-                <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Dominant Segment</h3>
-                    <div class="text-2xl font-bold text-indigo-600">B2B Segment</div>
-                    <p class="text-sm text-slate-500 mt-1">Global Score: 46.6%</p>
-                </div>
-
-                <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Scoring Weights</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>RevPoten</span><span>40%</span></div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 40%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>GroPoten</span><span>30%</span></div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 30%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>CusLoy / StratFit</span><span>30%</span></div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full"><div class="bg-amber-500 h-1.5 rounded-full" style="width: 30%"></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <canvas id="marketSegmentChart" height="140"></canvas>
-            </div>
-        </main>
+<section>
+  <div class="container">
+    <span class="chapter-num">Chapter I</span>
+    <h2 class="chapter-title">Executive Summary</h2>
+    
+    <div class="callout-box">
+      <p class="mb-0" style="font-size: 1.05rem; color: var(--text-main);">
+        Engineered a quantitative go-to-market framework using AHP across 4 matrices. Pinpointed the <strong>B2B sector (46.6%)</strong> as the primary growth engine, driven by a <strong>40%</strong> weight on revenue potential. Optimized acquisition via <strong>Co-branding Partnerships (27.1%)</strong>, leveraging a <strong>48.2%</strong> focus on brand trust. Secured supply chain resilience with <strong>Supplier B (49.9%)</strong>, prioritizing quality (<strong>51.8%</strong>) over raw capacity. Crowned the <strong>E-S35 (40.0%)</strong> as the flagship vehicle, balancing a <strong>38.2%</strong> price-sensitivity requirement. This rigorous analysis eliminated subjective bias, deploying an optimized strategy across <strong>18+ decision variables</strong>.
+      </p>
     </div>
 
-    <script>
-        const ctx = document.getElementById('marketSegmentChart').getContext('2d');
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="metric-label mb-3">Fig 1.0 — Optimal Strategy Breakdown (Normalized Scores)</div>
+        <div class="chart-box chart-sm">
+          <canvas id="strategySummaryChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background: var(--bg-alt);">
+  <div class="container">
+    <span class="chapter-num">Chapter II</span>
+    <h2 class="chapter-title">Market Segmentation & Outreach</h2>
+    
+    <div class="row g-5">
+      <div class="col-lg-4">
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.5rem;">Target Demographic</h3>
+        <p class="text-muted" style="font-size: 0.95rem;">
+          Evaluating four distinct market segments required balancing immediate revenue against long-term loyalty. The B2B sector outpaced consumer markets due to extreme strategic fit and bulk revenue potential.
+        </p>
+        <div class="data-card mt-4">
+          <div class="metric-label">Dominant Segment</div>
+          <div class="metric-value">B2B</div>
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.8rem;">
+            <span style="color: var(--text-main);">Revenue Driver</span><span>40.0% Wgt</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.8rem;">
+            <span style="color: var(--text-main);">Growth Driver</span><span>30.0% Wgt</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="metric-label mb-3">Fig 2.1 — Market Segment Utility Analysis</div>
+        <div class="chart-box">
+          <canvas id="marketSegmentChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-5 mt-4">
+      <div class="col-lg-4 order-lg-2">
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.5rem;">Acquisition Strategy</h3>
+        <p class="text-muted" style="font-size: 0.95rem;">
+          To capture the B2B sector, the outreach strategy heavily penalized high-cost, low-impact channels. Co-branding partnerships dominated by offering unparalleled trust and brand impact synergy.
+        </p>
+        <div class="data-card mt-4">
+          <div class="metric-label">Optimal Channel</div>
+          <div class="metric-value" style="font-size: 2rem;">Co-branding</div>
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.8rem;">
+            <span style="color: #c0a0d0;">Trust & Impact</span><span style="color: var(--text-main);">48.2% Wgt</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.8rem;">
+            <span style="color: #6a9cda;">Engagement</span><span style="color: var(--text-main);">26.1% Wgt</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8 order-lg-1">
+        <div class="metric-label mb-3">Fig 2.2 — Marketing Channel Evaluation</div>
+        <div class="chart-box">
+          <canvas id="marketingStrategyChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <span class="chapter-num">Chapter III</span>
+    <h2 class="chapter-title">Supply Chain Integrity</h2>
+
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <p class="text-muted" style="font-size: 0.95rem;">
+          In selecting a core battery supplier, EVLotus prioritized technological reliability. The pairwise comparison matrix revealed that <strong>Quality (51.8%) was deemed five times more critical than raw Production Capacity (8.6%)</strong>.
+        </p>
+        <p class="text-muted" style="font-size: 0.95rem;">
+          Despite Supplier A offering better cost metrics, Supplier B's overwhelming dominance in quality assurance secured them as the definitive strategic partner.
+        </p>
         
-        // Data derived from provided matrix (Weight * Segment Value)
-        const marketData = {
-            labels: ['B2C', 'B2B', 'B2B2C', 'B2G'],
-            datasets: [
-                {
-                    label: 'C1: Revenue Potential',
-                    data: [2.24, 21.0, 5.56, 11.16], // 40% * Values
-                    backgroundColor: '#3b82f6'
-                },
-                {
-                    label: 'C2: Growth Potential',
-                    data: [16.44, 8.1, 3.81, 1.68], // 30% * Values
-                    backgroundColor: '#10b981'
-                },
-                {
-                    label: 'C3: Customer Loyalty',
-                    data: [1.005, 8.715, 2.55, 2.73], // 15% * Values
-                    backgroundColor: '#f59e0b'
-                },
-                {
-                    label: 'C4: Strategic Fit',
-                    data: [1.56, 8.79, 3.93, 0.705], // 15% * Values
-                    backgroundColor: '#8b5cf6'
-                }
-            ]
-        };
+        <div class="row g-3 mt-3">
+          <div class="col-6">
+            <div class="data-card" style="padding: 1.5rem;">
+              <div class="metric-label">Selected</div>
+              <div class="metric-value" style="font-size: 1.8rem; color: #4ab38d;">Supplier B</div>
+              <div style="font-size: 0.8rem; color: var(--text-main);">Score: 0.499</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="data-card" style="padding: 1.5rem; border-color: var(--border);">
+              <div class="metric-label">Runner Up</div>
+              <div class="metric-value" style="font-size: 1.8rem; color: var(--text-muted);">Supplier A</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Score: 0.304</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="metric-label mb-3">Fig 3.0 — Supplier Risk vs Reward Profile</div>
+        <div class="chart-box">
+          <canvas id="evLotusChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: marketData,
-            options: {
-                indexAxis: 'y',
-                plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: (context) => `${context.dataset.label}: ${context.parsed.x.toFixed(1)}%`,
-                            footer: (items) => {
-                                let total = items.reduce((a, b) => a + b.parsed.x, 0);
-                                return 'Total Utility: ' + total.toFixed(1) + '%';
-                            }
-                        }
-                    }
-                },
-                responsive: true,
-                scales: {
-                    x: { 
-                        stacked: true, 
-                        max: 100,
-                        title: { display: true, text: 'Weighted Utility Score (%)' }
-                    },
-                    y: { stacked: true }
-                }
-            }
-        });
-    </script>
-</body>
+<section style="background: var(--bg-alt);">
+  <div class="container">
+    <span class="chapter-num">Chapter IV</span>
+    <h2 class="chapter-title">Flagship Product Selection</h2>
 
-</ul>
+    <div class="row g-5">
+      <div class="col-lg-8">
+        <div class="metric-label mb-3">Fig 4.0 — Vehicle Alternative Assessment</div>
+        <div class="chart-box">
+          <canvas id="vehicleComparisonChart"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4 d-flex flex-column justify-content-center">
+        <p class="text-muted" style="font-size: 0.95rem;">
+          The final matrix synthesized six vehicle criteria. While the E-Z10 modeled highest for absolute affordability, the target B2B segment required operational consistency. 
+        </p>
+        <p class="text-muted" style="font-size: 0.95rem;">
+          The <strong>E-S35</strong> absorbed the win by balancing the heavy 38.2% price weight with superior scores in charging convenience and onboard technology.
+        </p>
+        
+        <div class="data-card mt-3">
+          <div class="metric-label">Flagship Model</div>
+          <div class="metric-value" style="font-size: 2.5rem; color: var(--text-main);">E-S35</div>
+          <div class="progress mt-3" style="height: 4px; background: rgba(255,255,255,0.1);">
+            <div class="progress-bar" role="progressbar" style="width: 40%; background: var(--gold);"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-2" style="font-size: 0.75rem; color: var(--text-main);">
+            <span>Global Fit</span><span>40.0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<p class="text-gray-700 mb-16">
-Using these weighted criteria, transportation companies in the B2B segment emerged as the strongest target market with a final weight of <strong>46.62%</strong>.
-</p>
-
-<div class="max-w-6xl mx-auto px-4 py-12">
-
-<main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-<div class="lg:col-span-1 space-y-4">
-
-<div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Top Strategy</h3>
-<div class="text-2xl font-bold text-indigo-600">Co-branding Partnership</div>
-<p class="text-sm text-slate-500 mt-1">Highest Weighted Score</p>
-</div>
-
-<div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Criteria Weights</h3>
-
-<div class="space-y-3">
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Engagement Effectiveness</span><span>26.1%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-blue-500 h-1.5 rounded-full" style="width:26.1%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Implementation Cost</span><span>7.1%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-emerald-500 h-1.5 rounded-full" style="width:7.1%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Trust & Brand Impact</span><span>48.2%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-purple-500 h-1.5 rounded-full" style="width:48.2%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Sustainability & Scalability</span><span>18.6%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-amber-500 h-1.5 rounded-full" style="width:18.6%"></div>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-
-<div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-<canvas id="marketingStrategyChart" height="150"></canvas>
-</div>
-
-</main>
-
-</div>
+<footer style="padding: 3rem 0; border-top: 1px solid var(--border);">
+  <div class="container">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+      <div style="font-family: 'Cormorant', serif; font-size: 1.2rem; font-weight: 500; color: var(--gold);">Nguyen Huy Hoang</div>
+      <div style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.05em;">AHP Case Study · Built with Bootstrap 5</div>
+    </div>
+  </div>
+</footer>
 
 <script>
+  /* ── Chart.js Global Theme Overrides ── */
+  Chart.defaults.color = '#e2e8f0'; 
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.scale.grid.color = 'rgba(200,146,42,0.08)'; 
+  Chart.defaults.scale.ticks.color = '#bac7d5'; 
 
-const marketingCtx = document.getElementById('marketingStrategyChart').getContext('2d');
+  Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(10, 17, 24, 0.95)';
+  Chart.defaults.plugins.tooltip.titleColor = '#c8922a'; 
+  Chart.defaults.plugins.tooltip.bodyColor = '#e2e8f0';  
+  Chart.defaults.plugins.tooltip.borderColor = 'rgba(200,146,42,0.3)';
+  Chart.defaults.plugins.tooltip.borderWidth = 1;
+  Chart.defaults.plugins.tooltip.padding = 12;
+  
+  const colors = {
+    blueDark: '#4a7ca3', 
+    emerald:  '#4ab38d',  
+    gold:     '#c8922a',
+    purple:   '#9875b5',  
+    redMuted: '#c46868',  
+    slate:    '#7895b3'   
+  };
 
-new Chart(marketingCtx,{
-type:'bar',
-data:{
-labels:[
-'Social Media',
-'Loyalty Program',
-'Community Event',
-'Sales Promotion',
-'Direct Support',
-'Email/App Notification',
-'Co-branding Partnership'
-],
-datasets:[
-{
-label:'Engagement Effectiveness',
-data:[3.26,1.47,4.75,2.39,7.43,1.09,5.72],
-backgroundColor:'#3b82f6'
-},
-{
-label:'Implementation Cost',
-data:[1.53,0.70,0.32,1.09,0.54,2.54,0.39],
-backgroundColor:'#10b981'
-},
-{
-label:'Trust & Brand Impact',
-data:[3.09,5.69,11.10,2.36,7.49,2.01,16.46],
-backgroundColor:'#8b5cf6'
-},
-{
-label:'Sustainability & Scalability',
-data:[5.90,2.67,1.28,1.14,2.30,0.79,4.53],
-backgroundColor:'#f59e0b'
-}
-]
-},
-options:{
-responsive:true,
-plugins:{
-legend:{position:'bottom'},
-tooltip:{
-callbacks:{
-footer:(items)=>{
-let total=items.reduce((sum,item)=>sum+item.parsed.y,0);
-return 'Total Score: '+total.toFixed(2)+'%';
-}
-}
-}
-},
-scales:{
-x:{stacked:true},
-y:{
-stacked:true,
-beginAtZero:true,
-title:{display:true,text:'Weighted Performance (%)'}
-}
-}
-}
-});
+  /* ── Chart 1: Master Strategy Summary ── */
+  new Chart(document.getElementById('strategySummaryChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Target: B2B', 'Partner: Supplier B', 'Promo: Co-branding', 'Model: E-S35'],
+      datasets: [
+        { label: 'Primary Driver', data: [21.0, 40.2, 16.5, 11.0], backgroundColor: colors.blueDark, criteriaNames: ['Revenue (40%)', 'Quality (51.8%)', 'Brand Impact (48.2%)', 'Price (38.2%)'] },
+        { label: 'Secondary Driver', data: [8.8, 6.2, 5.7, 10.0], backgroundColor: colors.emerald, criteriaNames: ['Strategic Fit', 'Risk', 'Engagement', 'Charging'] },
+        { label: 'Tertiary Driver', data: [8.7, 2.6, 4.5, 8.0], backgroundColor: colors.gold, criteriaNames: ['Customer Loyalty', 'Cost', 'Sustainability', 'Technology'] },
+        { label: 'Quaternary Driver', data: [8.1, 1.0, 0.4, 11.0], backgroundColor: colors.purple, criteriaNames: ['Growth Potential', 'Capacity', 'Impl. Cost', 'Brand & After-sales'] }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { 
+        legend: { display: false },
+        tooltip: { 
+          callbacks: { 
+            label: (c) => ` ${c.dataset.criteriaNames[c.dataIndex]}: ${c.parsed.x.toFixed(1)}%`,
+            footer: (items) => '\nTotal Priority Score: ' + items.reduce((a, b) => a + b.parsed.x, 0).toFixed(1) + '%'
+          } 
+        } 
+      },
+      scales: {
+        x: { stacked: true, max: 60, title: { display: true, text: 'Priority Score (%)', color: '#c8922a' } },
+        y: { stacked: true, grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } }
+      }
+    }
+  });
 
+  /* ── Chart 2: Market Segment ── */
+  new Chart(document.getElementById('marketSegmentChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['B2C', 'B2B', 'B2B2C', 'B2G'],
+      datasets: [
+        { label: 'C1: Revenue (40%)', data: [2.24, 21.0, 5.56, 11.16], backgroundColor: colors.blueDark },
+        { label: 'C2: Growth (30%)', data: [16.44, 8.1, 3.81, 1.68], backgroundColor: colors.emerald },
+        { label: 'C3: Loyalty (15%)', data: [1.005, 8.715, 2.55, 2.73], backgroundColor: colors.gold },
+        { label: 'C4: Strat Fit (15%)', data: [1.56, 8.79, 3.93, 0.705], backgroundColor: colors.purple }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } },
+        tooltip: {
+          mode: 'index', intersect: false,
+          callbacks: {
+            label: (c) => `${c.dataset.label}: ${c.parsed.x.toFixed(1)}%`,
+            footer: (items) => '\nTotal Segment Utility: ' + items.reduce((a, b) => a + b.parsed.x, 0).toFixed(1) + '%'
+          }
+        }
+      },
+      scales: { x: { stacked: true, max: 50 }, y: { stacked: true, grid: { display: false } } }
+    }
+  });
+
+  /* ── Chart 3: Marketing Strategy ── */
+  new Chart(document.getElementById('marketingStrategyChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Social', 'Loyalty', 'Event', 'Promo', 'Direct', 'Email', 'Co-brand'],
+      datasets: [
+        { label: 'Brand Impact (48.2%)', data: [3.09, 5.69, 11.10, 2.36, 7.49, 2.01, 16.46], backgroundColor: colors.purple },
+        { label: 'Engagement (26.1%)', data: [3.26, 1.47, 4.75, 2.39, 7.43, 1.09, 5.72], backgroundColor: colors.blueDark },
+        { label: 'Sustainability (18.6%)', data: [5.90, 2.67, 1.28, 1.14, 2.30, 0.79, 4.53], backgroundColor: colors.gold },
+        { label: 'Impl. Cost (7.1%)', data: [1.53, 0.70, 0.32, 1.09, 0.54, 2.54, 0.39], backgroundColor: colors.emerald }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 15 } },
+        tooltip: { mode: 'index', intersect: false, callbacks: { footer: (items) => '\nTotal Score: ' + items.reduce((a, b) => a + b.parsed.y, 0).toFixed(1) + '%' } }
+      },
+      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true } }
+    }
+  });
+
+  /* ── Chart 4: Supplier ── */
+  new Chart(document.getElementById('evLotusChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Supplier A', 'Supplier B', 'Supplier C'],
+      datasets: [
+        { label: 'Quality (51.8%)', data: [0.0802, 0.4023, 0.0355], backgroundColor: colors.emerald },
+        { label: 'Cost (24.1%)', data: [0.1526, 0.0255, 0.0627], backgroundColor: colors.blueDark },
+        { label: 'Risk (15.4%)', data: [0.0308, 0.0616, 0.0616], backgroundColor: colors.purple },
+        { label: 'Capacity (8.6%)', data: [0.0413, 0.0099, 0.0349], backgroundColor: colors.slate }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 15 } },
+        tooltip: { mode: 'index', intersect: false, callbacks: { footer: (items) => '\nGlobal Priority: ' + items.reduce((a, b) => a + b.parsed.x, 0).toFixed(3) } }
+      },
+      scales: { x: { stacked: true }, y: { stacked: true, grid: { display: false } } }
+    }
+  });
+
+  /* ── Chart 5: Vehicles ── */
+  new Chart(document.getElementById('vehicleComparisonChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Model E-Z10', 'Model E-S35', 'Model E-L62'],
+      datasets: [
+        { label: 'Price (38.2%)', data: [0.25, 0.11, 0.03], backgroundColor: colors.blueDark },
+        { label: 'Charging (19.5%)', data: [0.02, 0.10, 0.07], backgroundColor: colors.emerald },
+        { label: 'Technology (14.3%)', data: [0.02, 0.08, 0.04], backgroundColor: colors.purple },
+        { label: 'After-sales (12.0%)', data: [0.01, 0.04, 0.07], backgroundColor: colors.gold },
+        { label: 'Brand (9.5%)', data: [0.01, 0.03, 0.06], backgroundColor: colors.slate },
+        { label: 'Sustain. (6.5%)', data: [0.01, 0.04, 0.02], backgroundColor: colors.redMuted }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 10 } },
+        tooltip: { mode: 'index', intersect: false, callbacks: { footer: (items) => '\nGlobal Score: ' + items.reduce((a, b) => a + b.parsed.y, 0).toFixed(3) } }
+      },
+      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true } }
+    }
+  });
 </script>
-
-<p class="text-gray-700 mb-16">
-The strategy prioritizes <strong>Co-branding Partnerships</strong> as a central pillar to leverage strategic alliances for rapid customer expansion and enhanced brand credibility. This is reinforced by a focus on <strong>Direct Support</strong> to cultivate trust through high-responsiveness and tight-knit relationship management, while <strong>Community Events</strong> serve to deepen emotional connectivity and long-term loyalty.
-</p>
-
-<h2 class="text-2xl font-bold mb-4">Phase 2 &mdash; Selecting a battery supplier</h2>
-
-<div class="max-w-5xl mx-auto px-4 py-12">
-
-<main class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-<div class="md:col-span-1 space-y-6">
-
-<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Top Selection</h3>
-<div class="text-3xl font-bold text-green-600">Supplier B</div>
-<p class="text-gray-600 mt-2">Score: 0.4993</p>
-</div>
-
-<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Criteria Weights</h3>
-<ul class="space-y-2 text-sm">
-<li class="flex justify-between"><span>Quality (C2)</span> <span class="font-bold">51.8%</span></li>
-<li class="flex justify-between"><span>Cost (C1)</span> <span class="font-bold">24.1%</span></li>
-<li class="flex justify-between"><span>Risk (C4)</span> <span class="font-bold">15.4%</span></li>
-<li class="flex justify-between"><span>Capacity (C3)</span> <span class="font-bold">8.6%</span></li>
-</ul>
-</div>
-
-</div>
-
-<div class="md:col-span-2 bg-white p-8 rounded-xl shadow-md border border-gray-100">
-<canvas id="evLotusChart" height="120"></canvas>
-</div>
-
-</main>
-
-</div>
-
-<script>
-
-const evCtx = document.getElementById('evLotusChart').getContext('2d');
-
-new Chart(evCtx,{
-type:'bar',
-data:{
-labels:['Supplier A','Supplier B','Supplier C'],
-datasets:[
-{
-label:'Cost',
-data:[0.1526,0.0255,0.0627],
-backgroundColor:'#3b82f6'
-},
-{
-label:'Quality',
-data:[0.0802,0.4023,0.0355],
-backgroundColor:'#ef4444'
-},
-{
-label:'Capacity',
-data:[0.0413,0.0099,0.0349],
-backgroundColor:'#10b981'
-},
-{
-label:'Risk',
-data:[0.0308,0.0616,0.0616],
-backgroundColor:'#f59e0b'
-}
-]
-},
-options:{
-responsive:true,
-plugins:{
-legend:{position:'bottom'},
-tooltip:{
-callbacks:{
-footer:(items)=>{
-let total=items.reduce((sum,item)=>sum+item.parsed.y,0);
-return 'Total Score: '+total.toFixed(4);
-}
-}
-}
-},
-scales:{
-x:{stacked:true},
-y:{
-stacked:true,
-beginAtZero:true,
-title:{display:true,text:'Weighted Performance Score'}
-}
-}
-}
-});
-
-</script>
-
-<p class="text-gray-700 leading-relaxed mb-16">
-In selecting a battery supplier, EVLotus evaluated four criteria: cost, quality & technology, production capacity, and operational risk. The analysis determined that <strong>quality and technology were five times more important than production capacity</strong>, resulting in a dominant weight of <strong>0.518</strong>. This emphasis on technological reliability ultimately made Supplier B (Score: 0.4993) the optimal strategic partner.
-</p>
-
-
-<h2 class="text-2xl font-bold mb-4">Phase 3 &mdash; Evaluating Alternatives</h2>
-
-<p class="text-gray-700 leading-relaxed mb-12">
-The final stage multiplies criteria weights by alternative scores to calculate a global performance score. EVLotus compared three electric vehicle models: E-Z10, E-S35, and E-L62 across six criteria including price, charging convenience, and digital integration.
-</p>
-
-<div class="max-w-6xl mx-auto px-4 py-12">
-
-<main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-<div class="lg:col-span-1 space-y-4">
-
-<div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Top Vehicle</h3>
-<div class="text-2xl font-bold text-indigo-600">E-S35</div>
-<p class="text-sm text-slate-500 mt-1">Global Score: 0.40</p>
-</div>
-
-<div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Criteria Weights</h3>
-
-<div class="space-y-3">
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Price</span><span>38.2%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-blue-500 h-1.5 rounded-full" style="width:38.2%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Charging</span><span>19.5%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-emerald-500 h-1.5 rounded-full" style="width:19.5%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Technology</span><span>14.3%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-purple-500 h-1.5 rounded-full" style="width:14.3%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>After-sales</span><span>12.0%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-amber-500 h-1.5 rounded-full" style="width:12.0%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Brand</span><span>9.5%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-indigo-500 h-1.5 rounded-full" style="width:9.5%"></div>
-</div>
-</div>
-
-<div>
-<div class="flex justify-between text-xs mb-1"><span>Sustainability</span><span>6.5%</span></div>
-<div class="w-full bg-slate-100 h-1.5 rounded-full">
-<div class="bg-red-500 h-1.5 rounded-full" style="width:6.5%"></div>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-
-<div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-<canvas id="vehicleComparisonChart" height="150"></canvas>
-</div>
-
-</main>
-
-</div>
-
-<script>
-
-const vehicleCtx = document.getElementById('vehicleComparisonChart').getContext('2d');
-
-new Chart(vehicleCtx,{
-type:'bar',
-data:{
-labels:['E-Z10','E-S35','E-L62'],
-datasets:[
-{
-label:'Price',
-data:[0.25,0.11,0.03],
-backgroundColor:'#3b82f6'
-},
-{
-label:'Charging',
-data:[0.02,0.10,0.07],
-backgroundColor:'#10b981'
-},
-{
-label:'Technology',
-data:[0.02,0.08,0.04],
-backgroundColor:'#8b5cf6'
-},
-{
-label:'After-sales',
-data:[0.01,0.04,0.07],
-backgroundColor:'#f59e0b'
-},
-{
-label:'Brand',
-data:[0.01,0.03,0.06],
-backgroundColor:'#6366f1'
-},
-{
-label:'Sustainability',
-data:[0.01,0.04,0.02],
-backgroundColor:'#ef4444'
-}
-]
-},
-options:{
-responsive:true,
-plugins:{
-legend:{position:'bottom'},
-tooltip:{
-callbacks:{
-footer:(items)=>{
-let total=items.reduce((sum,item)=>sum+item.parsed.y,0);
-return 'Total Score: '+total.toFixed(2);
-}
-}
-}
-},
-scales:{
-x:{stacked:true},
-y:{
-stacked:true,
-beginAtZero:true,
-title:{display:true,text:'Weighted Performance Score'}
-}
-}
-}
-});
-
-</script>
-
-<p class="text-gray-700 leading-relaxed mb-16">
-Although the E-Z10 performed best in affordability, the <strong>E-S35 achieved the highest overall score of 0.40</strong> due to superior technology and charging convenience, making it the optimal value proposition for the target market.
-</p>
-
-
-<h2 class="text-2xl font-bold mb-4">Why Use AHP?</h2>
-
-<ul class="space-y-4 text-gray-700 mb-16">
-
-<li><strong>Objectivity:</strong> converts qualitative judgement into measurable data.</li>
-
-<li><strong>Consistency:</strong> the consistency ratio (CR) ensures logical comparisons.</li>
-
-<li><strong>Clarity:</strong> large strategic problems are broken into manageable decisions.</li>
-
-</ul>
-
-<p class="text-gray-700 leading-relaxed mb-16">
-The EVLotus case demonstrates that strategic planning rarely involves a perfect choice. Instead, success lies in identifying the optimal solution based on clearly defined priorities. The Analytic Hierarchy Process provides a systematic roadmap for navigating complex decisions with transparency and analytical rigor.
-</p>
-
-
-<a href="../index.html"
-class="text-blue-600 font-semibold hover:underline">
-← Back
-</a>
-
-</div>
-
 </body>
 </html>
