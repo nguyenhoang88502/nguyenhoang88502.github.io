@@ -1,153 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Co-Working Space System Design — Nguyen Huy Hoang</title>
+  <meta name="description" content="Systems engineering project designing a 24/7 co-working cafe called 'Việc', integrating workspace design, service systems, and operational strategy." />
+  
+  <link rel="icon" type="image/png" href="../favicon.png" />
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-<title>Co-Working Space Cafe System Design – “Việc”</title>
+  <style>
+    /* ══ DOSSIER THEME TOKENS ══ */
+    :root {
+      --bg-base:    #0a1118;
+      --bg-surface: #111a26;
+      --bg-alt:     #0e1620;
+      --gold:       #c8922a;
+      --gold-dim:   rgba(200,146,42,0.3);
+      --text-main:  #e2e8f0;
+      --text-muted: #8b9eb3;
+      --border:     rgba(200,146,42,0.15);
+    }
 
-<meta name="description" content="Systems engineering project designing a 24/7 co-working cafe called 'Việc', integrating workspace design, service systems, and operational strategy.">
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
 
-<link rel="icon" type="image/png" href="../favicon.png">
+    /* ── Bootstrap Text Overrides ── */
+    p, span, div, li, td { color: var(--text-main); }
+    .text-muted { color: var(--text-muted) !important; }
+    .text-dark, .text-body { color: var(--text-main) !important; }
 
-<script src="https://cdn.tailwindcss.com"></script>
+    /* ── Grain overlay ── */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: .028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    /* ── Typography ── */
+    h1, h2, h3, h4, .serif {
+      font-family: 'Cormorant', serif;
+      color: var(--text-main);
+    }
+    
+    .dossier-title {
+      font-size: clamp(2.8rem, 5vw, 4rem);
+      font-weight: 500;
+      line-height: 1.05;
+      color: var(--text-main);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
 
-<style>
-body{
-font-family:'Inter',sans-serif;
-scroll-behavior:smooth;
-}
-</style>
+    .chapter-num {
+      font-family: 'Cormorant', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
 
+    .chapter-title {
+      font-size: 2.2rem;
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      color: var(--text-main);
+    }
+
+    .body-lead {
+      font-size: 1.15rem;
+      color: var(--text-muted) !important;
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
+
+    /* ── Layout & Components ── */
+    .dossier-nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 17, 24, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 0;
+    }
+
+    .nav-brand {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+    }
+    .nav-brand:hover { color: var(--gold); }
+
+    .dossier-header {
+      padding: 10rem 0 6rem;
+      border-bottom: 4px double var(--border);
+      background: linear-gradient(180deg, var(--bg-alt) 0%, var(--bg-base) 100%);
+    }
+
+    section { padding: 6rem 0; }
+
+    /* ── Cards & Callouts ── */
+    .data-card {
+      background: var(--bg-surface);
+      border-top: 2px solid var(--gold);
+      padding: 2rem;
+      height: 100%;
+    }
+
+    .callout-box {
+      border-left: 3px solid var(--gold);
+      padding: 1.5rem 2rem;
+      background: rgba(200,146,42,0.03);
+      margin-bottom: 2rem;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-family: 'Cormorant', serif;
+      font-size: 2.2rem;
+      color: var(--gold);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Buttons ── */
+    .btn-outline-gold {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-main); border: 1px solid var(--gold-dim);
+      padding: 0.8rem 1.5rem; text-decoration: none;
+      transition: all 0.2s;
+      background: transparent;
+    }
+    .btn-outline-gold:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(200,146,42,0.05);
+    }
+
+    /* ── Custom Lists ── */
+    .sys-list {
+      list-style: none;
+      padding-left: 0;
+    }
+    .sys-list li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+    .sys-list li::before {
+      content: '■';
+      color: var(--gold);
+      position: absolute;
+      left: 0;
+      top: 0px;
+      font-size: 0.6rem;
+    }
+
+    /* ── Scrollbar & Progress ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: rgba(200,146,42,0.4); }
+    
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), #e8b84b);
+      z-index: 9996; width: 0%; transition: width 0.1s linear;
+    }
+  </style>
 </head>
+<body>
 
-<body class="bg-gray-50 text-gray-900">
+<div id="progress-bar"></div>
 
-<div class="max-w-4xl mx-auto py-20 px-6 md:px-8">
+<nav class="dossier-nav fixed-top">
+  <div class="container d-flex align-items-center">
+    <a href="../index.html" class="nav-brand">
+      <i class="bi bi-arrow-left me-2 ms-1"></i> Return
+    </a>
+  </div>
+</nav>
 
-<h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-“Việc” — The Ultimate Co-Working Space Cafe
-</h1>
+<header class="dossier-header">
+  <div class="container">
+    <div class="row align-items-end">
+      <div class="col-lg-8">
+        <div class="metric-label" style="color: var(--gold);">Systems Engineering Architecture</div>
+        <h1 class="dossier-title">“Việc” — Hybrid Co-Working Space System Design</h1>
+        <p class="body-lead mt-4" style="max-width: 750px;">
+          A comprehensive systems engineering solution bridging the gap between affordable coffee shops and premium professional workspaces for remote workers and students.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+        <div class="d-flex flex-column gap-3 align-items-lg-end">
+          <a href="report.pdf" target="_blank" rel="noopener" class="btn-outline-gold w-100 w-lg-auto justify-content-center">
+            <i class="bi bi-file-pdf"></i> Read Project Report
+          </a>
+          <a href="presentation.pdf" target="_blank" rel="noopener" class="btn-outline-gold w-100 w-lg-auto justify-content-center">
+            <i class="bi bi-easel2"></i> View Presentation
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-<p class="text-gray-600 text-lg mb-12 leading-relaxed">
-Remote work and flexible study environments have become essential for students and freelancers. However, traditional cafes are often noisy and lack privacy, while professional co-working spaces tend to be expensive. The “Việc” co-working cafe was designed as a systems engineering solution to bridge this gap by combining workspace productivity with an affordable coffee shop environment.
-</p>
+<section>
+  <div class="container">
+    <span class="chapter-num">Chapter I</span>
+    <h2 class="chapter-title">Executive Summary & System Specs</h2>
+    
+    <div class="callout-box">
+      <p class="mb-0" style="font-size: 1.05rem; color: var(--text-main);">
+        Engineered a comprehensive systems architecture for a <strong>24/7 hybrid co-working cafe</strong>, targeting a high-density demographic of <strong>200,000+</strong> users in the National University Village. Architected a 3-floor, <strong>120 m²</strong> facility with an <strong>80/20</strong> spatial allocation optimizing individual productivity and group collaboration. Deployed <strong>10</strong> interconnected operational subsystems, enforcing strict Service Level Agreements (SLAs) including <strong>7-minute</strong> beverage delivery and <strong>15-minute</strong> room turnover. Secured continuous operations via enterprise-grade <strong>30 Mbps</strong> network infrastructure and <strong>2KVA</strong> power redundancies. Formulated a high-yield financial model requiring <strong>2 Billion VND</strong> in initial CAPEX, projecting <strong>500 Million VND</strong> monthly revenue to achieve full ROI within <strong>30 months</strong> at a <strong>70%</strong> baseline occupancy.
+      </p>
+    </div>
 
-<div class="flex flex-wrap gap-4 mb-16">
+    <div class="row g-4 mt-2">
+      <div class="col-md-6 col-lg-3">
+        <div class="data-card">
+          <div class="metric-label">Projected ROI</div>
+          <div class="metric-value" style="font-size: 1.8rem;">30 <span style="font-size:1rem;">Months</span></div>
+          <div class="text-muted" style="font-size: 0.8rem;">At 70% baseline occupancy</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="data-card">
+          <div class="metric-label">Facility Scale</div>
+          <div class="metric-value" style="font-size: 1.8rem;">120 <span style="font-size:1rem;">m²</span></div>
+          <div class="text-muted" style="font-size: 0.8rem;">3 Floors | 80/20 Spatial split</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="data-card">
+          <div class="metric-label">Operational Scope</div>
+          <div class="metric-value" style="font-size: 1.8rem;">24/7 <span style="font-size:1rem;">Uptime</span></div>
+          <div class="text-muted" style="font-size: 0.8rem;">10 Interconnected subsystems</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="data-card">
+          <div class="metric-label">Initial CAPEX</div>
+          <div class="metric-value" style="font-size: 1.8rem;">2B <span style="font-size:1rem;">VND</span></div>
+          <div class="text-muted" style="font-size: 0.8rem;">Renovation & core equipment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<a href="report.pdf" target="_self"
-class="border border-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition">
-Project Report <svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
+<section style="background: var(--bg-alt);">
+  <div class="container">
+    <span class="chapter-num">Chapter II</span>
+    <h2 class="chapter-title">Spatial & Operational Architecture</h2>
+    
+    <div class="row g-5">
+      <div class="col-lg-6">
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Workspace Optimization</h3>
+        <p class="text-muted mb-4" style="font-size: 0.95rem;">
+          The goal of “Việc” is to engineer a productivity hub tailored specifically for remote workers and the gig economy. The spatial design heavily favors deep work over transient dining.
+        </p>
+        <ul class="sys-list">
+          <li><strong style="color: var(--text-main);">Spatial Ratio:</strong> Dedicated 80% of the floor plan strictly to individual workstations, reserving 20% for private, acoustically treated group rooms.</li>
+          <li><strong style="color: var(--text-main);">Affordable Quality:</strong> Formulated a pricing matrix between 25,000 – 60,000 VND to remain highly competitive within the student demographic.</li>
+          <li><strong style="color: var(--text-main);">Flexible Packages:</strong> Integrated block-booking models allowing users to secure spaces in 2, 4, 6-hour chunks or dedicated overnight sessions.</li>
+        </ul>
+      </div>
 
-<a href="presentation.pdf" target="_self"
-class="border border-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition">
-Presentation Slides <svg width="12" height="12" viewBox="0 0 24 24" fill="black" style="display:inline; margin-left:4px;">
-<path d="M14 3h7v7h-2V6.41l-9.29 9.29-1.42-1.42L17.59 5H14V3zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1 0 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
-</svg>
-</a>
+      <div class="col-lg-6">
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Subsystem Integration</h3>
+        <p class="text-muted mb-4" style="font-size: 0.95rem;">
+          The facility operates as a centralized service system linking food production, workspace administration, and digital infrastructure via a unified Point-of-Sale (POS) platform.
+        </p>
+        <ul class="sys-list">
+          <li><strong style="color: var(--text-main);">Service Level Agreements (SLA):</strong> Mandated operational parameters requiring beverage delivery within 7 minutes and full room turnover/cleaning within 15 minutes.</li>
+          <li><strong style="color: var(--text-main);">Network Resilience:</strong> Deployed enterprise-grade WiFi guaranteeing a minimum of 30 Mbps, optimized to concurrently support 50+ intensive users.</li>
+          <li><strong style="color: var(--text-main);">Disaster Recovery:</strong> Installed a 2KVA backup generator to safeguard POS, network integrity, and ambient lighting during local grid failures.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-</div>
+<section>
+  <div class="container">
+    <span class="chapter-num">Chapter III</span>
+    <h2 class="chapter-title">Financial Blueprint & Risk Management</h2>
+    
+    <div class="row g-5">
+      <div class="col-lg-5 d-flex flex-column justify-content-center">
+        <p class="text-muted" style="font-size: 0.95rem;">
+          The system was designed with rigorous financial feasibility, ensuring long-term sustainability while defending against supply chain and operational risks.
+        </p>
+        
+        <div class="data-card mt-4" style="padding: 1.5rem; background: rgba(200,146,42,0.03);">
+          <div class="metric-label">Monthly Financial Target</div>
+          <div class="d-flex align-items-baseline gap-3 mb-2">
+            <div class="metric-value mb-0" style="font-size: 2rem;">500M</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Gross Rev</div>
+          </div>
+          <div class="d-flex align-items-baseline gap-3">
+            <div class="metric-value mb-0" style="font-size: 2rem; color: #4ab38d;">125M</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Net Profit</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-7">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h4 class="serif" style="font-size: 1.3rem; color: var(--gold);">Supply Chain Stability</h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+              Enforced a strict FIFO (First-In, First-Out) inventory system. Integrated secondary and tertiary backup suppliers for mission-critical consumables (coffee beans, specialized milks) to prevent menu outages.
+            </p>
+          </div>
+          <div class="col-md-6">
+            <h4 class="serif" style="font-size: 1.3rem; color: var(--gold);">Occupancy Defense</h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+              Low occupancy risks are aggressively countered through targeted digital marketing in local university forums and dynamic, time-based pricing strategies to fill off-peak hours.
+            </p>
+          </div>
+          <div class="col-md-12">
+            <div class="callout-box mb-0 mt-2" style="border-left-color: #4ab38d;">
+              <h4 class="serif" style="font-size: 1.3rem; color: #4ab38d;">Conclusion</h4>
+              <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                “Việc” demonstrates how systems engineering principles can transform a traditional cafe into a fully integrated productivity ecosystem. By aligning workspace design, service operations, and digital infrastructure, the model offers a highly scalable blueprint for modern co-working environments serving the evolving gig economy.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
+<footer style="padding: 3rem 0; border-top: 1px solid var(--border);">
+  <div class="container">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+      <div style="font-family: 'Cormorant', serif; font-size: 1.2rem; font-weight: 500; color: var(--gold);">Nguyen Huy Hoang</div>
+      <div style="color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.05em;">System Design Portfolio · Built with Bootstrap 5</div>
+    </div>
+  </div>
+</footer>
 
-<h2 class="text-2xl font-bold mb-4">Project Context</h2>
-
-<p class="text-gray-700 leading-relaxed mb-16">
-The project targets the National University Village in Thu Duc, Ho Chi Minh City — an area populated by more than 200,000 students and young professionals. The concept was developed as a scalable business system that integrates workspace design, service operations, and technology infrastructure to support continuous productivity.
-</p>
-
-
-<h2 class="text-2xl font-bold mb-4">Concept — Where Productivity Meets Specialty Coffee</h2>
-
-<p class="text-gray-700 leading-relaxed mb-8">
-The goal of “Việc” is to create a 24/7 workspace environment that is both comfortable and affordable. Instead of operating as a traditional cafe, the venue is structured as a hybrid productivity hub designed specifically for remote workers.
-</p>
-
-<ul class="space-y-4 text-gray-700 mb-16">
-
-<li><strong>Affordable Quality:</strong> The beverage menu balances classic coffee, matcha drinks, and fresh juices with prices ranging from 25,000 – 60,000 VND.</li>
-
-<li><strong>Optimized Workspace:</strong> The three-floor, 120 m² facility dedicates approximately 80% of the space to individual workstations and 20% to private group rooms.</li>
-
-<li><strong>Uninterrupted Productivity:</strong> The facility provides enterprise-level WiFi (minimum 30 Mbps supporting 50 users), abundant power outlets, and sound-controlled quiet zones.</li>
-
-</ul>
-
-
-<h2 class="text-2xl font-bold mb-4">Operational Architecture</h2>
-
-<p class="text-gray-700 leading-relaxed mb-8">
-The cafe operates as an integrated service system composed of ten interconnected subsystems, covering food production, workspace management, customer service, security, and digital infrastructure.
-</p>
-
-<ul class="space-y-4 text-gray-700 mb-16">
-
-<li><strong>Integrated POS System:</strong> A central Point-of-Sale platform manages beverage orders, workspace reservations, hourly room rentals, and inventory tracking.</li>
-
-<li><strong>Flexible Workspace Packages:</strong> Customers can book spaces in blocks of 2, 4, 6 hours or overnight sessions.</li>
-
-<li><strong>Service Level Agreements (SLA):</strong> Drinks must be served within 7 minutes of ordering, while room turnover and cleaning must be completed within 15 minutes.</li>
-
-<li><strong>Operational Continuity:</strong> A 2KVA backup generator ensures WiFi and POS systems remain operational during power outages.</li>
-
-</ul>
-
-
-<h2 class="text-2xl font-bold mb-4">Financial Blueprint</h2>
-
-<p class="text-gray-700 leading-relaxed mb-8">
-The system was designed with strong financial feasibility while maintaining affordability for students.
-</p>
-
-<ul class="space-y-4 text-gray-700 mb-16">
-
-<li><strong>Initial Investment:</strong> Approximately 2 billion VND required for space renovation, equipment, and operational setup.</li>
-
-<li><strong>Revenue Target:</strong> Over 500 million VND monthly revenue through beverage sales and workspace rentals.</li>
-
-<li><strong>Net Profit:</strong> Estimated 100 – 125 million VND per month.</li>
-
-<li><strong>Return on Investment:</strong> Expected full capital recovery within 30 months with a 70% occupancy rate.</li>
-
-</ul>
-
-
-<h2 class="text-2xl font-bold mb-4">Risk Management Strategy</h2>
-
-<p class="text-gray-700 leading-relaxed mb-8">
-To ensure long-term sustainability, the project incorporates a detailed risk management framework.
-</p>
-
-<ul class="space-y-4 text-gray-700 mb-16">
-
-<li><strong>Low Occupancy Risk:</strong> Addressed through targeted digital marketing and flexible pricing strategies.</li>
-
-<li><strong>Supply Chain Stability:</strong> Managed through a FIFO inventory system and backup suppliers for key ingredients such as coffee beans and milk.</li>
-
-<li><strong>Operational Disruptions:</strong> Mitigated with clear service protocols and backup power infrastructure.</li>
-
-</ul>
-
-
-<h2 class="text-2xl font-bold mb-4">Conclusion</h2>
-
-<p class="text-gray-700 leading-relaxed mb-16">
-“Việc” demonstrates how systems engineering principles can transform a traditional cafe into a fully integrated productivity ecosystem. By aligning workspace design, service operations, and digital infrastructure, the model offers a scalable blueprint for modern co-working environments serving the evolving needs of the gig economy.
-</p>
-
-
-<a href="../index.html"
-class="text-blue-600 font-semibold hover:underline">
-← Back
-</a>
-
-</div>
+<script>
+  /* ── Scroll Progress & Navbar Effect ── */
+  const progressBar = document.getElementById('progress-bar');
+  const navbar = document.querySelector('.dossier-nav');
+  window.addEventListener('scroll', () => {
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (window.scrollY / docHeight * 100) + '%';
+    
+    if (window.scrollY > 50) {
+      navbar.style.background = 'rgba(10, 17, 24, 0.98)';
+      navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+    } else {
+      navbar.style.background = 'rgba(10, 17, 24, 0.95)';
+      navbar.style.boxShadow = 'none';
+    }
+  }, { passive: true });
+</script>
 
 </body>
 </html>
