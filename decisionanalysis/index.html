@@ -32,15 +32,9 @@
       overflow-x: hidden;
     }
 
-    /* ── Bootstrap Text Overrides (Fixing the black text issue) ── */
-    p, span, div, li { color: var(--text-main); }
-    .text-muted { color: var(--text-muted) !important; }
-    .text-dark, .text-body { color: var(--text-main) !important; }
-
     /* ── Typography ── */
     h1, h2, h3, h4, .serif {
       font-family: 'Cormorant', serif;
-      color: var(--text-main);
     }
     
     .dossier-title {
@@ -67,12 +61,11 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 1rem;
       margin-bottom: 2rem;
-      color: var(--text-main);
     }
 
     .body-lead {
       font-size: 1.15rem;
-      color: var(--text-muted) !important;
+      color: var(--text-muted);
       font-weight: 300;
       margin-bottom: 2rem;
     }
@@ -137,16 +130,17 @@
       margin-bottom: 1rem;
     }
 
-    /* ── Chart Containers ── */
+    /* ── Chart Containers (FIXED) ── */
     .chart-box {
       background: var(--bg-surface);
       border: 1px solid var(--border);
       padding: 1.5rem;
       width: 100%;
-      position: relative; 
-      height: 400px;      
+      position: relative; /* Critical for Chart.js */
+      height: 400px;      /* Strict height stops infinite stretch */
     }
     
+    /* Smaller height for the summary chart so it isn't massive */
     .chart-box.chart-sm {
       height: 280px; 
     }
@@ -173,6 +167,13 @@
   </style>
 </head>
 <body>
+
+<nav class="dossier-nav fixed-top">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a href="../index.html" class="nav-brand"><i class="bi bi-arrow-left me-2"></i> Return</a>
+    <span class="nav-brand d-none d-sm-block" style="color: var(--gold);"></span>
+  </div>
+</nav>
 
 <header class="dossier-header">
   <div class="container">
@@ -296,7 +297,7 @@
           <div class="col-6">
             <div class="data-card" style="padding: 1.5rem;">
               <div class="metric-label">Selected</div>
-              <div class="metric-value" style="font-size: 1.8rem; color: #4ab38d;">Supplier B</div>
+              <div class="metric-value" style="font-size: 1.8rem; color: #4af0a0;">Supplier B</div>
               <div style="font-size: 0.8rem; color: var(--text-main);">Score: 0.499</div>
             </div>
           </div>
@@ -365,20 +366,27 @@
 
 <script>
   /* ── Chart.js Global Theme Overrides ── */
+  // 1. Force all text to be bright white/off-white so it stands out against dark backgrounds
   Chart.defaults.color = '#e2e8f0'; 
   Chart.defaults.font.family = "'DM Sans', sans-serif";
+  
+  // 2. Adjust grid lines so they are subtly visible but don't overpower the chart
   Chart.defaults.scale.grid.color = 'rgba(200,146,42,0.08)'; 
+  
+  // 3. Force axis ticks (the numbers/labels on the sides) to be bright and readable
   Chart.defaults.scale.ticks.color = '#bac7d5'; 
 
+  // 4. Force tooltips to match your dark theme
   Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(10, 17, 24, 0.95)';
-  Chart.defaults.plugins.tooltip.titleColor = '#c8922a'; 
-  Chart.defaults.plugins.tooltip.bodyColor = '#e2e8f0';  
+  Chart.defaults.plugins.tooltip.titleColor = '#c8922a'; // Gold
+  Chart.defaults.plugins.tooltip.bodyColor = '#e2e8f0';  // White
   Chart.defaults.plugins.tooltip.borderColor = 'rgba(200,146,42,0.3)';
   Chart.defaults.plugins.tooltip.borderWidth = 1;
   Chart.defaults.plugins.tooltip.padding = 12;
   
+  // Refined Dossier Palette
   const colors = {
-    blueDark: '#4a7ca3', 
+    blueDark: '#4a7ca3',  // Lightened slightly for better dark mode contrast
     emerald:  '#4ab38d',  
     gold:     '#c8922a',
     purple:   '#9875b5',  
