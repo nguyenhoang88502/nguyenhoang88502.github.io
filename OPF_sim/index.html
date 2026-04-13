@@ -669,7 +669,8 @@
     return U < F ? a + Math.sqrt(U * (b - a) * (m - a)) : b - Math.sqrt((1 - U) * (b - a) * (b - m));
   }
 
-window.calcCapacity = function() {
+  // ── FIX: SINGLE PIECE FLOW LOGIC ──
+  window.calcCapacity = function() {
     if (!simResults || !simResults.length) return;
 
     const start = document.getElementById('shift-start').value;
@@ -693,17 +694,37 @@ window.calcCapacity = function() {
     const p90 = simResults[Math.floor(0.9 * iters)] || simResults[iters-1];
     const p10 = simResults[Math.floor(0.1 * iters)] || simResults[0];
 
+    // Identify the precise bottleneck (slowest task) across all valid tasks
+    const bottleneckMean = currentTaskMeans.length ? Math.max(...currentTaskMeans.map(t => t.mean)) : 0;
+    
+    let outMean = 0, outP90 = 0, outP10 = 0;
+    
+    if (bottleneckMean > 0) {
+      // Mean Output: Expected capacity based on mean lead time and bottleneck pace
+      if (totalSecs >= mean) {
+        outMean = 1 + Math.floor((totalSecs - mean) / bottleneckMean);
+      }
+      
+      // P90 Output (Conservative): Scale bottleneck up proportionally
+      const bottleneckP90 = bottleneckMean * (p90 / mean);
+      if (totalSecs >= p90) {
+        outP90 = 1 + Math.floor((totalSecs - p90) / bottleneckP90);
+      }
+      
+      // P10 Output (Optimistic): Scale bottleneck down proportionally
+      const bottleneckP10 = bottleneckMean * (p10 / mean);
+      if (totalSecs >= p10) {
+        outP10 = 1 + Math.floor((totalSecs - p10) / bottleneckP10);
+      }
+    }
+
     const elMean = document.getElementById('out-mean');
     const elP90 = document.getElementById('out-p90');
     const elP10 = document.getElementById('out-p10');
 
-    // Number of active stations/tasks currently in the simulation
-    const numTasks = currentTaskMeans.length; 
-
-    // Calculate pipelined capacity: (Available Time / Total Lead Time) * Number of Tasks
-    if(elMean) elMean.textContent = Math.floor((totalSecs / mean) * numTasks).toLocaleString() + " units";
-    if(elP90) elP90.textContent = Math.floor((totalSecs / p90) * numTasks).toLocaleString() + " units";
-    if(elP10) elP10.textContent = Math.floor((totalSecs / p10) * numTasks).toLocaleString() + " units";
+    if(elMean) elMean.textContent = outMean.toLocaleString() + " units";
+    if(elP90) elP90.textContent = outP90.toLocaleString() + " units";
+    if(elP10) elP10.textContent = outP10.toLocaleString() + " units";
   };
 
   function runSimulation() {
