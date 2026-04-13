@@ -2,706 +2,1104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Time Study — Data Collection</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trimmer Assembly — Monte Carlo Simulator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     :root {
-      --bg:       #0f1117;
-      --surface:  #181c27;
-      --border:   #252b3b;
-      --amber:    #f59e0b;
-      --amber-dim:#92610a;
-      --green:    #22c55e;
-      --red:      #ef4444;
-      --blue:     #3b82f6;
-      --muted:    #6b7280;
-      --text:     #e2e8f0;
-      --text-dim: #94a3b8;
-      --mono:     'IBM Plex Mono', monospace;
-      --head:     'Barlow Condensed', sans-serif;
-      --body:     'Barlow', sans-serif;
+      --bg:        #0f1117;
+      --surface:   #181c27;
+      --surface2:  #1e2333;
+      --border:    #252b3b;
+      --amber:     #f59e0b;
+      --amber-dim: #92610a;
+      --amber-bg:  rgba(245, 158, 11, 0.08);
+      --green:     #22c55e;
+      --green-bg:  rgba(34, 197, 94, 0.08);
+      --red:       #ef4444;
+      --blue:      #3b82f6;
+      --purple:    #a855f7;
+      --muted:     #6b7280;
+      --text:      #e2e8f0;
+      --text-dim:  #94a3b8;
+      --mono:      'IBM Plex Mono', monospace;
+      --head:      'Barlow Condensed', sans-serif;
+      --body:      'Barlow', sans-serif;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: var(--body);
       background: var(--bg);
       color: var(--text);
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      padding-bottom: env(safe-area-inset-bottom);
+      min-height: 100vh;
     }
 
-    /* ── TOP NAV ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
+    /* ── HEADER ── */
+    header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .back-btn {
-      display: flex; align-items: center; gap: 6px;
-      font-family: var(--head); font-weight: 700; font-size: 13px;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--amber); text-decoration: none;
-      padding: 6px 10px; border: 1px solid var(--amber-dim);
-      border-radius: 4px;
-      transition: background 0.15s;
-    }
-    .back-btn:hover { background: rgba(245,158,11,0.1); }
-    .topbar-title {
-      font-family: var(--head); font-size: clamp(14px, 4vw, 18px); font-weight: 700;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .topbar-sub {
-      font-family: var(--mono); font-size: 11px; color: var(--muted);
-      margin-left: auto;
-    }
-
-    /* ── SCROLL AREA ── */
-    .scroll-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
+      padding: 0 32px;
       display: flex;
-      flex-direction: column;
-      gap: 14px;
+      align-items: center;
+      gap: 20px;
+      height: 60px;
     }
 
-    /* ── CARDS ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .card-label {
-      font-family: var(--head); font-size: 11px; font-weight: 700;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 10px;
-    }
-
-    /* ── TASK NAME ── */
-    .task-input {
-      width: 100%; padding: 12px 14px;
-      background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 8px; color: var(--text);
-      font-family: var(--head); font-size: 20px; font-weight: 600;
-      letter-spacing: 0.02em;
-      transition: border-color 0.2s;
-    }
-    .task-input:focus { outline: none; border-color: var(--amber); }
-    .task-input::placeholder { color: var(--muted); }
-
-    /* ── STOPWATCH ── */
-    .sw-display {
-      font-family: var(--mono);
-      font-size: 56px;
-      font-weight: 600;
-      text-align: center;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      margin: 10px 0 4px;
-      font-variant-numeric: tabular-nums;
-      transition: color 0.3s ease, text-shadow 0.3s ease;
-    }
-    .sw-display.running { 
-      color: var(--amber); 
-      text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
-    }
-    .sw-display.stopped { 
-      color: var(--red); 
-    }
-    .sw-status {
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 24px;
-    }
-
-    /* ── STOPWATCH CONTROLS ── */
-    .sw-controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .sw-btn {
-      flex: 1;
-      padding: 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 8px;
+    .brand {
       font-family: var(--head);
-      font-size: 14px;
-      font-weight: 700;
+      font-size: clamp(16px, 4vw, 22px);
+      font-weight: 900;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .sw-btn:active { transform: scale(0.96); }
-    .sw-start:hover { border-color: var(--green); color: var(--green); }
-    .sw-stop:hover { border-color: var(--red); color: var(--red); }
-    .sw-reset:hover { border-color: var(--muted); }
-
-    /* ── GIANT RECORD BUTTON ── */
-    .record-btn {
-      width: 100%;
-      padding: 20px;
-      background: rgba(245, 158, 11, 0.08);
-      border: 2px dashed var(--amber-dim);
-      border-radius: 12px;
       color: var(--amber);
-      font-family: var(--head);
-      font-size: 18px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.1s ease-out;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .record-btn:active { 
-      transform: scale(0.98); 
-      background: rgba(245, 158, 11, 0.15); 
-    }
-    .record-btn.logged { 
-      background: var(--amber); 
-      color: #0f1117; 
-      border-style: solid; 
-      border-color: var(--amber);
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
-    }
-    #record-icon { font-size: 22px; }
 
-    /* ── READINGS HEADER & EMPTY STATE ── */
-    .readings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .readings-count {
-      background: var(--border);
-      color: var(--text);
-      padding: 2px 8px;
-      border-radius: 12px;
+    .brand-sub {
       font-family: var(--mono);
       font-size: 11px;
-      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.05em;
     }
-    .clear-link {
+
+    .header-pill {
+      margin-left: auto;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-dim);
+      color: var(--amber);
+      padding: 4px 12px;
+      border-radius: 999px;
       font-family: var(--head);
       font-size: 12px;
-      font-weight: 600;
-      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      opacity: 0.7;
-    }
-    .clear-link:hover { opacity: 1; text-decoration: underline; }
-    
-    .no-readings {
-      text-align: center;
-      padding: 30px 20px;
-      background: var(--bg);
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-      color: var(--muted);
-      font-family: var(--body);
-      font-size: 14px;
+      white-space: nowrap;
     }
 
-    /* ── READINGS LIST ITEMS ── */
-    .readings-list {
-      max-height: 240px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding-right: 4px;
+    /* ── LAYOUT ── */
+    .workspace {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 28px 60px;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 20px;
+      align-items: start;
     }
-    .readings-list::-webkit-scrollbar { width: 4px; }
-    .readings-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    
-    .reading-item {
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      animation: slideIn 0.2s ease-out forwards;
+      justify-content: space-between;
     }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .reading-num {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      width: 24px;
-    }
-    .reading-bar-wrap {
-      flex: 1;
-      height: 6px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .reading-bar {
-      height: 100%;
-      background: var(--amber);
-      border-radius: 3px;
-      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .reading-val {
-      font-family: var(--mono);
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      width: 60px;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-    .reading-del {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 20px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0 4px;
-      transition: color 0.15s;
-    }
-    .reading-del:hover { color: var(--red); }
 
-    /* ── MANUAL INPUT & RAW DATA ── */
-    .manual-row { display: flex; gap: 8px; }
-    .manual-input {
-      flex: 1; padding: 10px 12px; background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 14px;
+    .panel-title {
+      font-family: var(--head);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    /* ── BUTTONS & LINKS ── */
+    .link-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--head);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--amber);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--amber-dim);
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    .link-btn:hover { background: var(--amber-bg); }
+
+    /* ── TASK LIST ── */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 35px 1fr 60px 60px 60px 32px 32px;
+      gap: 6px;
+      align-items: center;
       transition: border-color 0.2s;
     }
-    .manual-input:focus { outline: none; border-color: var(--blue); }
-    .manual-input::placeholder { color: var(--muted); }
-    .add-manual-btn {
-      padding: 10px 14px; background: var(--blue); color: white; border: none; border-radius: 8px;
-      font-family: var(--head); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
-    }
-    .add-manual-btn:active { opacity: 0.8; }
-    
-    .raw-data-area {
-      width: 100%; padding: 12px 14px; background: #0f1117; border: 1.5px solid #252b3b;
-      border-radius: 8px; color: var(--amber); font-family: var(--mono); font-size: 14px;
-      resize: vertical; min-height: 80px; margin-top: 8px; scroll-behavior: smooth;
-    }
 
-    /* ── STATS ── */
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
-    .stat-box {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 12px 10px; text-align: center;
-    }
-    .stat-box.highlight { border-color: var(--amber); }
-    .stat-label {
-      font-family: var(--head); font-size: 10px; font-weight: 700;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--muted); display: block; margin-bottom: 6px;
-    }
-    .stat-value {
-      font-family: var(--mono); font-size: 20px; font-weight: 600;
+    .task-row:hover { border-color: #374151; }
+
+    .task-name-input {
+      background: transparent;
+      border: none;
       color: var(--text);
+      font-family: var(--head);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      width: 100%;
+      padding: 2px 0;
     }
-    .stat-value.amber { color: var(--amber); }
-    .stat-unit {
-      font-family: var(--mono); font-size: 11px; color: var(--muted);
-      display: block; margin-top: 2px;
+    .task-name-input:focus { outline: none; color: var(--amber); }
+
+    .num-group { display: flex; flex-direction: column; align-items: center; }
+
+    .num-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
     }
 
-    /* ── NOTES ── */
-    .notes-input {
-      width: 100%; padding: 10px 14px; background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 8px; color: var(--text); font-family: var(--body); font-size: 14px;
-      resize: vertical; min-height: 72px; transition: border-color 0.2s;
+    .num-input {
+      width: 100%; padding: 6px 2px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 13px;
+      text-align: center; transition: border-color 0.2s;
     }
-    .notes-input:focus { outline: none; border-color: var(--blue); }
-    .notes-input::placeholder { color: var(--muted); }
+    .num-input:focus { outline: none; border-color: var(--amber); }
+    .num-input.opt:focus { border-color: var(--green); }
+    .num-input.pess:focus { border-color: var(--red); }
+    .num-input.seq { border-color: var(--blue); color: var(--blue); font-weight: bold; }
 
-    /* ── BOTTOM ACTION BAR ── */
-    .bottom-bar {
-      background: var(--surface);
+    .text-action-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+      font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 6px 0; border-radius: 4px;
+      transition: all 0.15s; text-align: center;
+    }
+    .text-action-btn:hover { color: var(--amber); border-color: var(--amber); }
+    .text-action-btn.del:hover { color: var(--red); border-color: var(--red); }
+
+    .task-badge {
+      grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; color: var(--muted);
+      background: var(--bg); padding: 3px 8px; border-radius: 4px; display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .task-badge span { color: var(--text-dim); }
+
+    .add-task-btn {
+      width: 100%; padding: 10px; background: transparent; border: 1px dashed var(--border);
+      color: var(--muted); border-radius: 8px; font-family: var(--head); font-size: 14px;
+      font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    }
+    .add-task-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ── CONTROLS ── */
+    .task-controls { margin-top: 18px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .run-btn {
+      flex: 1; padding: 14px 20px; background: var(--amber); color: #1a0f00; border: none;
+      border-radius: 8px; font-family: var(--head); font-size: 18px; font-weight: 800;
+      letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+    }
+    .run-btn:hover { opacity: 0.9; }
+    .run-btn:active { opacity: 0.75; }
+
+    .iter-group { display: flex; align-items: center; gap: 8px; }
+    .iter-label { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+    .iter-input {
+      width: 80px; padding: 8px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; text-align: center;
+    }
+    .iter-input:focus { outline: none; border-color: var(--blue); }
+
+    /* ── SOLID 2-COLUMN ACTION BAR ── */
+    .action-bar { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px; 
+      margin-top: 16px; 
+      padding-top: 16px;
       border-top: 1px solid var(--border);
-      padding: 14px 16px;
-      padding-bottom: calc(14px + env(safe-area-inset-bottom));
-      display: flex; gap: 10px;
     }
-    .send-btn {
-      flex: 1; padding: 16px; background: var(--green); color: #0a1a0f;
-      border: none; border-radius: 10px; font-family: var(--head); font-size: 18px; font-weight: 800;
-      letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
-    }
-    .send-btn:disabled { background: #374151; color: var(--muted); cursor: not-allowed; }
-    .send-btn:not(:disabled):active { opacity: 0.85; }
-    .export-btn {
-      padding: 16px 14px; background: #374151; color: var(--text-dim); border: none; border-radius: 10px;
-      font-family: var(--head); font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
-    }
-    .export-btn:active { opacity: 0.8; }
 
-    .toast {
-      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-      background: var(--surface); border: 1px solid var(--green);
-      color: var(--green); padding: 10px 20px; border-radius: 999px;
-      font-family: var(--head); font-size: 14px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 999;
+    .action-btn {
+      padding: 10px 12px; 
+      background: var(--surface2); 
+      border: 1px solid var(--border); 
+      border-radius: 6px;
+      color: var(--text-dim); 
+      font-family: var(--head); 
+      font-size: 13px; 
+      font-weight: 700;
+      letter-spacing: 0.06em; 
+      text-transform: uppercase; 
+      cursor: pointer; 
+      transition: all 0.2s;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
     }
-    .toast.show { opacity: 1; }
+    .action-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .action-btn.green:hover { border-color: var(--green); color: var(--green); }
+    .action-btn.blue { color: var(--blue); border-color: rgba(59, 130, 246, 0.3); }
+    .action-btn.blue:hover { border-color: var(--blue); }
+    .action-btn.red { color: var(--red); border-color: rgba(239, 68, 68, 0.3); }
+    .action-btn.red:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── RESULTS ── */
+    .results-stack { display: flex; flex-direction: column; gap: 20px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .kpi {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 14px; text-align: center; transition: border-color 0.2s;
+    }
+    .kpi.primary { border-color: var(--amber-dim); background: var(--amber-bg); }
+
+    .kpi-label {
+      font-family: var(--head); font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .kpi-value { font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--text); display: block; }
+    .kpi.primary .kpi-value { color: var(--amber); }
+    .kpi-unit { font-family: var(--mono); font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* ── CHART ── */
+    .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    #chart { width: 100%; height: 280px; }
+    .chart-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; gap: 16px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+    /* ── TABLES ── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-family: var(--head); font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      font-family: var(--mono); font-size: 13px; color: var(--text); padding: 9px 12px; border-bottom: 1px solid var(--border);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--surface2); }
+
+    .bar-bg { width: 100%; height: 4px; background: var(--border); border-radius: 2px; }
+    .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+    .contrib-bar-wrap { width: 100%; height: 6px; background: var(--border); border-radius: 3px; margin-top: 4px; }
+    .contrib-bar-fill { height: 100%; border-radius: 3px; background: var(--blue); }
+
+    /* ── RISK PANEL ── */
+    .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .risk-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+    .risk-label {
+      font-family: var(--head); font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .risk-value { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+    .risk-value.green { color: var(--green); }
+    .risk-value.amber { color: var(--amber); }
+    .risk-value.red   { color: var(--red); }
+
+    .target-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .target-input {
+      width: 100px; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; transition: border-color 0.2s;
+    }
+    .target-input:focus { outline: none; border-color: var(--purple); }
+
+    .target-btn {
+      padding: 7px 14px; background: var(--purple); color: white; border: none; border-radius: 6px;
+      font-family: var(--head); font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+    }
+    .target-btn:hover { opacity: 0.9; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(--muted); }
+    .empty-text { font-family: var(--head); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .placeholder-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── PRINT MEDIA QUERY (For PDF Reports) ── */
+    @media print {
+      body { background: white; color: black; min-height: auto; }
+      header { display: none !important; }
+      
+      .workspace { 
+        display: block; 
+        padding: 0; 
+        max-width: 100%;
+      }
+      
+      /* Hide the entire task input column */
+      .workspace > div:first-child { display: none !important; }
+      
+      /* Adjust Panels for Print */
+      .panel { 
+        background: white; 
+        border: 1px solid #ccc; 
+        box-shadow: none; 
+        break-inside: avoid;
+        margin-bottom: 20px;
+      }
+      
+      .kpi-row { break-inside: avoid; }
+      .chart-wrap { break-inside: avoid; }
+      .data-table { border-collapse: collapse; }
+      .data-table td, .data-table th { border-bottom: 1px solid #eee; }
+      
+      /* Force Colors for PDF */
+      .kpi-label, .panel-title, .risk-label, .legend-item { color: #555 !important; }
+      .kpi-value, .risk-value, .text { color: black !important; }
+      .kpi.primary { background: #fdf6e3 !important; border-color: #f59e0b !important; }
+      .kpi.primary .kpi-value { color: #d97706 !important; }
+      
+      .risk-box { background: #f9fafb !important; border-color: #e5e7eb !important; }
+      .target-row { display: none !important; } /* Hide interactive inputs on print */
+      .iter-group { display: none !important; } /* Hide shift inputs on print */
+      
+      /* Custom Print Header injected dynamically */
+      #print-header { display: block !important; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+    }
+    
+    #print-header { display: none; } /* Hidden on screen */
   </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a href="index.html" class="back-btn">← Sim</a>
-  <span class="topbar-title">Time Study</span>
-  <span class="topbar-sub" id="cycle-count">0 cycles</span>
-</div>
-
-<div class="scroll-area">
-
-  <div class="card">
-    <div class="card-label">Task / Process</div>
-    <input type="text" class="task-input" id="task-name" placeholder="e.g. Assemble Housing Bottom">
+<header>
+  <div>
+    <div class="brand">Monte Carlo Simulator</div>
+    <div class="brand-sub">Trimmer Assembly Line</div>
   </div>
+  <div class="header-pill" id="header-status">Single Piece Flow</div>
+</header>
 
-  <div class="card">
-    <div class="card-label">Stopwatch</div>
-    <div class="sw-display" id="sw-display">00:00.00</div>
-    <div class="sw-status" id="sw-status">Ready</div>
-    <div class="sw-controls">
-      <button class="sw-btn sw-start" id="btn-start" onclick="startTimer()">Start</button>
-      <button class="sw-btn sw-stop"  id="btn-stop"  onclick="stopTimer()">Stop</button>
-      <button class="sw-btn sw-reset" onclick="resetTimer()">Reset</button>
-    </div>
-    <button class="record-btn" id="record-btn" onclick="recordTime()">
-      <span id="record-icon">⏱</span>
-      <span id="record-label">Record &amp; Auto-Start</span>
-    </button>
-  </div>
+<div class="workspace">
 
-  <div class="card">
-    <div class="readings-header">
-      <div class="card-label" style="margin-bottom:0">Cycle Readings</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="readings-count" id="readings-count">0</span>
-        <span class="clear-link" onclick="clearReadings()">Clear All</span>
+  <div>
+    <div class="panel" style="border-color: rgba(59, 130, 246, 0.5);">
+      <div class="panel-header" style="background: rgba(59, 130, 246, 0.05); border-bottom-color: rgba(59, 130, 246, 0.2);">
+        <span class="panel-title" style="color: var(--blue);">How to Use This Tool</span>
+      </div>
+      <div class="panel-body" style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
+        <strong style="color: var(--text);">1. Setup Tasks:</strong> Click "Add Task" or "Import Tasks Data". <br>
+        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: 4 columns (Task Name, Opt, ML, Pess). Row 1 is ignored.</em></span><br>
+        <strong style="color: var(--text);">2. Order Them:</strong> Type numbers into the "Seq" boxes and hit "Sort Order" below.<br>
+        <strong style="color: var(--text);">3. Real Data:</strong> Click the REC button next to any task to open the data collector.<br>
+        <strong style="color: var(--text);">4. Simulate:</strong> Set iterations (e.g., 5000) and click <strong>RUN</strong> to generate your capacity report.
       </div>
     </div>
-    
-    <div class="no-readings" id="no-readings">No readings yet — start the stopwatch</div>
-    <div class="readings-list" id="readings-list"></div>
 
-    <div style="margin-top:12px; border-top: 1px solid var(--border); padding-top:12px;">
-      <div class="card-label">All Cycle Numbers (Raw Data)</div>
-      <textarea class="raw-data-area" id="raw-data-display" readonly placeholder="Your cycle numbers will appear here..." onclick="this.select()"></textarea>
-    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Tasks — Sequential</span>
+        <a href="javascript:void(0)" onclick="goToDataCollection()" class="link-btn" title="Add a completely new data collection task">
+          Collect Data
+        </a>
+      </div>
+      <div class="panel-body">
+        <div class="task-list" id="task-list"></div>
+        <div style="margin-top:12px; display: flex; gap: 8px;">
+          <button class="add-task-btn" onclick="addTask()">+ Add Task</button>
+        </div>
 
-    <div style="margin-top:12px; border-top: 1px solid var(--border); padding-top:12px;">
-      <div class="card-label">Add Manually (seconds)</div>
-      <div class="manual-row">
-        <input type="number" class="manual-input" id="manual-val" placeholder="e.g. 4.72" step="0.01" min="0">
-        <button class="add-manual-btn" onclick="addManual()">+ Add</button>
-      </div>
-    </div>
-  </div>
+        <div class="task-controls">
+          <div class="iter-group">
+            <span class="iter-label">Iterations</span>
+            <input type="number" class="iter-input" id="iterations" value="5000" min="100" max="100000">
+          </div>
+          <button class="run-btn" onclick="runSimulation()">Run</button>
+        </div>
 
-  <div class="card" id="stats-card" style="display:none">
-    <div class="card-label">Live Statistics</div>
-    <div class="stats-grid">
-      <div class="stat-box">
-        <span class="stat-label">Min</span>
-        <span class="stat-value" id="s-min">—</span>
-        <span class="stat-unit">sec</span>
-      </div>
-      <div class="stat-box highlight">
-        <span class="stat-label">Average</span>
-        <span class="stat-value amber" id="s-avg">—</span>
-        <span class="stat-unit">sec</span>
-      </div>
-      <div class="stat-box">
-        <span class="stat-label">Max</span>
-        <span class="stat-value" id="s-max">—</span>
-        <span class="stat-unit">sec</span>
+        <div class="action-bar">
+          <button class="action-btn blue" onclick="sortTasks()">Sort Order</button>
+          <button class="action-btn red" onclick="clearAllTasks()">Clear Data</button>
+          
+          <input type="file" id="import-tasks" accept=".csv" style="display:none" onchange="importTasksCSV(event)">
+          <button class="action-btn" onclick="document.getElementById('import-tasks').click()">Import Tasks Data</button>
+          <button class="action-btn green" onclick="exportTasksCSV()">Export Tasks Data</button>
+          
+          <button class="action-btn blue" id="print-report-btn" onclick="window.print()" style="display:none">PDF Report</button>
+          <button class="action-btn green" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">Report CSV</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-label">Field Notes (optional)</div>
-    <textarea class="notes-input" id="notes" placeholder="Operator, conditions, anomalies…"></textarea>
+  <div class="results-stack" id="results-stack">
+    <div class="placeholder-panel">
+      <div class="empty-state">
+        <div class="empty-text">Add tasks and run simulation</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;max-width:240px">
+          Configure your task estimates on the left, then click Run to generate the Monte Carlo distribution.
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
 
-<div class="bottom-bar">
-  <button class="send-btn" id="send-btn" onclick="sendToSimulator()" disabled>
-    Add to Simulation
-  </button>
-  <button class="export-btn" onclick="exportCSV()" title="Export CSV">CSV</button>
+<div id="print-header">
+  <h1 style="font-family: 'Barlow Condensed'; margin:0; font-size:32px;">TRIMMER ASSEMBLY LINE</h1>
+  <h2 style="font-family: 'IBM Plex Mono'; margin:0; font-size:14px; color:#555; font-weight:normal;">Monte Carlo Simulation Report & Capacity Forecast</h2>
+  <div style="font-family: 'IBM Plex Mono'; font-size:11px; margin-top:5px;" id="print-date"></div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-  let readings = [];
-  let startTime, tInterval, difference = 0, running = false;
+  /* ── State ── */
+  let taskCount = 0;
+  let simResults = [];
+  let currentTaskMeans = [];
 
+ /* ── Init ── */
   window.onload = () => {
-    const savedName = localStorage.getItem('pendingTaskName');
-    if (savedName) document.getElementById('task-name').value = savedName;
+    const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    if (saved.length) {
+      saved.forEach((t, i) => addTask(t.name, t.a, t.m, t.b, t.meta, t.seq || (i+1)));
+    }
+    
+    // Set print date for PDF
+    document.getElementById('print-date').textContent = "Generated: " + new Date().toLocaleString();
   };
 
-  function startTimer() {
-    if (running) return;
-    startTime = Date.now() - difference;
-    tInterval = setInterval(tick, 10);
-    running = true;
-    document.getElementById('sw-display').className = 'sw-display running';
-    document.getElementById('sw-status').textContent = 'Running…';
-    document.getElementById('btn-start').style.opacity = '0.4';
+  /* ── Core Task Management ── */
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  function stopTimer() {
-    if (!running) return;
-    clearInterval(tInterval);
-    running = false;
-    document.getElementById('sw-display').className = 'sw-display stopped';
-    document.getElementById('sw-status').textContent = 'Stopped — tap Record to log';
-    document.getElementById('btn-start').style.opacity = '1';
-  }
+  function addTask(name = '', opt = 1, ml = 5, pess = 10, meta = null, seq = null) {
+    taskCount++;
+    const safeName = name || `Task ${taskCount}`;
+    const id = `t-${Date.now()}-${taskCount}`;
+    const sequenceNum = seq !== null ? seq : taskCount;
 
-  function resetTimer() {
-    clearInterval(tInterval);
-    difference = 0; running = false;
-    document.getElementById('sw-display').textContent = '00:00.00';
-    document.getElementById('sw-display').className = 'sw-display';
-    document.getElementById('sw-status').textContent = 'Ready';
-    document.getElementById('btn-start').style.opacity = '1';
-  }
-
-  function tick() {
-    difference = Date.now() - startTime;
-    const ms = Math.floor((difference % 1000) / 10);
-    const s  = Math.floor((difference / 1000) % 60);
-    const m  = Math.floor(difference / 60000);
-    document.getElementById('sw-display').textContent = pad(m) + ':' + pad(s) + '.' + pad(ms);
-  }
-
-  function pad(n) { return n < 10 ? '0' + n : '' + n; }
-
-  function recordTime() {
-    if (!running && difference === 0) { 
-      showToast('Start the stopwatch first'); 
-      return; 
+    let badgeHTML = '';
+    if (meta && meta.readings && meta.readings.length) {
+      badgeHTML = `
+        <div class="task-badge">
+          <span>n=${meta.readings.length} cycles</span>
+          ${meta.notes ? `<span title="${escapeHtml(meta.notes)}">NOTE: ${escapeHtml(meta.notes).substring(0, 40)}${meta.notes.length > 40 ? '…' : ''}</span>` : ''}
+          ${meta.timestamp ? `<span>${new Date(meta.timestamp).toLocaleString()}</span>` : ''}
+        </div>`;
     }
     
-    // 1. CAPTURE THE SPLIT
-    let cycleTime = running ? (Date.now() - startTime) : difference;
-    if (cycleTime > 0) {
-      const secs = +(cycleTime / 1000).toFixed(2);
-      readings.push(secs);
-      renderReadings(); 
-    }
+    const metaString = meta ? escapeHtml(JSON.stringify(meta)) : '{}';
 
-    // 2. RESET THE STOPWATCH
-    clearInterval(tInterval);
-    difference = 0;            
-    document.getElementById('sw-display').textContent = '00:00.00'; 
-
-    // 3. AUTO-START IT IMMEDIATELY FROM ZERO
-    startTime = Date.now();
-    tInterval = setInterval(tick, 10);
-    running = true;
-    
-    document.getElementById('sw-display').className = 'sw-display running';
-    document.getElementById('sw-status').textContent = 'Auto-started cycle ' + (readings.length + 1) + '...';
-    document.getElementById('btn-start').style.opacity = '0.4';
-
-    // Button Flash Animation
-    const btn = document.getElementById('record-btn');
-    btn.classList.add('logged');
-    document.getElementById('record-icon').textContent = '✔';
-    document.getElementById('record-label').textContent = 'Logged!';
-    setTimeout(() => {
-      btn.classList.remove('logged');
-      document.getElementById('record-icon').textContent = '⏱';
-      document.getElementById('record-label').textContent = 'Record & Auto-Start';
-    }, 700);
-  }
-
-  function addManual() {
-    const v = parseFloat(document.getElementById('manual-val').value);
-    if (isNaN(v) || v <= 0) { showToast('Enter a valid time'); return; }
-    readings.push(+v.toFixed(2));
-    document.getElementById('manual-val').value = '';
-    renderReadings();
-  }
-
-  function clearReadings() {
-    if (!readings.length) return;
-    if (!confirm('Clear all ' + readings.length + ' readings?')) return;
-    readings = [];
-    renderReadings();
-  }
-
-  function renderReadings() {
-    const list = document.getElementById('readings-list');
-    const noR  = document.getElementById('no-readings');
-    const cnt  = document.getElementById('readings-count');
-    const sendBtn = document.getElementById('send-btn');
-    const rawBox = document.getElementById('raw-data-display');
-
-    cnt.textContent = readings.length;
-    document.getElementById('cycle-count').textContent = readings.length + ' cycle' + (readings.length !== 1 ? 's' : '');
-
-    if (readings.length === 0) {
-      if (noR) noR.style.display = 'block';
-      list.innerHTML = '';
-      rawBox.value = "";
-      document.getElementById('stats-card').style.display = 'none';
-      sendBtn.disabled = true;
-      return;
-    }
-
-    sendBtn.disabled = false;
-    if (noR) noR.style.display = 'none';
-
-    const maxVal = Math.max(...readings);
-    list.innerHTML = readings.map((v, i) => `
-      <div class="reading-item">
-        <span class="reading-num">#${i + 1}</span>
-        <div class="reading-bar-wrap">
-          <div class="reading-bar" style="width:${(v / maxVal * 100).toFixed(1)}%"></div>
+    const html = `
+      <div class="task-row" id="${id}" data-meta="${metaString}">
+        <div class="num-group">
+          <span class="num-label">Seq</span>
+          <input type="number" class="num-input seq" value="${sequenceNum}">
         </div>
-        <span class="reading-val">${v.toFixed(2)}s</span>
-        <button class="reading-del" onclick="deleteReading(${i})" title="Delete">×</button>
+        <input type="text" class="task-name-input" value="${safeName}" placeholder="Task name">
+        <div class="num-group">
+          <span class="num-label">Opt (a)</span>
+          <input type="number" class="num-input opt" value="${opt}" step="0.01" min="0">
+        </div>
+        <div class="num-group">
+          <span class="num-label">M. Likely</span>
+          <input type="number" class="num-input ml" value="${ml}" step="0.01" min="0">
+        </div>
+        <div class="num-group">
+          <span class="num-label">Pess (b)</span>
+          <input type="number" class="num-input pess" value="${pess}" step="0.01" min="0">
+        </div>
+        <button class="text-action-btn" onclick="collectDataForTask('${id}')" title="Record Data">REC</button>
+        <button class="text-action-btn del" onclick="document.getElementById('${id}').remove()" title="Delete">DEL</button>
+        ${badgeHTML}
       </div>
-    `).join('');
-
-    rawBox.value = readings.map((v, i) => `Cycle #${String(i + 1).padStart(2, '0')} -> ${v.toFixed(2)}s`).join('\n');
-
-    setTimeout(() => {
-      list.scrollTop = list.scrollHeight;
-      rawBox.scrollTop = rawBox.scrollHeight;
-    }, 10);
-
-    updateStats();
-    document.getElementById('stats-card').style.display = 'block';
+    `;
+    document.getElementById('task-list').insertAdjacentHTML('beforeend', html);
   }
 
-  function deleteReading(i) {
-    readings.splice(i, 1);
-    renderReadings();
-  }
-
-  function updateStats() {
-    if (!readings.length) return;
-    const min = Math.min(...readings);
-    const max = Math.max(...readings);
-    const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
+  function sortTasks() {
+    const list = document.getElementById('task-list');
+    const rows = Array.from(list.querySelectorAll('.task-row'));
     
-    document.getElementById('s-min').textContent = min.toFixed(2);
-    document.getElementById('s-avg').textContent = avg.toFixed(2);
-    document.getElementById('s-max').textContent = max.toFixed(2);
+    rows.sort((a, b) => {
+      const seqA = parseFloat(a.querySelector('.seq').value) || 0;
+      const seqB = parseFloat(b.querySelector('.seq').value) || 0;
+      return seqA - seqB;
+    });
+    
+    list.innerHTML = '';
+    rows.forEach(row => list.appendChild(row));
+    saveCurrentTasks();
   }
 
-  function sendToSimulator() {
-    if (!readings.length) return;
-    
-    // Prevent double clicking from saving duplicates
-    const btn = document.getElementById('send-btn');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-
-    const name = document.getElementById('task-name').value.trim() || 'New Task';
-    const min = Math.min(...readings);
-    const max = Math.max(...readings);
-    const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
-    const notes = document.getElementById('notes').value.trim();
-
-    const task = {
-      name,
-      a: +min.toFixed(2),
-      m: +avg.toFixed(2),
-      b: +max.toFixed(2),
-      meta: {
-        readings: [...readings],
-        notes: notes,
-        timestamp: Date.now()
-      }
-    };
-
-    const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
-    const pendingIndex = localStorage.getItem('pendingTaskIndex');
-
-    // Overwrite the existing task row if it was clicked from index.html
-    if (pendingIndex !== null && pendingIndex !== "" && !isNaN(pendingIndex)) {
-      const idx = parseInt(pendingIndex, 10);
-      if (idx >= 0 && idx < saved.length) {
-        saved[idx] = task; // Update precisely the same item
+  // ── 1. BULLETPROOF CSV PARSER HELPER ──
+  function parseCSVRow(str) {
+    const result = [];
+    let curr = '';
+    let inQuotes = false;
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      if (char === '"' && str[i+1] === '"') {
+        curr += '"'; i++; // Handle escaped quotes
+      } else if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(curr.trim());
+        curr = '';
       } else {
-        saved.push(task);
+        curr += char;
       }
-    } else {
-      saved.push(task); // Normal append if they clicked the global "Collect Data" button
+    }
+    result.push(curr.trim());
+    return result;
+  }
+
+  function importTasksCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const text = e.target.result;
+      // Handle both Windows and Mac line endings
+      const rows = text.split(/\r?\n/);
+      
+      // Skip header (Row 0)
+      for (let i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue; // Skip empty rows
+        
+        const cols = parseCSVRow(rows[i]);
+        
+        if (cols.length >= 4) {
+          const name = cols[0]; // Name is already cleaned by parseCSVRow
+          const opt = parseFloat(cols[1]);
+          const ml = parseFloat(cols[2]);
+          const pess = parseFloat(cols[3]);
+          
+          if (!isNaN(opt) && !isNaN(ml) && !isNaN(pess)) {
+            addTask(name, opt, ml, pess);
+          }
+        }
+      }
+      saveCurrentTasks();
+      // Reset input so the same file can be uploaded again if needed
+      document.getElementById('import-tasks').value = ''; 
+    };
+    // Force UTF-8 reading for Vietnamese characters
+    reader.readAsText(file, 'UTF-8'); 
+  }
+
+  function saveCurrentTasks() {
+    const tasks = [];
+    document.querySelectorAll('.task-row').forEach(row => {
+      const seq = parseFloat(row.querySelector('.seq').value) || 0;
+      const a = parseFloat(row.querySelector('.opt').value) || 0;
+      const m = parseFloat(row.querySelector('.ml').value) || 0;
+      const b = parseFloat(row.querySelector('.pess').value) || 0;
+      const name = row.querySelector('.task-name-input').value || 'Task';
+      let meta = null;
+      try { const metaStr = row.getAttribute('data-meta'); if (metaStr) meta = JSON.parse(metaStr); } catch(e){}
+      tasks.push({ seq, a, m, b, name, meta });
+    });
+    localStorage.setItem('projectTasks', JSON.stringify(tasks));
+  }
+
+  function clearAllTasks() {
+    if (!confirm('Delete all tasks?')) return;
+    document.getElementById('task-list').innerHTML = '';
+    taskCount = 0;
+    localStorage.removeItem('projectTasks');
+  }
+
+  function collectDataForTask(taskId) {
+    saveCurrentTasks(); 
+    const row = document.getElementById(taskId);
+    const rowsArray = Array.from(document.querySelectorAll('.task-row'));
+    const taskIndex = rowsArray.indexOf(row);
+    const taskName = row.querySelector('.task-name-input').value;
+    localStorage.setItem('pendingTaskIndex', taskIndex);
+    localStorage.setItem('pendingTaskName', taskName);
+    window.location.href = 'data_collection.html';
+  }
+
+  function goToDataCollection() {
+    saveCurrentTasks();
+    localStorage.removeItem('pendingTaskIndex'); 
+    localStorage.removeItem('pendingTaskName');
+    window.location.href = 'data_collection.html';
+  }
+
+  function triangular(a, m, b) {
+    if (a >= b) return a;
+    const U = Math.random(), F = (m - a) / (b - a);
+    return U < F ? a + Math.sqrt(U * (b - a) * (m - a)) : b - Math.sqrt((1 - U) * (b - a) * (b - m));
+  }
+
+window.calcCapacity = function() {
+    if (!simResults || !simResults.length) return;
+
+    const start = document.getElementById('shift-start').value;
+    const lunchStart = document.getElementById('lunch-start').value;
+    const lunchDur = parseInt(document.getElementById('lunch-dur').value) || 0;
+    const end = document.getElementById('shift-end').value;
+
+    const parseTime = (str) => { if(!str) return 0; const [h, m] = str.split(':').map(Number); return (h * 60) + m; };
+    const totalMins = (parseTime(end) - parseTime(start)) - lunchDur;
+    if(totalMins <= 0) return;
+    
+    const totalSecs = totalMins * 60;
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    
+    const elWorkTime = document.getElementById('work-time-val');
+    if(elWorkTime) elWorkTime.textContent = `${hrs} hrs ${mins} mins (${totalSecs.toLocaleString()}s)`;
+
+    const iters = simResults.length;
+    const mean = simResults.reduce((a,b)=>a+b,0)/iters;
+    const p90 = simResults[Math.floor(0.9 * iters)] || simResults[iters-1];
+    const p10 = simResults[Math.floor(0.1 * iters)] || simResults[0];
+
+    const elMean = document.getElementById('out-mean');
+    const elP90 = document.getElementById('out-p90');
+    const elP10 = document.getElementById('out-p10');
+
+    // Number of active stations/tasks currently in the simulation
+    const numTasks = currentTaskMeans.length; 
+
+    // Calculate pipelined capacity: (Available Time / Total Lead Time) * Number of Tasks
+    if(elMean) elMean.textContent = Math.floor((totalSecs / mean) * numTasks).toLocaleString() + " units";
+    if(elP90) elP90.textContent = Math.floor((totalSecs / p90) * numTasks).toLocaleString() + " units";
+    if(elP10) elP10.textContent = Math.floor((totalSecs / p10) * numTasks).toLocaleString() + " units";
+  };
+
+  function runSimulation() {
+    saveCurrentTasks(); 
+    const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
+
+    if (!validTasks.length) { alert('Add at least one valid task (a ≤ m ≤ b).'); return; }
+
+    const iters = parseInt(document.getElementById('iterations').value, 10) || 1000;
+    simResults = [];
+    const perTaskSums = Array(validTasks.length).fill(0);
+
+    for (let i = 0; i < iters; i++) {
+      let total = 0;
+      validTasks.forEach((t, j) => {
+        const v = triangular(t.a, t.m, t.b);
+        perTaskSums[j] += v;
+        total += v;
+      });
+      simResults.push(total);
+    }
+    simResults.sort((a, b) => a - b);
+
+    currentTaskMeans = validTasks.map((t, j) => ({ name: t.name || 'Task', mean: perTaskSums[j] / iters }));
+
+    renderResults(simResults, iters, currentTaskMeans);
+    
+    document.getElementById('header-status').textContent = `${iters.toLocaleString()} iterations`;
+    document.getElementById('export-results-btn').style.display = 'block';
+    document.getElementById('print-report-btn').style.display = 'block';
+    
+    // Inject header before the results wrapper for printing
+    const resultsStack = document.getElementById('results-stack');
+    const printHeader = document.getElementById('print-header');
+    resultsStack.parentNode.insertBefore(printHeader, resultsStack);
+  }
+
+  function renderResults(data, iters, taskMeans) {
+    const mean = data.reduce((a, b) => a + b, 0) / iters;
+    const variance = data.reduce((acc, v) => acc + (v - mean) ** 2, 0) / iters;
+    const std = Math.sqrt(variance);
+
+    const p = pct => data[Math.floor(iters * pct / 100)];
+    const percentiles = [10, 25, 50, 75, 80, 85, 90, 95, 99];
+    const totalMean = taskMeans.reduce((a, t) => a + t.mean, 0);
+
+    document.getElementById('results-stack').innerHTML = `
+      <div class="kpi-row">
+        <div class="kpi primary">
+          <span class="kpi-label">Expected (Mean)</span>
+          <span class="kpi-value" id="kpi-mean">${mean.toFixed(2)}</span>
+          <span class="kpi-unit">seconds</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Minimum</span>
+          <span class="kpi-value" id="kpi-min">${data[0].toFixed(2)}</span>
+          <span class="kpi-unit">seconds</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Maximum</span>
+          <span class="kpi-value" id="kpi-max">${data[iters - 1].toFixed(2)}</span>
+          <span class="kpi-unit">seconds</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Std Deviation</span>
+          <span class="kpi-value" id="kpi-std">${std.toFixed(2)}</span>
+          <span class="kpi-unit">± seconds</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap panel">
+        <div class="panel-header">
+          <span class="panel-title">Distribution — Total Time</span>
+        </div>
+        <div id="chart"></div>
+        <div class="chart-footer">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Frequency</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Mean (${mean.toFixed(1)})</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>P90 (${p(90).toFixed(1)})</div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Shift Capacity Forecast</span></div>
+        <div class="panel-body">
+          <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px;">
+            <div class="iter-group" style="flex-direction:column; align-items:flex-start; gap:4px;">
+              <span class="iter-label">Shift Start</span>
+              <input type="time" class="target-input" id="shift-start" value="07:30" style="width:110px">
+            </div>
+            <div class="iter-group" style="flex-direction:column; align-items:flex-start; gap:4px;">
+              <span class="iter-label">Lunch Break</span>
+              <input type="time" class="target-input" id="lunch-start" value="12:00" style="width:110px">
+            </div>
+            <div class="iter-group" style="flex-direction:column; align-items:flex-start; gap:4px;">
+              <span class="iter-label">Lunch (mins)</span>
+              <input type="number" class="target-input" id="lunch-dur" value="45" style="width:80px">
+            </div>
+            <div class="iter-group" style="flex-direction:column; align-items:flex-start; gap:4px;">
+              <span class="iter-label">Shift End</span>
+              <input type="time" class="target-input" id="shift-end" value="16:15" style="width:110px">
+            </div>
+            <button class="target-btn" onclick="calcCapacity()" style="height:35px">Update Plan</button>
+          </div>
+          <div class="risk-grid">
+            <div class="risk-box" style="grid-column:1/-1">
+              <span class="risk-label">Available Working Time</span>
+              <span class="risk-value" id="work-time-val">—</span>
+            </div>
+            <div class="risk-box" style="grid-column:1/-1">
+              <span class="risk-label">Expected Daily Output (Mean Forecast)</span>
+              <span class="risk-value amber" id="out-mean">—</span>
+            </div>
+            <div class="risk-box">
+              <span class="risk-label">P90 Guarantee (Conservative)</span>
+              <span class="risk-value red" id="out-p90">—</span>
+            </div>
+            <div class="risk-box">
+              <span class="risk-label">P10 Potential (Optimistic)</span>
+              <span class="risk-value green" id="out-p10">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Percentile Breakdown</span></div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead><tr><th>Percentile</th><th>Time</th><th>Confidence</th><th style="width: 160px;">Visual</th></tr></thead>
+              <tbody id="percentile-body">
+                ${percentiles.map(pc => {
+                  const val = p(pc);
+                  const pct = ((val - data[0]) / (data[iters - 1] - data[0]) * 100).toFixed(1);
+                  const color = pc <= 50 ? 'var(--green)' : pc <= 80 ? 'var(--amber)' : 'var(--red)';
+                  return `<tr>
+                    <td style="color:var(--text-dim)">P${pc}</td>
+                    <td style="font-weight:600">${val.toFixed(2)}</td>
+                    <td style="color:${color}">${pc}%</td>
+                    <td><div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Task Contribution</span></div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead><tr><th>Task</th><th>Avg Time</th><th>% of Total</th></tr></thead>
+              <tbody>
+                ${taskMeans.map(t => {
+                  const pct = (t.mean / totalMean * 100).toFixed(1);
+                  return `<tr>
+                    <td style="color:var(--text)">${t.name}</td>
+                    <td>${t.mean.toFixed(2)}</td>
+                    <td><span style="color:var(--blue)">${pct}%</span><div class="contrib-bar-wrap"><div class="contrib-bar-fill" style="width:${pct}%"></div></div></td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="page-break-before: always;">
+        <div class="panel-header"><span class="panel-title">Target Analysis</span></div>
+        <div class="panel-body">
+          <div class="target-row">
+            <span style="font-family:var(--head);font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Target Time:</span>
+            <input type="number" class="target-input" id="target-val" placeholder="e.g. 25" step="0.1">
+            <button class="target-btn" onclick="analyzeTarget()">Analyze</button>
+          </div>
+          <div class="risk-grid" id="risk-grid">
+            <div class="risk-box"><span class="risk-label">P10 (Optimistic)</span><span class="risk-value green" id="risk-p10">${p(10).toFixed(2)}</span></div>
+            <div class="risk-box"><span class="risk-label">P50 (Median)</span><span class="risk-value amber" id="risk-p50">${p(50).toFixed(2)}</span></div>
+            <div class="risk-box"><span class="risk-label">P90 (Conservative)</span><span class="risk-value red" id="risk-p90">${p(90).toFixed(2)}</span></div>
+            <div class="risk-box"><span class="risk-label">Coefficient of Variation</span><span class="risk-value amber" id="risk-cv">${(std / mean * 100).toFixed(1)}%</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    drawHistogram(data, mean, p(90));
+    window.calcCapacity(); 
+  }
+
+  function analyzeTarget() {
+    const target = parseFloat(document.getElementById('target-val').value);
+    if (isNaN(target) || !simResults.length) return;
+
+    const countBelow = simResults.filter(v => v <= target).length;
+    const pctBelow = (countBelow / simResults.length * 100).toFixed(1);
+    const pctAbove = (100 - pctBelow).toFixed(1);
+    const color = pctBelow >= 90 ? 'green' : pctBelow >= 70 ? 'amber' : 'red';
+
+    // Store target analysis in memory for the CSV exporter
+    window.currentAnalysisTarget = target;
+    window.currentAnalysisPctBelow = pctBelow;
+    window.currentAnalysisPctAbove = pctAbove;
+
+    document.getElementById('risk-grid').innerHTML = `
+      <div class="risk-box" style="grid-column:1/-1;border-color:var(--${color})">
+        <span class="risk-label">Probability of completing within ${target} seconds</span>
+        <span class="risk-value ${color}" style="font-size:2rem">${pctBelow}%</span>
+      </div>
+      <div class="risk-box"><span class="risk-label">Percentage ≤ Target</span><span class="risk-value">${pctBelow}%</span></div>
+      <div class="risk-box"><span class="risk-label">Percentage > Target</span><span class="risk-value red">${pctAbove}%</span></div>
+    `;
+  }
+
+/* ── Histogram Visualization (No Grid) ── */
+  function drawHistogram(data, mean, p90) {
+    const container = document.getElementById('chart');
+    if (!container || !data.length) return;
+    container.innerHTML = '';
+    
+    const margin = { top: 18, right: 24, bottom: 48, left: 48 };
+    const W = container.clientWidth - margin.left - margin.right;
+    const H = container.clientHeight - margin.top - margin.bottom;
+
+    const svg = d3.select('#chart').append('svg')
+      .attr('width', W + margin.left + margin.right)
+      .attr('height', H + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear()
+      .domain([Math.max(0, d3.min(data) * 0.95), d3.max(data) * 1.05])
+      .range([0, W]);
+
+    const bins = d3.bin()
+      .domain(x.domain())
+      .thresholds(30)(data);
+
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(bins, d => d.length)])
+      .range([H, 0]);
+
+    // X axis + label (Grid removed, using standard 5px ticks)
+    svg.append('g')
+      .attr('transform', `translate(0,${H})`)
+      .call(d3.axisBottom(x).ticks(8).tickSize(5))
+      .call(g => { 
+        g.selectAll('line').attr('stroke', 'var(--border)'); 
+        g.selectAll('text').attr('fill', 'var(--muted)').attr('font-family', 'IBM Plex Mono').attr('font-size', '11'); 
+        g.select('.domain').attr('stroke', 'var(--border)'); 
+      });
+      
+    svg.append('text')
+      .attr('x', W/2).attr('y', H + 38)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'var(--muted)').attr('font-family', 'IBM Plex Mono').attr('font-size', '12')
+      .text('Total Time');
+
+    // Y axis + label (Grid removed, using standard 5px ticks)
+    svg.append('g')
+      .call(d3.axisLeft(y).ticks(5).tickSize(5))
+      .call(g => { 
+        g.selectAll('line').attr('stroke', 'var(--border)');
+        g.selectAll('text').attr('fill', 'var(--muted)').attr('font-family', 'IBM Plex Mono').attr('font-size', '11'); 
+        g.select('.domain').attr('stroke', 'var(--border)'); 
+      });
+      
+    svg.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -H/2).attr('y', -34)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'var(--muted)').attr('font-family', 'IBM Plex Mono').attr('font-size', '12')
+      .text('Frequency');
+
+    // Bars
+    svg.selectAll('rect').data(bins).join('rect')
+      .attr('x', d => x(d.x0) + 1)
+      .attr('y', d => y(d.length))
+      .attr('width', d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+      .attr('height', d => H - y(d.length))
+      .attr('fill', 'var(--blue)')
+      .attr('opacity', 0.85)
+      .attr('rx', 2);
+
+    // Mean line + label
+    svg.append('line')
+      .attr('x1', x(mean)).attr('x2', x(mean))
+      .attr('y1', 0).attr('y2', H)
+      .attr('stroke', 'var(--amber)').attr('stroke-width', 2).attr('stroke-dasharray', '4,3');
+      
+    svg.append('text')
+      .attr('x', x(mean)).attr('y', -6)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'var(--amber)').attr('font-family', 'IBM Plex Mono').attr('font-size', '11')
+      .text('Mean');
+
+    // P90 line + label
+    svg.append('line')
+      .attr('x1', x(p90)).attr('x2', x(p90))
+      .attr('y1', 0).attr('y2', H)
+      .attr('stroke', 'var(--red)').attr('stroke-width', 2).attr('stroke-dasharray', '4,3');
+      
+    svg.append('text')
+      .attr('x', x(p90)).attr('y', -6)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'var(--red)').attr('font-family', 'IBM Plex Mono').attr('font-size', '11')
+      .text('P90');
+  }  /* ── THE MEGA CSV EXPORT ── */
+  function exportTasksCSV() {
+    const rows = [['Task', 'Optimistic', 'MostLikely', 'Pessimistic']];
+    document.querySelectorAll('.task-row').forEach(row => { rows.push([ row.querySelector('.task-name-input').value, row.querySelector('.opt').value, row.querySelector('.ml').value, row.querySelector('.pess').value ]); });
+    downloadCSV(rows, 'Tasks_Input.csv');
+  }
+
+  function exportMegaCSV() {
+    if (!simResults.length) return;
+    const iters = simResults.length;
+    const sorted = [...simResults].sort((a,b)=>a-b);
+    const mean = simResults.reduce((a,b)=>a+b,0)/iters;
+    const stdDev = parseFloat(document.getElementById('kpi-std').textContent);
+
+    let rows = [
+      ['TRIMMER ASSEMBLY LINE - COMPREHENSIVE SIMULATION REPORT'],
+      ['Generated On', new Date().toLocaleString()],
+      ['Iterations Run', iters],
+      [],
+      ['--- 1. OVERALL STATISTICS ---'],
+      ['Metric', 'Seconds'],
+      ['Expected (Mean)', document.getElementById('kpi-mean').textContent],
+      ['Minimum Observed', document.getElementById('kpi-min').textContent],
+      ['Maximum Observed', document.getElementById('kpi-max').textContent],
+      ['Standard Deviation', document.getElementById('kpi-std').textContent],
+      ['Coefficient of Variation', ((stdDev / mean)*100).toFixed(2) + '%'],
+      [],
+      ['--- 2. SHIFT CAPACITY FORECAST ---'],
+      ['Metric', 'Value'],
+      ['Shift Schedule', document.getElementById('shift-start').value + ' to ' + document.getElementById('shift-end').value + ' (Lunch: ' + document.getElementById('lunch-dur').value + 'm)'],
+      ['Available Work Time', document.getElementById('work-time-val').textContent],
+      ['Expected Daily Output (Mean)', document.getElementById('out-mean').textContent],
+      ['P90 Guarantee (Conservative)', document.getElementById('out-p90').textContent],
+      ['P10 Potential (Optimistic)', document.getElementById('out-p10').textContent],
+      []
+    ];
+
+    if (window.currentAnalysisTarget) {
+      rows.push(['--- 3. TARGET ANALYSIS ---']);
+      rows.push(['Metric', 'Value']);
+      rows.push(['Target Cycle Time', window.currentAnalysisTarget + 's']);
+      rows.push(['Probability of hitting target', window.currentAnalysisPctBelow + '%']);
+      rows.push(['Probability of exceeding target', window.currentAnalysisPctAbove + '%']);
+      rows.push([]);
     }
 
-    localStorage.setItem('projectTasks', JSON.stringify(saved));
-    localStorage.removeItem('pendingTaskIndex');
-    localStorage.removeItem('pendingTaskName');
+    rows.push(['--- 4. TASK CONTRIBUTION BREAKDOWN ---']);
+    rows.push(['Task Name', 'Average Time (s)', 'Percentage of Total Cycle']);
+    const totalMean = currentTaskMeans.reduce((a, t) => a + t.mean, 0);
+    currentTaskMeans.forEach(t => {
+      rows.push([t.name, t.mean.toFixed(2), (t.mean / totalMean * 100).toFixed(2) + '%']);
+    });
+    rows.push([]);
+
+    rows.push(['--- 5. PERCENTILE BREAKDOWN ---']);
+    rows.push(['Percentile', 'Time (s)']);
+    [10, 25, 50, 75, 80, 85, 90, 95, 99].forEach(pc => {
+      rows.push(['P' + pc, sorted[Math.floor(iters * pc / 100)].toFixed(2)]);
+    });
+    rows.push([]);
+
+    rows.push(['--- 6. RAW ITERATION DATA ---']);
+    rows.push(['Iteration', 'Total Time (s)', 'Cumulative Pct']);
+    simResults.forEach((v,i) => {
+      rows.push([i+1, v.toFixed(4), ((i+1)/iters*100).toFixed(2)]);
+    });
+
+    downloadCSV(rows, 'Mega_Simulation_Report.csv');
+  }
+
+ function downloadCSV(rows, filename) {
+    const csv = rows.map(r => {
+      return r.map(field => {
+        let text = String(field);
+        // Safely wrap fields containing commas, quotes, or newlines
+        if (text.includes(',') || text.includes('\n') || text.includes('"')) {
+          return `"${text.replace(/"/g, '""')}"`;
+        }
+        return text;
+      }).join(',');
+    }).join('\n');
     
-    window.location.href = 'index.html';
-  }
-
-  function exportCSV() {
-    if (!readings.length) { showToast('No data to export'); return; }
-    const name = document.getElementById('task-name').value.trim() || 'task';
-    let csv = 'Cycle,Time_sec\n';
-    readings.forEach((v, i) => csv += `${i + 1},${v}\n`);
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = name.replace(/\s+/g, '_') + '_readings.csv';
-    a.click(); URL.revokeObjectURL(url);
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
+    // Add '\ufeff' (BOM) so Excel automatically recognizes Vietnamese/UTF-8 characters
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
   }
 </script>
 </body>
