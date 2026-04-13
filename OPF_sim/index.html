@@ -552,7 +552,7 @@
     return U < F ? a + Math.sqrt(U * (b - a) * (m - a)) : b - Math.sqrt((1 - U) * (b - a) * (b - m));
   }
 
-  window.calcCapacity = function() {
+window.calcCapacity = function() {
     if (!simResults || !simResults.length) return;
 
     const start = document.getElementById('shift-start').value;
@@ -580,9 +580,13 @@
     const elP90 = document.getElementById('out-p90');
     const elP10 = document.getElementById('out-p10');
 
-    if(elMean) elMean.textContent = Math.floor(totalSecs / mean).toLocaleString() + " units";
-    if(elP90) elP90.textContent = Math.floor(totalSecs / p90).toLocaleString() + " units";
-    if(elP10) elP10.textContent = Math.floor(totalSecs / p10).toLocaleString() + " units";
+    // Number of active stations/tasks currently in the simulation
+    const numTasks = currentTaskMeans.length; 
+
+    // Calculate pipelined capacity: (Available Time / Total Lead Time) * Number of Tasks
+    if(elMean) elMean.textContent = Math.floor((totalSecs / mean) * numTasks).toLocaleString() + " units";
+    if(elP90) elP90.textContent = Math.floor((totalSecs / p90) * numTasks).toLocaleString() + " units";
+    if(elP10) elP10.textContent = Math.floor((totalSecs / p10) * numTasks).toLocaleString() + " units";
   };
 
   function runSimulation() {
