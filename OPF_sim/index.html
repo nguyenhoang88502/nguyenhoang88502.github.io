@@ -89,7 +89,7 @@
       margin: 0 auto;
       padding: 28px 28px 60px;
       display: grid;
-      grid-template-columns: 420px 1fr;
+      grid-template-columns: 460px 1fr;
       gap: 20px;
       align-items: start;
     }
@@ -100,6 +100,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
+      margin-bottom: 20px;
     }
 
     .panel-header {
@@ -154,10 +155,10 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px 14px;
+      padding: 12px;
       display: grid;
-      grid-template-columns: 1fr 72px 72px 72px 28px 28px;
-      gap: 8px;
+      grid-template-columns: 35px 1fr 60px 60px 60px 32px 32px;
+      gap: 6px;
       align-items: center;
       transition: border-color 0.2s;
     }
@@ -169,7 +170,7 @@
       border: none;
       color: var(--text);
       font-family: var(--head);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       letter-spacing: 0.02em;
       width: 100%;
@@ -190,21 +191,22 @@
     }
 
     .num-input {
-      width: 100%; padding: 6px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px;
+      width: 100%; padding: 6px 2px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 13px;
       text-align: center; transition: border-color 0.2s;
     }
     .num-input:focus { outline: none; border-color: var(--amber); }
     .num-input.opt:focus { border-color: var(--green); }
     .num-input.pess:focus { border-color: var(--red); }
+    .num-input.seq { border-color: var(--blue); color: var(--blue); font-weight: bold; }
 
-    .icon-action-btn {
-      background: none; border: none; color: var(--muted); cursor: pointer;
-      font-size: 16px; line-height: 1; padding: 4px; border-radius: 4px;
-      transition: color 0.15s; display: flex; align-items: center; justify-content: center;
+    .text-action-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+      font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 6px 0; border-radius: 4px;
+      transition: all 0.15s; text-align: center;
     }
-    .icon-action-btn:hover { color: var(--amber); }
-    .icon-action-btn.del:hover { color: var(--red); }
+    .text-action-btn:hover { color: var(--amber); border-color: var(--amber); }
+    .text-action-btn.del:hover { color: var(--red); border-color: var(--red); }
 
     .task-badge {
       grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; color: var(--muted);
@@ -239,18 +241,39 @@
     }
     .iter-input:focus { outline: none; border-color: var(--blue); }
 
-    .action-bar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-
-    .icon-btn {
-      padding: 8px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
-      color: var(--text-dim); font-family: var(--head); font-size: 12px; font-weight: 600;
-      letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
-      display: flex; align-items: center; gap: 6px;
+    /* ── SOLID 2-COLUMN ACTION BAR ── */
+    .action-bar { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px; 
+      margin-top: 16px; 
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
-    .icon-btn:hover { border-color: var(--text-dim); color: var(--text); }
-    .icon-btn.green:hover { border-color: var(--green); color: var(--green); }
-    .icon-btn.blue { color: var(--blue); border-color: rgba(59, 130, 246, 0.3); }
-    .icon-btn.blue:hover { border-color: var(--blue); }
+
+    .action-btn {
+      padding: 10px 12px; 
+      background: var(--surface2); 
+      border: 1px solid var(--border); 
+      border-radius: 6px;
+      color: var(--text-dim); 
+      font-family: var(--head); 
+      font-size: 13px; 
+      font-weight: 700;
+      letter-spacing: 0.06em; 
+      text-transform: uppercase; 
+      cursor: pointer; 
+      transition: all 0.2s;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+    }
+    .action-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .action-btn.green:hover { border-color: var(--green); color: var(--green); }
+    .action-btn.blue { color: var(--blue); border-color: rgba(59, 130, 246, 0.3); }
+    .action-btn.blue:hover { border-color: var(--blue); }
+    .action-btn.red { color: var(--red); border-color: rgba(239, 68, 68, 0.3); }
+    .action-btn.red:hover { border-color: var(--red); color: var(--red); }
 
     /* ── RESULTS ── */
     .results-stack { display: flex; flex-direction: column; gap: 20px; }
@@ -322,7 +345,6 @@
 
     /* ── EMPTY STATE ── */
     .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(--muted); }
-    .empty-icon { font-size: 40px; opacity: 0.4; }
     .empty-text { font-family: var(--head); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
     .placeholder-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
 
@@ -393,17 +415,30 @@
 <div class="workspace">
 
   <div>
+    <div class="panel" style="border-color: rgba(59, 130, 246, 0.5);">
+      <div class="panel-header" style="background: rgba(59, 130, 246, 0.05); border-bottom-color: rgba(59, 130, 246, 0.2);">
+        <span class="panel-title" style="color: var(--blue);">How to Use This Tool</span>
+      </div>
+      <div class="panel-body" style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
+        <strong style="color: var(--text);">1. Setup Tasks:</strong> Click "Add Task" or "Import Tasks Data". <br>
+        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: 4 columns (Task Name, Opt, ML, Pess). Row 1 is ignored.</em></span><br>
+        <strong style="color: var(--text);">2. Order Them:</strong> Type numbers into the "Seq" boxes and hit "Sort Order" below.<br>
+        <strong style="color: var(--text);">3. Real Data:</strong> Click the REC button next to any task to open the data collector.<br>
+        <strong style="color: var(--text);">4. Simulate:</strong> Set iterations (e.g., 5000) and click <strong>RUN</strong> to generate your capacity report.
+      </div>
+    </div>
+
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title"> Tasks — Sequential</span>
+        <span class="panel-title">Tasks — Sequential</span>
         <a href="javascript:void(0)" onclick="goToDataCollection()" class="link-btn" title="Add a completely new data collection task">
-          Collect Time Data
+          Collect Data
         </a>
       </div>
       <div class="panel-body">
         <div class="task-list" id="task-list"></div>
-        <div style="margin-top:12px">
-          <button class="add-task-btn" onclick="addTask()">Add Task</button>
+        <div style="margin-top:12px; display: flex; gap: 8px;">
+          <button class="add-task-btn" onclick="addTask()">+ Add Task</button>
         </div>
 
         <div class="task-controls">
@@ -415,10 +450,15 @@
         </div>
 
         <div class="action-bar">
-          <button class="icon-btn green" onclick="exportTasksCSV()">Task CSV</button>
-          <button class="icon-btn" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">REPORT CSV</button>
-          <button class="icon-btn blue" id="print-report-btn" onclick="window.print()" style="display:none"> PDF Report</button>
-          <button class="icon-btn" onclick="clearAllTasks()" style="color:var(--red);border-color:rgba(239,68,68,0.3); margin-left:auto;">✕ Clear All</button>
+          <button class="action-btn blue" onclick="sortTasks()">Sort Order</button>
+          <button class="action-btn red" onclick="clearAllTasks()">Clear Data</button>
+          
+          <input type="file" id="import-tasks" accept=".csv" style="display:none" onchange="importTasksCSV(event)">
+          <button class="action-btn" onclick="document.getElementById('import-tasks').click()">Import Tasks Data</button>
+          <button class="action-btn green" onclick="exportTasksCSV()">Export Tasks Data</button>
+          
+          <button class="action-btn blue" id="print-report-btn" onclick="window.print()" style="display:none">PDF Report</button>
+          <button class="action-btn green" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">Report CSV</button>
         </div>
       </div>
     </div>
@@ -427,7 +467,6 @@
   <div class="results-stack" id="results-stack">
     <div class="placeholder-panel">
       <div class="empty-state">
-        <div class="empty-icon">◈</div>
         <div class="empty-text">Add tasks and run simulation</div>
         <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;max-width:240px">
           Configure your task estimates on the left, then click Run to generate the Monte Carlo distribution.
@@ -454,7 +493,7 @@
   window.onload = () => {
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     if (saved.length) {
-      saved.forEach(t => addTask(t.name, t.a, t.m, t.b, t.meta));
+      saved.forEach((t, i) => addTask(t.name, t.a, t.m, t.b, t.meta, t.seq || (i+1)));
     }
     
     // Set print date for PDF
@@ -467,17 +506,18 @@
     return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  function addTask(name = '', opt = 1, ml = 5, pess = 10, meta = null) {
+  function addTask(name = '', opt = 1, ml = 5, pess = 10, meta = null, seq = null) {
     taskCount++;
     const safeName = name || `Task ${taskCount}`;
     const id = `t-${Date.now()}-${taskCount}`;
+    const sequenceNum = seq !== null ? seq : taskCount;
 
     let badgeHTML = '';
     if (meta && meta.readings && meta.readings.length) {
       badgeHTML = `
         <div class="task-badge">
           <span>n=${meta.readings.length} cycles</span>
-          ${meta.notes ? `<span title="${escapeHtml(meta.notes)}">📝 ${escapeHtml(meta.notes).substring(0, 40)}${meta.notes.length > 40 ? '…' : ''}</span>` : ''}
+          ${meta.notes ? `<span title="${escapeHtml(meta.notes)}">NOTE: ${escapeHtml(meta.notes).substring(0, 40)}${meta.notes.length > 40 ? '…' : ''}</span>` : ''}
           ${meta.timestamp ? `<span>${new Date(meta.timestamp).toLocaleString()}</span>` : ''}
         </div>`;
     }
@@ -486,6 +526,10 @@
 
     const html = `
       <div class="task-row" id="${id}" data-meta="${metaString}">
+        <div class="num-group">
+          <span class="num-label">Seq</span>
+          <input type="number" class="num-input seq" value="${sequenceNum}">
+        </div>
         <input type="text" class="task-name-input" value="${safeName}" placeholder="Task name">
         <div class="num-group">
           <span class="num-label">Opt (a)</span>
@@ -499,24 +543,97 @@
           <span class="num-label">Pess (b)</span>
           <input type="number" class="num-input pess" value="${pess}" step="0.01" min="0">
         </div>
-        <button class="icon-action-btn" onclick="collectDataForTask('${id}')" title="Collect real data">⏱</button>
-        <button class="icon-action-btn del" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
+        <button class="text-action-btn" onclick="collectDataForTask('${id}')" title="Record Data">REC</button>
+        <button class="text-action-btn del" onclick="document.getElementById('${id}').remove()" title="Delete">DEL</button>
         ${badgeHTML}
       </div>
     `;
     document.getElementById('task-list').insertAdjacentHTML('beforeend', html);
   }
 
+  function sortTasks() {
+    const list = document.getElementById('task-list');
+    const rows = Array.from(list.querySelectorAll('.task-row'));
+    
+    rows.sort((a, b) => {
+      const seqA = parseFloat(a.querySelector('.seq').value) || 0;
+      const seqB = parseFloat(b.querySelector('.seq').value) || 0;
+      return seqA - seqB;
+    });
+    
+    list.innerHTML = '';
+    rows.forEach(row => list.appendChild(row));
+    saveCurrentTasks();
+  }
+
+  // ── 1. BULLETPROOF CSV PARSER HELPER ──
+  function parseCSVRow(str) {
+    const result = [];
+    let curr = '';
+    let inQuotes = false;
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      if (char === '"' && str[i+1] === '"') {
+        curr += '"'; i++; // Handle escaped quotes
+      } else if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(curr.trim());
+        curr = '';
+      } else {
+        curr += char;
+      }
+    }
+    result.push(curr.trim());
+    return result;
+  }
+
+  function importTasksCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const text = e.target.result;
+      // Handle both Windows and Mac line endings
+      const rows = text.split(/\r?\n/);
+      
+      // Skip header (Row 0)
+      for (let i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue; // Skip empty rows
+        
+        const cols = parseCSVRow(rows[i]);
+        
+        if (cols.length >= 4) {
+          const name = cols[0]; // Name is already cleaned by parseCSVRow
+          const opt = parseFloat(cols[1]);
+          const ml = parseFloat(cols[2]);
+          const pess = parseFloat(cols[3]);
+          
+          if (!isNaN(opt) && !isNaN(ml) && !isNaN(pess)) {
+            addTask(name, opt, ml, pess);
+          }
+        }
+      }
+      saveCurrentTasks();
+      // Reset input so the same file can be uploaded again if needed
+      document.getElementById('import-tasks').value = ''; 
+    };
+    // Force UTF-8 reading for Vietnamese characters
+    reader.readAsText(file, 'UTF-8'); 
+  }
+
   function saveCurrentTasks() {
     const tasks = [];
     document.querySelectorAll('.task-row').forEach(row => {
+      const seq = parseFloat(row.querySelector('.seq').value) || 0;
       const a = parseFloat(row.querySelector('.opt').value) || 0;
       const m = parseFloat(row.querySelector('.ml').value) || 0;
       const b = parseFloat(row.querySelector('.pess').value) || 0;
       const name = row.querySelector('.task-name-input').value || 'Task';
       let meta = null;
       try { const metaStr = row.getAttribute('data-meta'); if (metaStr) meta = JSON.parse(metaStr); } catch(e){}
-      tasks.push({ a, m, b, name, meta });
+      tasks.push({ seq, a, m, b, name, meta });
     });
     localStorage.setItem('projectTasks', JSON.stringify(tasks));
   }
@@ -616,8 +733,8 @@ window.calcCapacity = function() {
     renderResults(simResults, iters, currentTaskMeans);
     
     document.getElementById('header-status').textContent = `${iters.toLocaleString()} iterations`;
-    document.getElementById('export-results-btn').style.display = 'flex';
-    document.getElementById('print-report-btn').style.display = 'flex';
+    document.getElementById('export-results-btn').style.display = 'block';
+    document.getElementById('print-report-btn').style.display = 'block';
     
     // Inject header before the results wrapper for printing
     const resultsStack = document.getElementById('results-stack');
@@ -676,7 +793,7 @@ window.calcCapacity = function() {
           <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px;">
             <div class="iter-group" style="flex-direction:column; align-items:flex-start; gap:4px;">
               <span class="iter-label">Shift Start</span>
-              <input type="time" class="target-input" id="shift-start" value="07:45" style="width:110px">
+              <input type="time" class="target-input" id="shift-start" value="07:30" style="width:110px">
             </div>
             <div class="iter-group" style="flex-direction:column; align-items:flex-start; gap:4px;">
               <span class="iter-label">Lunch Break</span>
@@ -965,18 +1082,22 @@ window.calcCapacity = function() {
     downloadCSV(rows, 'Mega_Simulation_Report.csv');
   }
 
-  function downloadCSV(rows, filename) {
+ function downloadCSV(rows, filename) {
     const csv = rows.map(r => {
-      // Escape commas in fields
       return r.map(field => {
         let text = String(field);
-        if (text.includes(',') || text.includes('\n')) return `"${text}"`;
+        // Safely wrap fields containing commas, quotes, or newlines
+        if (text.includes(',') || text.includes('\n') || text.includes('"')) {
+          return `"${text.replace(/"/g, '""')}"`;
+        }
         return text;
       }).join(',');
     }).join('\n');
     
+    // Add '\ufeff' (BOM) so Excel automatically recognizes Vietnamese/UTF-8 characters
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click();
   }
