@@ -359,7 +359,29 @@
 
     /* ── PRINT MEDIA QUERY (For PDF Reports) ── */
     @media print {
-      body { background: white; color: black; min-height: auto; }
+      /* Force browsers to actually print background colors */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Flip all CSS variables to a high-contrast light theme */
+      :root {
+        --bg:        #ffffff;
+        --surface:   #ffffff;
+        --surface2:  #f8fafc;  /* light gray for table rows/panels */
+        --border:    #cbd5e1;  /* dark enough to see borders */
+        --muted:     #475569;  /* dark gray for subtext/labels */
+        --text:      #0f172a;  /* near black for main text */
+        --text-dim:  #334155;
+        --amber:     #d97706;  /* slightly darkened for paper contrast */
+        --amber-bg:  #fef3c7;
+        --green:     #16a34a;
+        --red:       #dc2626;
+        --blue:      #2563eb;
+      }
+
+      body { background: var(--bg); color: var(--text); min-height: auto; }
       header { display: none !important; }
       
       .workspace { 
@@ -373,30 +395,34 @@
       
       /* Adjust Panels for Print */
       .panel { 
-        background: white; 
-        border: 1px solid #ccc; 
+        background: var(--surface); 
+        border: 1px solid var(--border); 
         box-shadow: none; 
         break-inside: avoid;
         margin-bottom: 20px;
       }
       
-      .kpi-row { break-inside: avoid; }
-      .chart-wrap { break-inside: avoid; }
-      .data-table { border-collapse: collapse; }
-      .data-table td, .data-table th { border-bottom: 1px solid #eee; }
+      .kpi-row, .chart-wrap, .data-table tr { break-inside: avoid; }
       
-      /* Force Colors for PDF */
-      .kpi-label, .panel-title, .risk-label, .legend-item { color: #555 !important; }
-      .kpi-value, .risk-value, .text { color: black !important; }
-      .kpi.primary { background: #fdf6e3 !important; border-color: #f59e0b !important; }
-      .kpi.primary .kpi-value { color: #d97706 !important; }
+      /* Make sure the primary KPI box pops but is readable */
+      .kpi.primary { 
+        background: var(--amber-bg); 
+        border-color: var(--amber); 
+      }
       
-      .risk-box { background: #f9fafb !important; border-color: #e5e7eb !important; }
-      .target-row { display: none !important; } /* Hide interactive inputs on print */
-      .iter-group { display: none !important; } /* Hide shift inputs on print */
+      /* Hide interactive inputs on print */
+      .target-row, .iter-group { display: none !important; } 
       
       /* Custom Print Header injected dynamically */
-      #print-header { display: block !important; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+      #print-header { 
+        display: block !important; 
+        margin-bottom: 20px; 
+        border-bottom: 2px solid var(--text); 
+        padding-bottom: 10px; 
+      }
+      #print-header h1, #print-header h2, #print-date {
+        color: var(--text);
+      }
     }
     
     #print-header { display: none; } /* Hidden on screen */
