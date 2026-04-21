@@ -348,7 +348,6 @@
       resize: vertical; min-height: 72px; transition: border-color 0.2s;
     }
     .notes-input:focus { outline: none; border-color: var(--blue); }
-    .notes-input:focus { outline: none; border-color: var(--blue); }
     .notes-input::placeholder { color: var(--muted); }
 
     /* ── BOTTOM ACTION BAR ── */
@@ -406,6 +405,11 @@
   <div class="card">
     <div class="card-label">Task / Process</div>
     <input type="text" class="task-input" id="task-name" placeholder="e.g. Assemble Housing Bottom">
+    
+    <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px;">
+      <div class="card-label">Items per Cycle (Hệ số chia)</div>
+      <input type="number" class="manual-input" id="coefficient" value="1" min="1" step="0.01" style="width: 100%;" placeholder="e.g. 5">
+    </div>
   </div>
 
   <div class="card">
@@ -499,6 +503,12 @@
     if (savedName) document.getElementById('task-name').value = savedName;
   };
 
+  // Hàm lấy hệ số
+  function getCoefficient() {
+    const c = parseFloat(document.getElementById('coefficient').value);
+    return (isNaN(c) || c <= 0) ? 1 : c;
+  }
+
   function startTimer() {
     if (running) return;
     startTime = Date.now() - difference;
@@ -543,10 +553,11 @@
       return; 
     }
     
-    // 1. CAPTURE THE SPLIT
+    // 1. CAPTURE THE SPLIT VÀ CHIA HỆ SỐ
     let cycleTime = running ? (Date.now() - startTime) : difference;
     if (cycleTime > 0) {
-      const secs = +(cycleTime / 1000).toFixed(2);
+      const coeff = getCoefficient();
+      const secs = +((cycleTime / 1000) / coeff).toFixed(2);
       readings.push(secs);
       renderReadings(); 
     }
@@ -579,8 +590,12 @@
 
   function addManual() {
     const v = parseFloat(document.getElementById('manual-val').value);
+    const coeff = getCoefficient();
+    
     if (isNaN(v) || v <= 0) { showToast('Enter a valid time'); return; }
-    readings.push(+v.toFixed(2));
+    
+    // Chia hệ số trước khi push
+    readings.push(+(v / coeff).toFixed(2));
     document.getElementById('manual-val').value = '';
     renderReadings();
   }
