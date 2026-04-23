@@ -678,9 +678,17 @@
       const rows = text.split(/\r?\n/);
       let count = 0;
       
-      rows.forEach(row => {
-        // Find any valid floating point number in the row
-        const match = row.match(/\d+(\.\d+)?/);
+      rows.forEach((row, index) => {
+        // Skip empty rows and the header row (if it contains "cycle")
+        if (!row.trim() || (index === 0 && row.toLowerCase().includes('cycle'))) return;
+        
+        const cols = row.split(',');
+        // If the row has multiple columns (like our export: Cycle,Time), take the second column.
+        // If it only has one column, take that one.
+        let timeStr = cols.length > 1 ? cols[1] : cols[0];
+        
+        // Use regex to extract just the number, ignoring any leading/trailing spaces
+        const match = timeStr.match(/\d+(\.\d+)?/);
         if (match) {
           const val = parseFloat(match[0]);
           if (!isNaN(val) && val > 0) {
