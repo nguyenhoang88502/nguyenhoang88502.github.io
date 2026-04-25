@@ -1364,10 +1364,10 @@
               const util  = s.utilization.toFixed(1);
               const color = s.isBottleneck ? 'var(--red)' : s.utilization > 80 ? 'var(--amber)' : 'var(--green)';
               const statusBadge = s.isBottleneck
-                ? '<span class="bottleneck-badge bn">⚠ BOTTLENECK</span>'
+                ? '<span class="bottleneck-badge bn">BOTTLENECK</span>'
                 : s.utilization > 80
-                ? '<span class="bottleneck-badge hi">⚡ High Load</span>'
-                : '<span class="bottleneck-badge ok">✓ OK</span>';
+                ? '<span class="bottleneck-badge hi">High Load</span>'
+                : '<span class="bottleneck-badge ok">OK</span>';
               return `<tr style="${s.isBottleneck ? 'background:rgba(239,68,68,0.04)' : ''}">
                 <td style="color:var(--text);font-weight:700">Stn ${s.station}</td>
                 <td style="color:var(--text-dim);font-size:12px;max-width:200px">${s.tasks.join(', ')}</td>
