@@ -1271,7 +1271,10 @@
         let processTime = 0;
         stnTasks.forEach(t => { processTime += triangular(t.a, t.m, t.b); });
 
-        const arrivalTime  = prevDone;
+// Station 1 (si === 0) pulls raw material immediately when ready. 
+        // Subsequent stations wait for the previous station to finish (prevDone).
+        const arrivalTime  = (si === 0) ? stationAvail[si] : prevDone;
+        
         const startProcess = Math.max(arrivalTime, stationAvail[si]);
         const wait         = startProcess - arrivalTime;
 
