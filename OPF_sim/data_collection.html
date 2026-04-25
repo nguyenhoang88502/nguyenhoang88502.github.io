@@ -16,6 +16,7 @@
       --green:    #22c55e;
       --red:      #ef4444;
       --blue:     #3b82f6;
+      --purple:   #a855f7;
       --muted:    #6b7280;
       --text:     #e2e8f0;
       --text-dim: #94a3b8;
@@ -90,7 +91,7 @@
       color: var(--muted); margin-bottom: 10px;
     }
 
-    /* ── TASK NAME ── */
+    /* ── TASK NAME & INPUTS ── */
     .task-input {
       width: 100%; padding: 12px 14px;
       background: var(--bg); border: 1.5px solid var(--border);
@@ -101,6 +102,19 @@
     }
     .task-input:focus { outline: none; border-color: var(--amber); }
     .task-input::placeholder { color: var(--muted); }
+
+    .config-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .config-col { flex: 1; }
+
+    select.manual-input option {
+      background: var(--surface);
+      color: var(--text);
+    }
+    select.manual-input optgroup {
+      font-family: var(--head);
+      color: var(--amber);
+      letter-spacing: 0.05em;
+    }
 
     /* ── STOPWATCH ── */
     .sw-display {
@@ -403,10 +417,40 @@
   </div>
 
   <div class="card">
-    <div class="card-label">Task / Process</div>
-    <input type="text" class="task-input" id="task-name" placeholder="e.g. Assemble Housing Bottom">
+    <div class="card-label">Task Configuration</div>
     
-    <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px;">
+    <div class="config-row">
+      <div class="config-col" style="flex: 0.8;">
+        <label class="card-label" style="font-size: 9px; display: block;">Seq #</label>
+        <input type="number" id="task-seq" class="manual-input" style="width: 100%;" min="1" title="Sequence execution order">
+      </div>
+      <div class="config-col" style="flex: 0.8;">
+        <label class="card-label" style="font-size: 9px; display: block; color: var(--purple);">Station</label>
+        <input type="number" id="task-station" class="manual-input" style="width: 100%;" min="1" title="Station / Operator ID">
+      </div>
+      <div class="config-col" style="flex: 1.4;">
+        <label class="card-label" style="font-size: 9px; display: block;">Macro Type</label>
+        <select id="task-type" class="manual-input" style="width: 100%;">
+          <option value="VA">VA (Green)</option>
+          <option value="SVA">SVA (Yellow)</option>
+          <option value="NVA">NVA (Red)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label class="card-label" style="font-size: 9px; display: block; color: var(--amber);">Quick Select Action (Micro Type)</label>
+      <select id="micro-type-select" class="manual-input" style="width: 100%; border-color: rgba(245, 158, 11, 0.4);" onchange="handleMicroChange()">
+        <option value="">-- Pick an action to auto-fill details --</option>
+        </select>
+    </div>
+
+    <div style="margin-bottom: 14px;">
+      <label class="card-label" style="font-size: 9px; display: block;">Task Name</label>
+      <input type="text" class="task-input" id="task-name" placeholder="e.g. Assemble Housing Bottom">
+    </div>
+    
+    <div style="border-top: 1px solid var(--border); padding-top: 14px;">
       <div class="card-label">Items per Cycle (Hệ số chia)</div>
       <input type="number" class="manual-input" id="coefficient" value="1" min="1" step="0.01" style="width: 100%;" placeholder="e.g. 5">
     </div>
@@ -498,12 +542,100 @@
   let readings = [];
   let startTime, tInterval, difference = 0, running = false;
 
+  const actionTypes = [
+    { vi: "VAA", en: "VAA", macro: "VA" },
+    { vi: "Chèn", en: "Inserting", macro: "VA" },
+    { vi: "Uốn", en: "Bending", macro: "VA" },
+    { vi: "Hàn", en: "Welding", macro: "VA" },
+    { vi: "Dán", en: "Gluing", macro: "VA" },
+    { vi: "Áp dụng nhãn dán", en: "Applying sticker", macro: "VA" },
+    { vi: "Vít", en: "Screwing", macro: "VA" },
+    { vi: "Đóng gói", en: "Packing", macro: "VA" },
+    { vi: "Tham gia", en: "Joining", macro: "VA" },
+    { vi: "Lắp", en: "Fitting", macro: "VA" },
+    { vi: "Lắp ráp", en: "Assembling", macro: "VA" },
+    { vi: "Giữ", en: "Holding", macro: "SVA" },
+    { vi: "Lấy / Đặt lại", en: "Picking up / Placing back", macro: "SVA" },
+    { vi: "Định vị", en: "Positioning", macro: "SVA" },
+    { vi: "Đặt cùng nhau", en: "Putting together", macro: "SVA" },
+    { vi: "Đập", en: "Hammering", macro: "SVA" },
+    { vi: "Nhấn", en: "Pressing", macro: "NVA" },
+    { vi: "Đi dạo", en: "Walking", macro: "NVA" },
+    { vi: "Vận chuyển / Chuyển", en: "Transporting / Transferring / Moving", macro: "NVA" },
+    { vi: "Đang chờ đợi", en: "Waiting", macro: "NVA" },
+    { vi: "Xoay / xoay", en: "Rotating / Turning", macro: "NVA" },
+    { vi: "Hoạt động chất lượng", en: "Quality Operations", macro: "NVA" },
+    { vi: "Dự kiến Trình", en: "Tentative Placement", macro: "NVA" },
+    { vi: "Làm mờ / tháo gỡ", en: "Pretightening / Unfastening", macro: "NVA" },
+    { vi: "Lấy ra / Lột bỏ", en: "Taking out / Peeling off", macro: "NVA" },
+    { vi: "Mở / Đóng", en: "Open / Close", macro: "NVA" },
+    { vi: "Đang làm lại", en: "Reworking", macro: "NVA" },
+    { vi: "Kéo / đẩy", en: "Pulling / Pushing", macro: "NVA" },
+    { vi: "Đang tìm kiếm", en: "Searching", macro: "NVA" },
+    { vi: "Đếm", en: "Counting", macro: "NVA" },
+    { vi: "Sắp xếp", en: "Arranging", macro: "NVA" },
+    { vi: "Đo lường", en: "Measuring", macro: "NVA" },
+    { vi: "Nâng / Đặt xuống", en: "Lifting up / Putting down", macro: "NVA" },
+    { vi: "Đổi mẻ", en: "Batch Changing", macro: "NVA" },
+    { vi: "Sắp xếp / Tách", en: "Arranging / Separating", macro: "NVA" },
+    { vi: "Cọc", en: "Piling", macro: "NVA" },
+    { vi: "Chọn", en: "Selecting", macro: "NVA" },
+    { vi: "Làm sạch", en: "Cleaning", macro: "NVA" }
+  ];
+
   window.onload = () => {
+    populateMicroTypes();
+
+    const savedTasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    const pendingIndex = localStorage.getItem('pendingTaskIndex');
     const savedName = localStorage.getItem('pendingTaskName');
-    if (savedName) document.getElementById('task-name').value = savedName;
+
+    document.getElementById('task-seq').value = savedTasks.length + 1;
+    document.getElementById('task-station').value = 1;
+    document.getElementById('task-type').value = 'VA';
+
+    if (pendingIndex !== null && pendingIndex !== "" && !isNaN(pendingIndex)) {
+      const idx = parseInt(pendingIndex, 10);
+      if (idx >= 0 && idx < savedTasks.length) {
+        const task = savedTasks[idx];
+        document.getElementById('task-name').value = task.name || savedName || '';
+        document.getElementById('task-seq').value = task.seq || (idx + 1);
+        document.getElementById('task-station').value = task.station || 1;
+        document.getElementById('task-type').value = (task.type === 'VAA') ? 'VA' : (task.type || 'VA');
+      }
+    } else if (savedName) {
+      document.getElementById('task-name').value = savedName;
+    }
   };
 
-  // Hàm lấy hệ số
+  function populateMicroTypes() {
+    const select = document.getElementById('micro-type-select');
+    const groups = { "VA": [], "SVA": [], "NVA": [] };
+    
+    actionTypes.forEach(act => { groups[act.macro].push(act); });
+    
+    Object.keys(groups).forEach(macro => {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = macro === 'VA' ? 'Value Added (VA)' : macro === 'SVA' ? 'Semi-VA (SVA)' : 'Non-Value Added (NVA)';
+      
+      groups[macro].forEach(act => {
+         const option = document.createElement('option');
+         option.value = JSON.stringify({ en: act.en, macro: act.macro });
+         option.textContent = `${act.en} - ${act.vi}`;
+         optgroup.appendChild(option);
+      });
+      select.appendChild(optgroup);
+    });
+  }
+
+  function handleMicroChange() {
+    const select = document.getElementById('micro-type-select');
+    if(!select.value) return;
+    const data = JSON.parse(select.value);
+    document.getElementById('task-name').value = data.en;
+    document.getElementById('task-type').value = data.macro;
+  }
+
   function getCoefficient() {
     const c = parseFloat(document.getElementById('coefficient').value);
     return (isNaN(c) || c <= 0) ? 1 : c;
@@ -553,7 +685,6 @@
       return; 
     }
     
-    // 1. CAPTURE THE SPLIT VÀ CHIA HỆ SỐ
     let cycleTime = running ? (Date.now() - startTime) : difference;
     if (cycleTime > 0) {
       const coeff = getCoefficient();
@@ -562,12 +693,10 @@
       renderReadings(); 
     }
 
-    // 2. RESET THE STOPWATCH
     clearInterval(tInterval);
     difference = 0;            
     document.getElementById('sw-display').textContent = '00:00.00'; 
 
-    // 3. AUTO-START IT IMMEDIATELY FROM ZERO
     startTime = Date.now();
     tInterval = setInterval(tick, 10);
     running = true;
@@ -576,7 +705,6 @@
     document.getElementById('sw-status').textContent = 'Auto-started cycle ' + (readings.length + 1) + '...';
     document.getElementById('btn-start').style.opacity = '0.4';
 
-    // Button Flash Animation
     const btn = document.getElementById('record-btn');
     btn.classList.add('logged');
     document.getElementById('record-icon').textContent = '✔';
@@ -591,10 +719,8 @@
   function addManual() {
     const v = parseFloat(document.getElementById('manual-val').value);
     const coeff = getCoefficient();
-    
     if (isNaN(v) || v <= 0) { showToast('Enter a valid time'); return; }
     
-    // Chia hệ số trước khi push
     readings.push(+(v / coeff).toFixed(2));
     document.getElementById('manual-val').value = '';
     renderReadings();
@@ -668,6 +794,21 @@
     document.getElementById('s-max').textContent = max.toFixed(2);
   }
 
+  // Parses CSV lines correctly handling quotes and commas
+  function parseCSVRow(str) {
+    const result = [];
+    let curr = '', inQuotes = false;
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      if (char === '"' && str[i+1] === '"') { curr += '"'; i++; }
+      else if (char === '"') { inQuotes = !inQuotes; }
+      else if (char === ',' && !inQuotes) { result.push(curr.trim()); curr = ''; }
+      else { curr += char; }
+    }
+    result.push(curr.trim());
+    return result;
+  }
+
   function importReadingsCSV(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -677,17 +818,29 @@
       const text = e.target.result;
       const rows = text.split(/\r?\n/);
       let count = 0;
+      let metadataSet = false;
       
       rows.forEach((row, index) => {
-        // Skip empty rows and the header row (if it contains "cycle")
-        if (!row.trim() || (index === 0 && row.toLowerCase().includes('cycle'))) return;
+        if (!row.trim()) return;
         
-        const cols = row.split(',');
-        // If the row has multiple columns (like our export: Cycle,Time), take the second column.
-        // If it only has one column, take that one.
-        let timeStr = cols.length > 1 ? cols[1] : cols[0];
+        // Skip obvious headers
+        if (index === 0 && row.toLowerCase().includes('time')) return;
         
-        // Use regex to extract just the number, ignoring any leading/trailing spaces
+        const cols = parseCSVRow(row);
+
+        // If this is the new 6-column format: Task Name, Sequence, Station, Type, Cycle, Time
+        if (cols.length >= 6 && !metadataSet) {
+           document.getElementById('task-name').value = cols[0];
+           document.getElementById('task-seq').value = cols[1];
+           document.getElementById('task-station').value = cols[2];
+           document.getElementById('task-type').value = cols[3];
+           metadataSet = true;
+        }
+
+        // Extremely robust: always try to fetch time from the final column
+        let timeStr = cols[cols.length - 1];
+        if (!timeStr && cols.length > 1) timeStr = cols[cols.length - 2]; // Handle trailing commas
+
         const match = timeStr.match(/\d+(\.\d+)?/);
         if (match) {
           const val = parseFloat(match[0]);
@@ -707,26 +860,31 @@
       
       document.getElementById('import-readings').value = ''; 
     };
-    // Force UTF-8 reading
     reader.readAsText(file, 'UTF-8'); 
   }
 
   function sendToSimulator() {
     if (!readings.length) return;
     
-    // Prevent double clicking from saving duplicates
     const btn = document.getElementById('send-btn');
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
     const name = document.getElementById('task-name').value.trim() || 'New Task';
+    const seq = parseInt(document.getElementById('task-seq').value) || 1;
+    const station = parseInt(document.getElementById('task-station').value) || 1;
+    const type = document.getElementById('task-type').value || 'VA';
+    const notes = document.getElementById('notes').value.trim();
+
     const min = Math.min(...readings);
     const max = Math.max(...readings);
     const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
-    const notes = document.getElementById('notes').value.trim();
 
     const task = {
       name,
+      seq,
+      station,
+      type,
       a: +min.toFixed(2),
       m: +avg.toFixed(2),
       b: +max.toFixed(2),
@@ -740,18 +898,15 @@
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     const pendingIndex = localStorage.getItem('pendingTaskIndex');
 
-    // Overwrite the existing task row if it was clicked from index.html
     if (pendingIndex !== null && pendingIndex !== "" && !isNaN(pendingIndex)) {
       const idx = parseInt(pendingIndex, 10);
       if (idx >= 0 && idx < saved.length) {
-        // Persist the original sequence number if it exists
-        task.seq = saved[idx].seq || (idx + 1);
-        saved[idx] = task; // Update precisely the same item
+        saved[idx] = task; 
       } else {
         saved.push(task);
       }
     } else {
-      saved.push(task); // Normal append if they clicked the global "Collect Data" button
+      saved.push(task); 
     }
 
     localStorage.setItem('projectTasks', JSON.stringify(saved));
@@ -763,11 +918,24 @@
 
  function exportCSV() {
     if (!readings.length) { showToast('No data to export'); return; }
-    const name = document.getElementById('task-name').value.trim() || 'task';
-    let csv = 'Cycle,Time_sec\n';
-    readings.forEach((v, i) => csv += `${i + 1},${v}\n`);
     
-    // Add '\ufeff' (BOM) to fix Vietnamese characters in Excel
+    const name = document.getElementById('task-name').value.trim() || 'Task';
+    const seq = document.getElementById('task-seq').value || '1';
+    const station = document.getElementById('task-station').value || '1';
+    const type = document.getElementById('task-type').value || 'VA';
+
+    // Build the new 6-column header
+    let csv = 'Task Name,Sequence,Station,Type,Cycle,Time_sec\n';
+    
+    readings.forEach((v, i) => {
+      // Escape commas inside the task name so the CSV doesn't break
+      let safeName = name;
+      if (safeName.includes(',') || safeName.includes('"')) {
+        safeName = `"${safeName.replace(/"/g, '""')}"`;
+      }
+      csv += `${safeName},${seq},${station},${type},${i + 1},${v}\n`;
+    });
+    
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
