@@ -7,7 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>  <style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
     :root {
       --bg:        #0f1117;
       --surface:   #181c27;
@@ -1509,8 +1510,8 @@
   /* ── XLSX TEMPLATE INJECTION (EXCELJS) ── */
   /* ─────────────────────────────────────────── */
 async function exportToTemplateXLSX() {
-  if (typeof ExcelJS === 'undefined') {
-    alert("ExcelJS library not loaded."); return;
+  if (typeof XLSX === 'undefined') {
+    alert("SheetJS library not loaded."); return;
   }
 
   saveCurrentTasks();
@@ -1524,76 +1525,70 @@ async function exportToTemplateXLSX() {
     if (!stationMap[stn]) stationMap[stn] = [];
     stationMap[stn].push(t);
   });
+  const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
 
   // Fetch template
-  let workbook;
+  let wb;
   try {
-const resp = await fetch('./temp.xlsx');
+    const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const buf = await resp.arrayBuffer();
-    workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buf);
+    wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
   } catch (err) {
     alert("Could not load template: " + err.message); return;
   }
 
-  const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
-
-  // ── Sheet1: Col A=Position(first only), B=Desc(first only), C=Sub-pos,
-  //            D=Task, E=blank, F=AVERAGE(G:Z), G–Z = 20 samples (data from row 3) ──
-  const sheet1 = workbook.getWorksheet('Sheet1');
-  if (sheet1) {
-    let row = 3;
-    sortedStns.forEach(stnNum => {
-      const pos = `P${String(stnNum).padStart(2, '0')}`;
-      stationMap[stnNum].forEach((task, ti) => {
-        const r = sheet1.getRow(row);
-        r.getCell(1).value = ti === 0 ? pos : null;
-        r.getCell(2).value = ti === 0 ? `Station ${stnNum}` : null;
-        r.getCell(3).value = pos;
-        r.getCell(4).value = task.name;
-        r.getCell(5).value = null;
-        r.getCell(6).value = { formula: `AVERAGE(G${row}:Z${row})` };
-        for (let i = 0; i < 20; i++) {
-          r.getCell(7 + i).value = parseFloat(triangular(task.a, task.m, task.b).toFixed(2));
-        }
-        r.commit();
-        row++;
-      });
-    });
+  function setCell(ws, r, c, value) {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    if (value === null || value === undefined) { delete ws[addr]; return; }
+    ws[addr] = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
   }
 
-  // ── Data PT-CT: station blocks of 12 rows each (10 task slots + 2 summary).
-  //    Station 1 → rows 3-14, Station 2 → rows 15-26, etc.
-  //    Write: C=task name, E=PERT mean, F–O = 10 samples ──
-  const ptCtSheet = workbook.getWorksheet('Data PT-CT');
-  if (ptCtSheet) {
+  // Micro type mapping VA/SVA/NVA → Vietnamese dropdown value
+  const microTypeMap = { VA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
+
+  // ── Data PT-CT: 12-row blocks (10 task slots + 2 summary)
+  //    Station 1 → Excel rows 3-14 (0-idx 2), Station 2 → rows 15-26 (0-idx 14), etc.
+  //    Col C=task name, Col E=PERT mean, Cols F–O=10 samples ──
+  const wsPT = wb.Sheets['Data PT-CT'];
+  if (wsPT) {
     sortedStns.forEach((stnNum, si) => {
-      const blockStart = 3 + si * 12;
+      const blockStart = 2 + si * 12; // 0-indexed
       stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-        const r = ptCtSheet.getRow(blockStart + ti);
-        r.getCell(3).value = task.name;
-        r.getCell(5).value = parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2));
+        const ri = blockStart + ti;
+        setCell(wsPT, ri, 2, task.name);
+        setCell(wsPT, ri, 4, parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2)));
         for (let i = 0; i < 10; i++) {
-          r.getCell(6 + i).value = parseFloat(triangular(task.a, task.m, task.b).toFixed(2));
+          setCell(wsPT, ri, 5 + i, parseFloat(triangular(task.a, task.m, task.b).toFixed(2)));
         }
-        r.commit();
       });
     });
   }
 
-  // Download
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Temp_Simulated.xlsx';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
+  // ── VAA-NVAA: 11-row blocks per station (10 task slots + 1 separator)
+  //    P01 starts at Excel row 8 (0-idx 7), P02 at row 19 (0-idx 18), etc.
+  //    Only write Col F = micro type (VN) — rest is populated by VLOOKUP formulas ──
+  const wsVAA = wb.Sheets['VAA-NVAA'];
+  if (wsVAA) {
+    sortedStns.forEach((stnNum, si) => {
+      const blockStart = 7 + si * 11; // 0-indexed
+      stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
+        const ri = blockStart + ti;
+        setCell(wsVAA, ri, 5, microTypeMap[task.type] || 'Lắp ráp');
+      });
+    });
+  }
+
+  // ── Hide all sheets except Data PT-CT and VAA-NVAA ──
+  const VISIBLE = ['Data PT-CT', 'VAA-NVAA'];
+  if (wb.Workbook && wb.Workbook.Sheets) {
+    wb.Workbook.Sheets.forEach(s => {
+      s.Hidden = VISIBLE.includes(s.name) ? 0 : 2; // 0=visible, 2=very hidden
+    });
+  }
+
+  XLSX.writeFile(wb, 'Temp_Simulated.xlsx');
 }
-  
 function exportMegaCSV() {
     if (!simResults.length || !simLineCycleResults.length) return;
     const iters  = simResults.length;
