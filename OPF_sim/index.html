@@ -507,7 +507,8 @@
 
           <button class="action-btn blue" id="print-report-btn" onclick="window.print()" style="display:none">PDF Report</button>
           <button class="action-btn green" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">Report CSV</button>
-<button class="action-btn green" onclick="exportToTemplateXLSX()">Download Template (XLSX)</button>
+<button class="action-btn" onclick="downloadRawTemplate()">Download Yamazumi Template (XLSX)</button>
+<button class="action-btn green" onclick="exportToTemplateXLSX()">Data PT-CT, VAA-NVAA XLSX</button>
         </div>
       </div>
     </div>
@@ -1505,6 +1506,24 @@
     });
     downloadCSV(rows, 'Tasks_Input.csv');
   }
+
+async function downloadRawTemplate() {
+  try {
+    const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const buf = await resp.arrayBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'temp.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  } catch (err) {
+    alert("Could not download template: " + err.message);
+  }
+}
 
 /* ─────────────────────────────────────────── */
   /* ── XLSX TEMPLATE INJECTION (EXCELJS) ── */
