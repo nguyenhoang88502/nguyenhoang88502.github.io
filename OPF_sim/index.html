@@ -1561,7 +1561,7 @@
 
   async function downloadRawTemplate() {
     try {
-      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+      const resp = await fetch('./temp.xlsx', { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const buf = await resp.arrayBuffer();
       const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -1598,7 +1598,7 @@
 
     let wb;
     try {
-      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+      const resp = await fetch('./temp.xlsx', { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const buf = await resp.arrayBuffer();
       wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
