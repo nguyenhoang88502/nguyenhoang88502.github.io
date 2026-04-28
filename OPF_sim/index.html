@@ -1638,9 +1638,15 @@
     try {
       const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const contentType = resp.headers.get('Content-Type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('URL returned an HTML page instead of an Excel file.');
+      }
+
       const arrayBuffer = await resp.arrayBuffer();
       workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(arrayBuffer);
+      await workbook.xlsx.load(new Uint8Array(arrayBuffer));
     } catch (err) {
       alert('Could not load template: ' + err.message);
       return;
