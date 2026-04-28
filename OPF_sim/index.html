@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     :root {
       --bg:        #0f1117;
@@ -1561,7 +1561,7 @@
 
   async function downloadRawTemplate() {
     try {
-      const resp = await fetch('./temp.xlsx', { cache: 'no-store' });
+      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const buf = await resp.arrayBuffer();
       const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -1577,76 +1577,114 @@
     }
   }
 
-  /* ── XLSX TEMPLATE INJECTION (SHEETJS) ── */
+  /* ── XLSX TEMPLATE INJECTION (ExcelJS) ── */
   async function exportToTemplateXLSX() {
-    if (typeof XLSX === 'undefined') {
-      alert("SheetJS library not loaded."); return;
+    if (typeof ExcelJS === 'undefined') {
+      alert('ExcelJS library not loaded.');
+      return;
     }
 
     saveCurrentTasks();
-    const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
-    const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
-    if (!validTasks.length) { alert("No valid tasks to export."); return; }
+
+    let tasks = [];
+    try {
+      tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    } catch (err) {
+      alert('Invalid task data in localStorage.');
+      return;
+    }
+
+    const validTasks = tasks
+      .map(t => ({
+        ...t,
+        a: Number(t.a),
+        m: Number(t.m),
+        b: Number(t.b),
+        station: Number(t.station) || 1,
+        type: (t.type || '').toString().trim().toUpperCase()
+      }))
+      .filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
+
+    if (!validTasks.length) {
+      alert('No valid tasks to export.');
+      return;
+    }
 
     const stationMap = {};
-    validTasks.forEach(t => {
-      const stn = t.station || 1;
+    validTasks.forEach(task => {
+      const stn = task.station;
       if (!stationMap[stn]) stationMap[stn] = [];
-      stationMap[stn].push(t);
+      stationMap[stn].push(task);
     });
+
     const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
 
-    let wb;
+    function triangular(a, m, b) {
+      const u = Math.random();
+      const c = (m - a) / (b - a);
+      return u < c
+        ? a + Math.sqrt(u * (b - a) * (m - a))
+        : b - Math.sqrt((1 - u) * (b - a) * (b - m));
+    }
+
+    function mapTypeToVietnamese(type) {
+      if (type === 'VAA' || type === 'VA') return 'Lắp ráp';
+      if (type === 'SVA') return 'Giữ';
+      if (type === 'NVA') return 'Đang chờ đợi';
+      return '';
+    }
+
+    let workbook;
     try {
       const resp = await fetch('./temp.xlsx', { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const buf = await resp.arrayBuffer();
-      wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
+      const arrayBuffer = await resp.arrayBuffer();
+      workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
     } catch (err) {
-      alert("Could not load template: " + err.message); return;
+      alert('Could not load template: ' + err.message);
+      return;
     }
 
-    function setCell(ws, r, c, value) {
-      const addr = XLSX.utils.encode_cell({ r, c });
-      if (value === null || value === undefined) { delete ws[addr]; return; }
-      ws[addr] = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
-    }
-    function setRange(ws, r1, c1, r2, c2) {
-      if (!ws['!ref']) { ws['!ref'] = XLSX.utils.encode_range({ s:{r:r1,c:c1}, e:{r:r2,c:c2} }); return; }
-      const cur = XLSX.utils.decode_range(ws['!ref']);
-      cur.s.r = Math.min(cur.s.r, r1); cur.s.c = Math.min(cur.s.c, c1);
-      cur.e.r = Math.max(cur.e.r, r2); cur.e.c = Math.max(cur.e.c, c2);
-      ws['!ref'] = XLSX.utils.encode_range(cur);
+    const sheetPT = workbook.getWorksheet('Data PT-CT');
+    const sheetVAA = workbook.getWorksheet('VAA-NVAA');
+    if (!sheetPT || !sheetVAA) {
+      alert('Required template sheets not found.');
+      return;
     }
 
-    const wsPT = wb.Sheets['Data PT-CT'];
-    if (wsPT) {
-      sortedStns.forEach((stnNum, si) => {
-        const blockStart = 2 + si * 12;
-        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-          const ri = blockStart + ti;
-          setCell(wsPT, ri, 2, task.name);
-          setCell(wsPT, ri, 4, parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2)));
-          for (let i = 0; i < 10; i++) {
-            setCell(wsPT, ri, 5 + i, parseFloat(triangular(task.a, task.m, task.b).toFixed(2)));
-          }
-        });
+    sortedStns.forEach((stnNum, si) => {
+      const stationTasks = stationMap[stnNum].slice(0, 10);
+      const startRow = 3 + si * 12;
+
+      stationTasks.forEach((task, ti) => {
+        const rowNumber = startRow + ti;
+        const row = sheetPT.getRow(rowNumber);
+
+        row.getCell('C').value = task.name || '';
+        row.getCell('E').value = parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2));
+
+        for (let sampleIndex = 0; sampleIndex < 10; sampleIndex += 1) {
+          row.getCell(6 + sampleIndex).value = parseFloat(triangular(task.a, task.m, task.b).toFixed(2));
+        }
+
+        row.commit();
       });
-    }
+    });
 
-    const microTypeMap = { VA: 'Lắp ráp', VAA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
-    const wsVAA = wb.Sheets['VAA-NVAA'];
-    if (wsVAA) {
-      sortedStns.forEach((stnNum, si) => {
-        const blockStart = 7 + si * 11;
-        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-          const ri = blockStart + ti;
-          setCell(wsVAA, ri, 5, microTypeMap[task.type] || 'Lắp ráp');
-        });
+    sortedStns.forEach((stnNum, si) => {
+      const stationTasks = stationMap[stnNum].slice(0, 10);
+      const startRow = 8 + si * 11;
+
+      stationTasks.forEach((task, ti) => {
+        const rowNumber = startRow + ti;
+        const row = sheetVAA.getRow(rowNumber);
+        row.getCell('F').value = mapTypeToVietnamese(task.type);
+        row.commit();
       });
-    }
+    });
 
-    const DROPDOWN_DATA = [
+    const dropdownData = [
       ['MICRO TYPE (Tiếng Việt)', 'MICRO TYPE (English)', 'MACRO TYPE', 'Ghi chú / Note'],
       ['Lắp ráp', 'Assembling', 'VAA', 'Thao tác tạo ra giá trị trực tiếp'],
       ['Gia công / Xử lý', 'Processing / Machining', 'VAA', ''],
@@ -1673,50 +1711,63 @@
       ['Vệ sinh / Lau dọn', 'Cleaning / Wiping', 'NVA', ''],
     ];
 
-    let wsDL = wb.Sheets['Dropdown list'];
-    if (!wsDL) {
-      wsDL = {};
-      wb.SheetNames.push('Dropdown list');
-      wb.Sheets['Dropdown list'] = wsDL;
-    }
-    DROPDOWN_DATA.forEach((row, ri) => {
-      row.forEach((val, ci) => setCell(wsDL, ri, ci, val));
-    });
-    setRange(wsDL, 0, 0, DROPDOWN_DATA.length - 1, 3);
+    let sheetDL = workbook.getWorksheet('Dropdown list');
+    if (sheetDL) workbook.removeWorksheet(sheetDL.id);
+    sheetDL = workbook.addWorksheet('Dropdown list');
 
-    const INSTR_SHEET = 'Instructions';
-    const HD_ROWS = [
-      ['=== HUONG DAN / HOW TO PASTE INTO YAMAZUMI TEMPLATE ==='],
-      [''],
-      ['FILE NAY CO 4 SHEET / THIS FILE HAS 4 SHEETS:'],
-      ['  1. Instructions  — Ban dang doc / You are here'],
-      ['  2. Data PT-CT    — Thoi gian tung thao tac theo tram (PERT mean + 10 samples)'],
-      ['  3. VAA-NVAA      — Phan loai VAA / Semi-VA / NVA cho tung thao tac'],
-      ['  4. Dropdown list — Danh muc day du cac loai micro-type (doi chieu)'],
-      [''],
-      ['Generated by Monte Carlo Simulator — ' + new Date().toLocaleString()],
+    dropdownData.forEach((rowData, rowIndex) => {
+      const row = sheetDL.getRow(rowIndex + 1);
+      rowData.forEach((value, colIndex) => {
+        row.getCell(colIndex + 1).value = value;
+      });
+      row.commit();
+    });
+
+    const instrSheetName = 'Instructions';
+    const existingInstr = workbook.getWorksheet(instrSheetName);
+    if (existingInstr) workbook.removeWorksheet(existingInstr.id);
+    const wsInstr = workbook.addWorksheet(instrSheetName);
+
+    const instrRows = [
+      '=== HUONG DAN / HOW TO PASTE INTO YAMAZUMI TEMPLATE ===',
+      '',
+      'FILE NAY CO 4 SHEET / THIS FILE HAS 4 SHEETS:',
+      '  1. Instructions  — Ban dang doc / You are here',
+      '  2. Data PT-CT    — Thoi gian tung thao tac theo tram (PERT mean + 10 samples)',
+      '  3. VAA-NVAA      — Phan loai VAA / Semi-VA / NVA cho tung thao tac',
+      '  4. Dropdown list — Danh muc day du cac loai micro-type (doi chieu)',
+      '',
+      'Generated by Monte Carlo Simulator — ' + new Date().toLocaleString()
     ];
 
-    const oldIdx = wb.SheetNames.indexOf(INSTR_SHEET);
-    if (oldIdx !== -1) {
-      wb.SheetNames.splice(oldIdx, 1);
-      delete wb.Sheets[INSTR_SHEET];
-    }
-    const wsHD = {};
-    HD_ROWS.forEach((row, ri) => {
-      const val = Array.isArray(row) ? row[0] : row;
-      if (val !== undefined && val !== '') setCell(wsHD, ri, 0, String(val));
+    instrRows.forEach((text, index) => {
+      const row = wsInstr.getRow(index + 1);
+      row.getCell(1).value = text;
+      row.commit();
     });
-    wsHD['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:HD_ROWS.length-1,c:0} });
-    wsHD['!cols'] = [{ wch: 90 }];
-    wb.SheetNames.push(INSTR_SHEET);
-    wb.Sheets[INSTR_SHEET] = wsHD;
+    wsInstr.getColumn(1).width = 90;
 
-    const VISIBLE = new Set(['Data PT-CT', 'VAA-NVAA', 'Dropdown list', INSTR_SHEET]);
-    if (!wb.Workbook) wb.Workbook = {};
-    wb.Workbook.Sheets = wb.SheetNames.map(n => ({ name: n, Hidden: VISIBLE.has(n) ? 0 : 2 }));
+    const visibleSheets = new Set(['Data PT-CT', 'VAA-NVAA', 'Dropdown list', instrSheetName]);
+    workbook.eachSheet(sheet => {
+      sheet.state = visibleSheets.has(sheet.name) ? 'visible' : 'hidden';
+    });
 
-    XLSX.writeFile(wb, 'Temp_Simulated.xlsx');
+    try {
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Temp_Simulated.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Could not save Excel file: ' + err.message);
+    }
   }
 
   function exportMegaCSV() {
