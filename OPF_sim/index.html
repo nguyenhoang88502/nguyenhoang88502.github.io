@@ -459,7 +459,7 @@
       <div class="panel-body" style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
         <strong style="color: var(--text);">1. Setup Tasks:</strong> Click "Add Task" or "Import Tasks Data". <br>
         <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: Seq, Task Name, Type, Opt, ML, Pess, Station.</em></span><br>
-        <strong style="color: var(--text);">2. Value Analysis:</strong> Label each task as VA, Semi-VA, or NVA.<br>
+        <strong style="color: var(--text);">2. Value Analysis:</strong> Label each task as VAA, Semi-VA, or NVA.<br>
         <strong style="color: var(--text);">3. Real Data:</strong> Click the REC button next to any task to open the data collector.<br>
         <strong style="color: var(--text);">4. Simulate:</strong> Set iterations and click <strong>RUN</strong> — Yamazumi &amp; Flow Sim auto-generate.
       </div>
@@ -545,7 +545,7 @@
   window.onload = () => {
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     if (saved.length) {
-      saved.forEach((t, i) => addTask(t.name, t.type || 'VA', t.a, t.m, t.b, t.meta, t.seq || (i+1), t.station || 1));
+      saved.forEach((t, i) => addTask(t.name, (t.type === 'VA' ? 'VAA' : t.type) || 'VAA', t.a, t.m, t.b, t.meta, t.seq || (i+1), t.station || 1));
     }
     document.getElementById('print-date').textContent = "Generated: " + new Date().toLocaleString();
   };
@@ -556,7 +556,7 @@
     return text.toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
-  function addTask(name='', type='VA', opt=1, ml=5, pess=10, meta=null, seq=null, station=1) {
+  function addTask(name='', type='VAA', opt=1, ml=5, pess=10, meta=null, seq=null, station=1) {
     taskCount++;
     const safeName = name || `Task ${taskCount}`;
     const id = `t-${Date.now()}-${taskCount}`;
@@ -661,7 +661,8 @@
           // New 7-column format: Seq, Task, Type, Opt, ML, Pess, Station
           seq  = parseInt(cols[0]) || null;
           name = cols[1];
-          type = ['VA','SVA','NVA'].includes((cols[2]||'').toUpperCase()) ? cols[2].toUpperCase() : 'VA';
+          const rawType7 = (cols[2]||'').toUpperCase();
+          type = ['VA','VAA','SVA','NVA'].includes(rawType7) ? (rawType7 === 'VA' ? 'VAA' : rawType7) : 'VAA';
           opt  = parseFloat(cols[3]);
           ml   = parseFloat(cols[4]);
           pess = parseFloat(cols[5]);
@@ -669,7 +670,8 @@
         } else if (cols.length >= 5) {
           // Legacy 6-column format: Task, Type, Opt, ML, Pess[, Station]
           name = cols[0];
-          type = ['VA','SVA','NVA'].includes((cols[1]||'').toUpperCase()) ? cols[1].toUpperCase() : 'VA';
+          const rawType6 = (cols[1]||'').toUpperCase();
+          type = ['VA','VAA','SVA','NVA'].includes(rawType6) ? (rawType6 === 'VA' ? 'VAA' : rawType6) : 'VAA';
           opt  = parseFloat(cols[2]);
           ml   = parseFloat(cols[3]);
           pess = parseFloat(cols[4]);
@@ -694,7 +696,7 @@
     document.querySelectorAll('.task-row').forEach(row => {
       const seq     = parseFloat(row.querySelector('.seq').value) || 0;
       const station = parseInt(row.querySelector('.stn').value) || 1;
-      const type    = row.querySelector('.task-type-select').value || 'VA';
+      const type    = row.querySelector('.task-type-select').value || 'VAA';
       const a       = parseFloat(row.querySelector('.opt').value)  || 0;
       const m       = parseFloat(row.querySelector('.ml').value)   || 0;
       const b       = parseFloat(row.querySelector('.pess').value) || 0;
@@ -839,7 +841,7 @@
 
     currentTaskMeans = validTasks.map((t, j) => ({
       name: t.name || 'Task',
-      type: t.type || 'VA',
+      type: t.type ? (t.type === 'VA' ? 'VAA' : t.type) : 'VAA',
       mean: perTaskSums[j] / iters,
       station: t.station || 1
     }));
@@ -871,7 +873,7 @@
 
     let vaTime = 0, svaTime = 0, nvaTime = 0;
     taskMeans.forEach(t => {
-      if (t.type === 'VA') vaTime += t.mean;
+      if (t.type === 'VAA' || t.type === 'VA') vaTime += t.mean;
       else if (t.type === 'SVA') svaTime += t.mean;
       else nvaTime += t.mean;
     });
@@ -926,12 +928,12 @@
         <div class="panel-header"><span class="panel-title">Value-Added Analysis</span></div>
         <div class="panel-body">
           <div style="width:100%; height:16px; display:flex; border-radius:6px; overflow:hidden; margin-bottom:12px;">
-            <div style="width:${vaPct}%; background:var(--green);" title="VA: ${vaPct}%"></div>
+            <div style="width:${vaPct}%; background:var(--green);" title="VAA: ${vaPct}%"></div>
             <div style="width:${svaPct}%; background:var(--amber);" title="Semi-VA: ${svaPct}%"></div>
             <div style="width:${nvaPct}%; background:var(--red);" title="NVA: ${nvaPct}%"></div>
           </div>
           <div style="display:flex; justify-content:space-around; font-family:var(--mono); font-size:14px; flex-wrap:wrap; gap:10px;">
-            <div><span style="color:var(--green); font-size:18px;">■</span> <strong>VA</strong>: ${vaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${vaPct}%)</span></div>
+            <div><span style="color:var(--green); font-size:18px;">■</span> <strong>VAA</strong>: ${vaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${vaPct}%)</span></div>
             <div><span style="color:var(--amber); font-size:18px;">■</span> <strong>Semi-VA</strong>: ${svaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${svaPct}%)</span></div>
             <div><span style="color:var(--red); font-size:18px;">■</span> <strong>NVA</strong>: ${nvaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${nvaPct}%)</span></div>
           </div>
@@ -1018,7 +1020,7 @@
               <tbody>
                 ${taskMeans.map(t => {
                   const pct = (t.mean / totalMean * 100).toFixed(1);
-                  const tColor = t.type==='VA'?'var(--green)':t.type==='SVA'?'var(--amber)':'var(--red)';
+                  const tColor = (t.type==='VAA' || t.type==='VA') ? 'var(--green)' : t.type==='SVA' ? 'var(--amber)' : 'var(--red)';
                   return `<tr>
                     <td style="color:var(--text); white-space: normal; word-break: break-word; max-width: 150px;">${t.name}</td>
                     <td style="color:${tColor}; font-weight:600;">${t.type}</td>
@@ -1063,14 +1065,14 @@
   /* ── YAMAZUMI CHART ── */
   function renderYamazumi(validTasks) {
     const stationMap = {};
-    const typeOrder = { 'VA': 1, 'SVA': 2, 'NVA': 3 };
+    const typeOrder = { 'VAA': 1, 'SVA': 2, 'NVA': 3 };
 
     validTasks.forEach(t => {
       const stn = t.station || 1;
       if (!stationMap[stn]) stationMap[stn] = [];
       const simMean = currentTaskMeans.find(tm => tm.name === t.name);
       const mean = simMean ? simMean.mean : (t.a + 4*t.m + t.b) / 6;
-      stationMap[stn].push({ name: t.name, mean: mean, type: t.type || 'VA' });
+      stationMap[stn].push({ name: t.name, mean: mean, type: t.type ? (t.type === 'VA' ? 'VAA' : t.type) : 'VAA' });
     });
 
     const stationNums = Object.keys(stationMap).map(Number).sort((a,b)=>a-b);
@@ -1171,7 +1173,7 @@
 
       station.tasks.forEach((task, ti) => {
         const barH  = H - y(task.mean);
-        const color = task.type === 'VA' ? 'var(--green)' : task.type === 'SVA' ? 'var(--amber)' : 'var(--red)';
+        const color = (task.type === 'VAA' || task.type === 'VA') ? 'var(--green)' : task.type === 'SVA' ? 'var(--amber)' : 'var(--red)';
         const yPos  = y(cumY + task.mean);
 
         const rect = svg.append('rect')
@@ -1253,7 +1255,7 @@
     let vaTime = 0, svaTime = 0, nvaTime = 0;
     yamazumiData.forEach(stn => {
       stn.tasks.forEach(t => {
-        if (t.type === 'VA') vaTime += t.mean;
+        if (t.type === 'VAA' || t.type === 'VA') vaTime += t.mean;
         else if (t.type === 'SVA') svaTime += t.mean;
         else nvaTime += t.mean;
       });
@@ -1266,7 +1268,7 @@
     const legendEl = document.getElementById('yamazumi-legend');
     if (legendEl) {
       legendEl.innerHTML = `
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>VA (Green) — ${vaPct}%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>VAA (Green) — ${vaPct}%</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Semi-VA (Yellow) — ${svaPct}%</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>NVA (Red) — ${nvaPct}%</div>
         <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 1px dashed var(--border)"></div>Unbusy / Idle</div>
@@ -1632,7 +1634,7 @@
       });
     }
 
-    const microTypeMap = { VA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
+    const microTypeMap = { VA: 'Lắp ráp', VAA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
     const wsVAA = wb.Sheets['VAA-NVAA'];
     if (wsVAA) {
       sortedStns.forEach((stnNum, si) => {
@@ -1646,9 +1648,9 @@
 
     const DROPDOWN_DATA = [
       ['MICRO TYPE (Tiếng Việt)', 'MICRO TYPE (English)', 'MACRO TYPE', 'Ghi chú / Note'],
-      ['Lắp ráp', 'Assembling', 'VA', 'Thao tác tạo ra giá trị trực tiếp'],
-      ['Gia công / Xử lý', 'Processing / Machining', 'VA', ''],
-      ['Kiểm tra chất lượng', 'Quality Inspection', 'VA', ''],
+      ['Lắp ráp', 'Assembling', 'VAA', 'Thao tác tạo ra giá trị trực tiếp'],
+      ['Gia công / Xử lý', 'Processing / Machining', 'VAA', ''],
+      ['Kiểm tra chất lượng', 'Quality Inspection', 'VAA', ''],
       ['Giữ', 'Holding', 'Semi VA', 'Cần thiết nhưng không tạo giá trị'],
       ['Lấy / Đặt lại', 'Picking up / Placing back', 'Semi VA', ''],
       ['Định vị', 'Positioning', 'Semi VA', ''],
@@ -1689,7 +1691,7 @@
       ['FILE NAY CO 4 SHEET / THIS FILE HAS 4 SHEETS:'],
       ['  1. Instructions  — Ban dang doc / You are here'],
       ['  2. Data PT-CT    — Thoi gian tung thao tac theo tram (PERT mean + 10 samples)'],
-      ['  3. VAA-NVAA      — Phan loai VA / Semi-VA / NVA cho tung thao tac'],
+      ['  3. VAA-NVAA      — Phan loai VAA / Semi-VA / NVA cho tung thao tac'],
       ['  4. Dropdown list — Danh muc day du cac loai micro-type (doi chieu)'],
       [''],
       ['Generated by Monte Carlo Simulator — ' + new Date().toLocaleString()],
@@ -1764,7 +1766,7 @@
     rows.push(['Task Name', 'Type', 'Station', 'Average Time (s)', '% of Total Cycle']);
     const totalMean = currentTaskMeans.reduce((a,t)=>a+t.mean, 0);
     currentTaskMeans.forEach(t => {
-      rows.push([t.name, t.type||'VA', t.station||1, t.mean.toFixed(2), (t.mean/totalMean*100).toFixed(2)+'%']);
+      rows.push([t.name, (t.type === 'VA' ? 'VAA' : t.type) || 'VAA', t.station||1, t.mean.toFixed(2), (t.mean/totalMean*100).toFixed(2)+'%']);
     });
     rows.push([]);
 
