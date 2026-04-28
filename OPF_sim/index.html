@@ -1636,7 +1636,7 @@
 
     let workbook;
     try {
-      const resp = await fetch('./temp.xlsx', { cache: 'no-store' });
+      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const arrayBuffer = await resp.arrayBuffer();
       workbook = new ExcelJS.Workbook();
