@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
     :root {
       --bg:        #0f1117;
       --surface:   #181c27;
@@ -160,7 +160,6 @@
       border-radius: 8px;
       padding: 12px;
       display: grid;
-      /* Updated grid to fit the Type column */
       grid-template-columns: 35px 40px 1fr 65px 55px 55px 55px 32px 32px;
       gap: 6px;
       align-items: center;
@@ -459,7 +458,7 @@
       </div>
       <div class="panel-body" style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
         <strong style="color: var(--text);">1. Setup Tasks:</strong> Click "Add Task" or "Import Tasks Data". <br>
-        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: Task Name, Type, Opt, ML, Pess[, Station].</em></span><br>
+        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: Seq, Task Name, Type, Opt, ML, Pess, Station.</em></span><br>
         <strong style="color: var(--text);">2. Value Analysis:</strong> Label each task as VA, Semi-VA, or NVA.<br>
         <strong style="color: var(--text);">3. Real Data:</strong> Click the REC button next to any task to open the data collector.<br>
         <strong style="color: var(--text);">4. Simulate:</strong> Set iterations and click <strong>RUN</strong> — Yamazumi &amp; Flow Sim auto-generate.
@@ -507,7 +506,8 @@
 
           <button class="action-btn blue" id="print-report-btn" onclick="window.print()" style="display:none">PDF Report</button>
           <button class="action-btn green" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">Report CSV</button>
-<button class="action-btn green" onclick="exportToTemplateXLSX()">Download Template (XLSX)</button>
+          <button class="action-btn" onclick="downloadRawTemplate()">Download Yamazumi Template (XLSX)</button>
+          <button class="action-btn green" onclick="exportToTemplateXLSX()">Data PT-CT, VAA-NVAA XLSX</button>
         </div>
       </div>
     </div>
@@ -536,7 +536,7 @@
   /* ── State ── */
   let taskCount = 0;
   let simResults = [];
-  let simLineCycleResults = []; // Stores max bottleneck station time per iteration
+  let simLineCycleResults = [];
   let currentTaskMeans = [];
   let flowSimResults = null;
   let yamazumiData  = null;
@@ -582,15 +582,15 @@
         <div class="num-group">
           <input type="number" class="num-input stn" value="${station}" min="1" title="Station / Operator number">
         </div>
-        <input type="text" class="task-name-input" value="${safeName}" placeholder="Task name">
+        <input type="text" class="task-name-input" value="${escapeHtml(safeName)}" placeholder="Task name">
         
-        <div class="num-group">
-          <select class="task-type-select">
-            <option value="VAA" ${type==='VA'?'selected':''}>VAA</option>
-            <option value="SVA" ${type==='SVA'?'selected':''}>SVA</option>
-            <option value="NVA" ${type==='NVA'?'selected':''}>NVA</option>
-          </select>
-        </div>
+          <div class="num-group">
+            <select class="task-type-select">
+              <option value="VAA" ${type==='VAA'?'selected':''}>VAA</option>
+              <option value="Semi VA" ${type==='Semi VA'?'selected':''}>Semi VA</option>
+              <option value="NVA" ${type==='NVA'?'selected':''}>NVA</option>
+            </select>
+          </div>
 
         <div class="num-group">
           <input type="number" class="num-input opt" value="${opt}" step="0.01" min="0">
@@ -636,28 +636,54 @@
     return result;
   }
 
+  /* FIX: importTasksCSV now reads 7-column format (Seq, Task, Type, Opt, ML, Pess, Station)
+     and falls back to legacy 6-column (Task, Type, Opt, ML, Pess, Station) */
   function importTasksCSV(event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
       const rows = e.target.result.split(/\r?\n/);
-      for (let i = 1; i < rows.length; i++) {
+      let importedCount = 0;
+      for (let i = 0; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         const cols = parseCSVRow(rows[i]);
-        if (cols.length >= 5) {
-          const name = cols[0];
-          const type = ['VA','SVA','NVA'].includes(cols[1].toUpperCase()) ? cols[1].toUpperCase() : 'VA';
-          const opt  = parseFloat(cols[2]);
-          const ml   = parseFloat(cols[3]);
-          const pess = parseFloat(cols[4]);
-          const stn  = cols.length >= 6 ? (parseInt(cols[5]) || 1) : 1;
-          if (!isNaN(opt) && !isNaN(ml) && !isNaN(pess)) {
-            addTask(name, type, opt, ml, pess, null, null, stn);
-          }
+
+        // Skip header row (contains non-numeric in first column that isn't a task name context)
+        if (i === 0) {
+          const firstCol = cols[0].toLowerCase();
+          if (firstCol === 'seq' || firstCol === 'task' || firstCol === 'task name') continue;
+        }
+
+        let seq = null, name, type, opt, ml, pess, stn;
+
+        if (cols.length >= 7) {
+          // New 7-column format: Seq, Task, Type, Opt, ML, Pess, Station
+          seq  = parseInt(cols[0]) || null;
+          name = cols[1];
+          type = ['VA','SVA','NVA'].includes((cols[2]||'').toUpperCase()) ? cols[2].toUpperCase() : 'VA';
+          opt  = parseFloat(cols[3]);
+          ml   = parseFloat(cols[4]);
+          pess = parseFloat(cols[5]);
+          stn  = parseInt(cols[6]) || 1;
+        } else if (cols.length >= 5) {
+          // Legacy 6-column format: Task, Type, Opt, ML, Pess[, Station]
+          name = cols[0];
+          type = ['VA','SVA','NVA'].includes((cols[1]||'').toUpperCase()) ? cols[1].toUpperCase() : 'VA';
+          opt  = parseFloat(cols[2]);
+          ml   = parseFloat(cols[3]);
+          pess = parseFloat(cols[4]);
+          stn  = cols.length >= 6 ? (parseInt(cols[5]) || 1) : 1;
+        } else {
+          continue;
+        }
+
+        if (!isNaN(opt) && !isNaN(ml) && !isNaN(pess)) {
+          addTask(name, type, opt, ml, pess, null, seq, stn);
+          importedCount++;
         }
       }
-      saveCurrentTasks();
+      if (importedCount > 0) saveCurrentTasks();
       document.getElementById('import-tasks').value = '';
     };
     reader.readAsText(file, 'UTF-8');
@@ -680,11 +706,31 @@
     localStorage.setItem('projectTasks', JSON.stringify(tasks));
   }
 
+  /* FIX: clearAllTasks now resets all simulation state so stale data doesn't persist */
   function clearAllTasks() {
     if (!confirm('Delete all tasks?')) return;
     document.getElementById('task-list').innerHTML = '';
     taskCount = 0;
+    // Reset all sim state
+    simResults = [];
+    simLineCycleResults = [];
+    currentTaskMeans = [];
+    flowSimResults = null;
+    yamazumiData = null;
     localStorage.removeItem('projectTasks');
+    // Reset results panel to placeholder
+    document.getElementById('results-stack').innerHTML = `
+      <div class="placeholder-panel">
+        <div class="empty-state">
+          <div class="empty-text">Add tasks and run simulation</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;max-width:260px">
+            Assign tasks to stations using the <span style="color:var(--purple)">Stn</span> column. Yamazumi &amp; Flow Sim generate automatically after each run.
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('header-status').textContent = 'Single Piece Flow';
+    document.getElementById('export-results-btn').style.display = 'none';
+    document.getElementById('print-report-btn').style.display = 'none';
   }
 
   function collectDataForTask(taskId) {
@@ -737,12 +783,10 @@
     const p90   = simLineCycleResults[Math.floor(0.9*iters)] || simLineCycleResults[iters-1];
     const p10   = simLineCycleResults[Math.floor(0.1*iters)] || simLineCycleResults[0];
 
-    // Out units based on Bottleneck Percentiles
     let outMean = Math.floor(totalSecs / mean);
     let outP90  = Math.floor(totalSecs / p90);
     let outP10  = Math.floor(totalSecs / p10);
 
-    // Takt Time Calculation
     const calculatedTakt = totalSecs / demand;
 
     const setEl = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
@@ -751,14 +795,12 @@
     setEl('out-p10',  outP10.toLocaleString()  + " units");
     setEl('calc-takt-val', calculatedTakt.toFixed(2) + " s");
 
-    // Automatically update Yamazumi Chart Takt
     const yTaktInput = document.getElementById('yamazumi-takt');
     if (yTaktInput) {
       yTaktInput.value = calculatedTakt.toFixed(1);
       if (typeof drawYamazumiChart === 'function') drawYamazumiChart();
     }
     
-    // Automatically fill Target input with Demand if empty
     const targetInput = document.getElementById('target-val');
     if (targetInput && (!targetInput.value || targetInput.value === '')) {
        targetInput.value = demand;
@@ -766,9 +808,7 @@
     }
   };
 
-  /* ─────────────────────────────────────────── */
   /* ── MAIN SIMULATION ── */
-  /* ─────────────────────────────────────────── */
   function runSimulation() {
     saveCurrentTasks();
     const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
@@ -826,11 +866,9 @@
     const stdLine      = Math.sqrt(varianceLine);
 
     const p = pct => totalData[Math.floor(iters * pct / 100)];
-    const pLine = pct => lineCycleData[Math.floor(iters * pct / 100)];
     const percentiles = [10, 25, 50, 75, 80, 85, 90, 95, 99];
     const totalMean   = taskMeans.reduce((a, t) => a + t.mean, 0);
 
-    // Calculate VA, SVA, NVA sums
     let vaTime = 0, svaTime = 0, nvaTime = 0;
     taskMeans.forEach(t => {
       if (t.type === 'VA') vaTime += t.mean;
@@ -838,11 +876,15 @@
       else nvaTime += t.mean;
     });
     
-    // Fallback against zero division
     const calcTotal = vaTime + svaTime + nvaTime || 1;
     const vaPct = ((vaTime / calcTotal) * 100).toFixed(1);
     const svaPct = ((svaTime / calcTotal) * 100).toFixed(1);
     const nvaPct = ((nvaTime / calcTotal) * 100).toFixed(1);
+
+    // Use a fixed 8-hour default for initial output estimate; calcCapacity() will override
+    const effSecs = 28800;
+    const simOutputs = lineCycleData.map(ct => Math.floor(effSecs / ct)).sort((a, b) => a - b);
+    const pOutput = pct => simOutputs[Math.floor(iters * pct / 100)];
 
     document.getElementById('results-stack').innerHTML = `
       <div class="kpi-row">
@@ -945,20 +987,22 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
         <div class="panel">
-          <div class="panel-header"><span class="panel-title">Percentile Breakdown (Line Cycle Time)</span></div>
+          <div class="panel-header"><span class="panel-title">Percentile Breakdown (Expected Output)</span></div>
           <div class="panel-body" style="padding:0">
             <table class="data-table">
-              <thead><tr><th>Pct</th><th>Time (s)</th><th>Conf.</th><th style="width:120px">Visual</th></tr></thead>
+              <thead><tr><th>Pct</th><th>Output (Units)</th><th>Conf.</th><th style="width:120px">Visual</th></tr></thead>
               <tbody>
                 ${percentiles.map(pc => {
-                  const val  = pLine(pc);
-                  const pct  = ((val-lineCycleData[0])/(lineCycleData[iters-1]-lineCycleData[0])*100).toFixed(1);
-                  const color= pc<=50?'var(--green)':pc<=80?'var(--amber)':'var(--red)';
+                  const val = pOutput(pc);
+                  const minOut = simOutputs[0];
+                  const maxOut = simOutputs[iters-1];
+                  const pctWidth = maxOut > minOut ? ((val - minOut) / (maxOut - minOut) * 100).toFixed(1) : 100;
+                  const color = pc <= 25 ? 'var(--green)' : pc <= 75 ? 'var(--amber)' : 'var(--red)';
                   return `<tr>
                     <td style="color:var(--text-dim)">P${pc}</td>
-                    <td style="font-weight:600">${val.toFixed(2)}</td>
+                    <td style="font-weight:600">${val}</td>
                     <td style="color:${color}">${pc}%</td>
-                    <td><div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></td>
+                    <td><div class="bar-bg"><div class="bar-fill" style="width:${pctWidth}%;background:${color}"></div></div></td>
                   </tr>`;
                 }).join('')}
               </tbody>
@@ -976,7 +1020,7 @@
                   const pct = (t.mean / totalMean * 100).toFixed(1);
                   const tColor = t.type==='VA'?'var(--green)':t.type==='SVA'?'var(--amber)':'var(--red)';
                   return `<tr>
-                    <td style="color:var(--text)">${t.name}</td>
+                    <td style="color:var(--text); white-space: normal; word-break: break-word; max-width: 150px;">${t.name}</td>
                     <td style="color:${tColor}; font-weight:600;">${t.type}</td>
                     <td>${t.mean.toFixed(2)}</td>
                     <td><span style="color:var(--blue)">${pct}%</span><div class="contrib-bar-wrap"><div class="contrib-bar-fill" style="width:${pct}%"></div></div></td>
@@ -998,9 +1042,9 @@
             <button class="target-btn" onclick="analyzeTarget()">Analyze</button>
           </div>
           <div class="risk-grid" id="risk-grid">
-            <div class="risk-box"><span class="risk-label">P10 (Optimistic)</span><span class="risk-value green" id="risk-p10">${pLine(10).toFixed(2)}</span></div>
-            <div class="risk-box"><span class="risk-label">P50 (Median)</span><span class="risk-value amber" id="risk-p50">${pLine(50).toFixed(2)}</span></div>
-            <div class="risk-box"><span class="risk-label">P90 (Conservative)</span><span class="risk-value red" id="risk-p90">${pLine(90).toFixed(2)}</span></div>
+            <div class="risk-box"><span class="risk-label">P10 (Optimistic)</span><span class="risk-value green" id="risk-p10">${(effSecs/lineCycleData[Math.floor(iters*0.1)]).toFixed(0)}</span></div>
+            <div class="risk-box"><span class="risk-label">P50 (Median)</span><span class="risk-value amber" id="risk-p50">${(effSecs/lineCycleData[Math.floor(iters*0.5)]).toFixed(0)}</span></div>
+            <div class="risk-box"><span class="risk-label">P90 (Conservative)</span><span class="risk-value red" id="risk-p90">${(effSecs/lineCycleData[Math.floor(iters*0.9)]).toFixed(0)}</span></div>
             <div class="risk-box"><span class="risk-label">Coeff. of Variation</span><span class="risk-value amber" id="risk-cv">${(stdLine/meanLine*100).toFixed(1)}%</span></div>
           </div>
         </div>
@@ -1010,19 +1054,17 @@
     drawHistogram(totalData, mean, p(90));
     window.calcCapacity();
 
-    // ── Append Yamazumi & Flow Sim panels ──
     if (validTasks && validTasks.length) {
       renderYamazumi(validTasks);
       renderFlowSim(validTasks);
     }
   }
 
-  /* ─────────────────────────────────────────── */
   /* ── YAMAZUMI CHART ── */
-  /* ─────────────────────────────────────────── */
   function renderYamazumi(validTasks) {
-    // Build station map from validated tasks + their simulated means
     const stationMap = {};
+    const typeOrder = { 'VA': 1, 'SVA': 2, 'NVA': 3 };
+
     validTasks.forEach(t => {
       const stn = t.station || 1;
       if (!stationMap[stn]) stationMap[stn] = [];
@@ -1032,13 +1074,15 @@
     });
 
     const stationNums = Object.keys(stationMap).map(Number).sort((a,b)=>a-b);
-    yamazumiData = stationNums.map(stn => ({
-      station: stn,
-      tasks: stationMap[stn],
-      totalTime: stationMap[stn].reduce((s,t)=>s+t.mean, 0)
-    }));
+    yamazumiData = stationNums.map(stn => {
+      stationMap[stn].sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
+      return {
+        station: stn,
+        tasks: stationMap[stn],
+        totalTime: stationMap[stn].reduce((s,t)=>s+t.mean, 0)
+      };
+    });
 
-    // Initial Takt defaults to whatever is calc'd from demand, or P90 fallback
     const demand = parseInt(document.getElementById('customer-demand')?.value) || 1;
     const start = document.getElementById('shift-start')?.value || "07:30";
     const end = document.getElementById('shift-end')?.value || "16:15";
@@ -1099,7 +1143,6 @@
 
     const y = d3.scaleLinear().domain([0, maxY]).range([H, 0]);
 
-    // Axes
     svg.append('g').attr('transform',`translate(0,${H})`)
       .call(d3.axisBottom(x))
       .call(g => {
@@ -1120,7 +1163,6 @@
       .attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','11')
       .text('Cycle Time (s)');
 
-    // Stacked bars
     yamazumiData.forEach(station => {
       let cumY = 0;
       const isOver = station.totalTime > taktTime;
@@ -1135,12 +1177,10 @@
         const rect = svg.append('rect')
           .attr('x', xPos).attr('y', yPos)
           .attr('width', bw).attr('height', Math.max(0, barH))
-          .attr('fill', color).attr('opacity', 0.88)
-          .attr('rx', ti === 0 ? 0 : 0);
+          .attr('fill', color).attr('opacity', 0.88);
 
         rect.append('title').text(`${task.name} (${task.type}): ${task.mean.toFixed(2)}s`);
 
-        // Inner task label if bar is tall enough
         if (barH > 18) {
           svg.append('text')
             .attr('x', xPos + bw/2).attr('y', yPos + barH/2 + 4)
@@ -1152,7 +1192,6 @@
         cumY += task.mean;
       });
 
-      // Total label above bar
       const xCenter = xPos + bw/2;
       svg.append('text')
         .attr('x', xCenter).attr('y', y(station.totalTime) - 7)
@@ -1161,7 +1200,6 @@
         .attr('font-family','IBM Plex Mono').attr('font-size','13').attr('font-weight','600')
         .text(`${station.totalTime.toFixed(1)}s`);
 
-      // Overload hatching above takt
       if (isOver) {
         const overH = Math.max(0, y(taktTime) - y(station.totalTime));
         svg.append('rect')
@@ -1169,10 +1207,33 @@
           .attr('width', bw).attr('height', overH)
           .attr('fill','rgba(239,68,68,0.18)').attr('stroke','var(--red)')
           .attr('stroke-width','1.5').attr('stroke-dasharray','4,3');
+      } else {
+        const idleTime = taktTime - station.totalTime;
+        const idleY = y(taktTime);
+        const idleH = y(station.totalTime) - y(taktTime);
+
+        const idleRect = svg.append('rect')
+          .attr('x', xPos).attr('y', idleY)
+          .attr('width', bw).attr('height', idleH)
+          .attr('fill', 'rgba(255,255,255,0.03)')
+          .attr('stroke', 'var(--border)')
+          .attr('stroke-dasharray', '3,3');
+
+        idleRect.append('title').text(`Unbusy / Idle: ${idleTime.toFixed(2)}s`);
+
+        if (idleH > 18) {
+          svg.append('text')
+            .attr('x', xPos + bw/2).attr('y', idleY + idleH/2 + 4)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-dim)')
+            .attr('font-family', 'IBM Plex Mono')
+            .attr('font-size', '10')
+            .attr('pointer-events', 'none')
+            .text(idleTime.toFixed(1) + 's');
+        }
       }
     });
 
-    // Takt Time reference line
     svg.append('line')
       .attr('x1', 0).attr('x2', W)
       .attr('y1', y(taktTime)).attr('y2', y(taktTime))
@@ -1189,7 +1250,6 @@
       .attr('fill','var(--red)').attr('font-family','IBM Plex Mono').attr('font-size','11').attr('font-weight','600')
       .text(`Takt: ${taktTime}s`);
 
-    // Dynamic Legend Calculation for VA, Semi-VA, NVA
     let vaTime = 0, svaTime = 0, nvaTime = 0;
     yamazumiData.forEach(stn => {
       stn.tasks.forEach(t => {
@@ -1203,16 +1263,16 @@
     const svaPct = ((svaTime / overallTime) * 100).toFixed(1);
     const nvaPct = ((nvaTime / overallTime) * 100).toFixed(1);
 
-    const legendEl  = document.getElementById('yamazumi-legend');
+    const legendEl = document.getElementById('yamazumi-legend');
     if (legendEl) {
       legendEl.innerHTML = `
         <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>VA (Green) — ${vaPct}%</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Semi-VA (Yellow) — ${svaPct}%</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>NVA (Red) — ${nvaPct}%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 1px dashed var(--border)"></div>Unbusy / Idle</div>
       `;
     }
 
-    // KPIs
     const bottleneck  = yamazumiData.reduce((max,s)=>s.totalTime>max.totalTime?s:max, yamazumiData[0]);
     const avgStnTime  = yamazumiData.reduce((s,st)=>s+st.totalTime,0)/yamazumiData.length;
     const balanceEff  = (avgStnTime / bottleneck.totalTime * 100).toFixed(1);
@@ -1245,11 +1305,8 @@
     }
   }
 
-  /* ─────────────────────────────────────────── */
   /* ── FLOW SIMULATION (DES) ── */
-  /* ─────────────────────────────────────────── */
   function _runFlowDES(validTasks, numParts) {
-    // Group tasks by station
     const stationMap = {};
     validTasks.forEach(t => {
       const stn = t.station || 1;
@@ -1273,10 +1330,7 @@
         let processTime = 0;
         stnTasks.forEach(t => { processTime += triangular(t.a, t.m, t.b); });
 
-// Station 1 (si === 0) pulls raw material immediately when ready. 
-        // Subsequent stations wait for the previous station to finish (prevDone).
         const arrivalTime  = (si === 0) ? stationAvail[si] : prevDone;
-        
         const startProcess = Math.max(arrivalTime, stationAvail[si]);
         const wait         = startProcess - arrivalTime;
 
@@ -1285,7 +1339,6 @@
         stationAvail[si] = startProcess + processTime;
         prevDone         = stationAvail[si];
 
-        // Sample queue depth periodically
         if (p % 10 === 0) queueSamples[si].push(wait > 0 ? 1 : 0);
       }
     }
@@ -1393,9 +1446,7 @@
     document.getElementById('results-stack').appendChild(panel);
   }
 
-  /* ─────────────────────────────────────────── */
   /* ── HISTOGRAM ── */
-  /* ─────────────────────────────────────────── */
   function drawHistogram(data, mean, p90) {
     const container = document.getElementById('chart');
     if (!container || !data.length) return;
@@ -1458,7 +1509,6 @@
     const targetUnits = parseFloat(document.getElementById('target-val').value);
     if (isNaN(targetUnits) || !simLineCycleResults.length) return;
 
-    // Get available shift time to convert Target Units into a Required Takt Time
     const start = document.getElementById('shift-start').value;
     const lunchDur = parseInt(document.getElementById('lunch-dur').value) || 0;
     const end = document.getElementById('shift-end').value;
@@ -1488,13 +1538,14 @@
     `;
   }
 
-  /* ─────────────────────────────────────────── */
   /* ── EXPORTS ── */
-  /* ─────────────────────────────────────────── */
+
+  /* FIX: exportTasksCSV now includes Seq as first column so task order is preserved on re-import */
   function exportTasksCSV() {
-    const rows = [['Task', 'Type', 'Optimistic', 'MostLikely', 'Pessimistic', 'Station']];
+    const rows = [['Seq', 'Task', 'Type', 'Optimistic', 'MostLikely', 'Pessimistic', 'Station']];
     document.querySelectorAll('.task-row').forEach(row => {
       rows.push([
+        row.querySelector('.seq').value,
         row.querySelector('.task-name-input').value,
         row.querySelector('.task-type-select').value,
         row.querySelector('.opt').value,
@@ -1506,96 +1557,174 @@
     downloadCSV(rows, 'Tasks_Input.csv');
   }
 
-/* ─────────────────────────────────────────── */
-  /* ── XLSX TEMPLATE INJECTION (EXCELJS) ── */
-  /* ─────────────────────────────────────────── */
-async function exportToTemplateXLSX() {
-  if (typeof XLSX === 'undefined') {
-    alert("SheetJS library not loaded."); return;
+  async function downloadRawTemplate() {
+    try {
+      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await resp.arrayBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'temp.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert("Could not download template: " + err.message);
+    }
   }
 
-  saveCurrentTasks();
-  const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
-  const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
-  if (!validTasks.length) { alert("No valid tasks to export."); return; }
+  /* ── XLSX TEMPLATE INJECTION (SHEETJS) ── */
+  async function exportToTemplateXLSX() {
+    if (typeof XLSX === 'undefined') {
+      alert("SheetJS library not loaded."); return;
+    }
 
-  const stationMap = {};
-  validTasks.forEach(t => {
-    const stn = t.station || 1;
-    if (!stationMap[stn]) stationMap[stn] = [];
-    stationMap[stn].push(t);
-  });
-  const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
+    saveCurrentTasks();
+    const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
+    if (!validTasks.length) { alert("No valid tasks to export."); return; }
 
-  // Fetch template
-  let wb;
-  try {
-    const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const buf = await resp.arrayBuffer();
-    wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
-  } catch (err) {
-    alert("Could not load template: " + err.message); return;
-  }
+    const stationMap = {};
+    validTasks.forEach(t => {
+      const stn = t.station || 1;
+      if (!stationMap[stn]) stationMap[stn] = [];
+      stationMap[stn].push(t);
+    });
+    const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
 
-  function setCell(ws, r, c, value) {
-    const addr = XLSX.utils.encode_cell({ r, c });
-    if (value === null || value === undefined) { delete ws[addr]; return; }
-    ws[addr] = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
-  }
+    let wb;
+    try {
+      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await resp.arrayBuffer();
+      wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
+    } catch (err) {
+      alert("Could not load template: " + err.message); return;
+    }
 
-  // Micro type mapping VA/SVA/NVA → Vietnamese dropdown value
-  const microTypeMap = { VA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
+    function setCell(ws, r, c, value) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (value === null || value === undefined) { delete ws[addr]; return; }
+      ws[addr] = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
+    }
+    function setRange(ws, r1, c1, r2, c2) {
+      if (!ws['!ref']) { ws['!ref'] = XLSX.utils.encode_range({ s:{r:r1,c:c1}, e:{r:r2,c:c2} }); return; }
+      const cur = XLSX.utils.decode_range(ws['!ref']);
+      cur.s.r = Math.min(cur.s.r, r1); cur.s.c = Math.min(cur.s.c, c1);
+      cur.e.r = Math.max(cur.e.r, r2); cur.e.c = Math.max(cur.e.c, c2);
+      ws['!ref'] = XLSX.utils.encode_range(cur);
+    }
 
-  // ── Data PT-CT: 12-row blocks (10 task slots + 2 summary)
-  //    Station 1 → Excel rows 3-14 (0-idx 2), Station 2 → rows 15-26 (0-idx 14), etc.
-  //    Col C=task name, Col E=PERT mean, Cols F–O=10 samples ──
-  const wsPT = wb.Sheets['Data PT-CT'];
-  if (wsPT) {
-    sortedStns.forEach((stnNum, si) => {
-      const blockStart = 2 + si * 12; // 0-indexed
-      stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-        const ri = blockStart + ti;
-        setCell(wsPT, ri, 2, task.name);
-        setCell(wsPT, ri, 4, parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2)));
-        for (let i = 0; i < 10; i++) {
-          setCell(wsPT, ri, 5 + i, parseFloat(triangular(task.a, task.m, task.b).toFixed(2)));
-        }
+    const wsPT = wb.Sheets['Data PT-CT'];
+    if (wsPT) {
+      sortedStns.forEach((stnNum, si) => {
+        const blockStart = 2 + si * 12;
+        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
+          const ri = blockStart + ti;
+          setCell(wsPT, ri, 2, task.name);
+          setCell(wsPT, ri, 4, parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2)));
+          for (let i = 0; i < 10; i++) {
+            setCell(wsPT, ri, 5 + i, parseFloat(triangular(task.a, task.m, task.b).toFixed(2)));
+          }
+        });
       });
-    });
-  }
+    }
 
-  // ── VAA-NVAA: 11-row blocks per station (10 task slots + 1 separator)
-  //    P01 starts at Excel row 8 (0-idx 7), P02 at row 19 (0-idx 18), etc.
-  //    Only write Col F = micro type (VN) — rest is populated by VLOOKUP formulas ──
-  const wsVAA = wb.Sheets['VAA-NVAA'];
-  if (wsVAA) {
-    sortedStns.forEach((stnNum, si) => {
-      const blockStart = 7 + si * 11; // 0-indexed
-      stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-        const ri = blockStart + ti;
-        setCell(wsVAA, ri, 5, microTypeMap[task.type] || 'Lắp ráp');
+    const microTypeMap = { VA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
+    const wsVAA = wb.Sheets['VAA-NVAA'];
+    if (wsVAA) {
+      sortedStns.forEach((stnNum, si) => {
+        const blockStart = 7 + si * 11;
+        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
+          const ri = blockStart + ti;
+          setCell(wsVAA, ri, 5, microTypeMap[task.type] || 'Lắp ráp');
+        });
       });
+    }
+
+    const DROPDOWN_DATA = [
+      ['MICRO TYPE (Tiếng Việt)', 'MICRO TYPE (English)', 'MACRO TYPE', 'Ghi chú / Note'],
+      ['Lắp ráp', 'Assembling', 'VA', 'Thao tác tạo ra giá trị trực tiếp'],
+      ['Gia công / Xử lý', 'Processing / Machining', 'VA', ''],
+      ['Kiểm tra chất lượng', 'Quality Inspection', 'VA', ''],
+      ['Giữ', 'Holding', 'Semi VA', 'Cần thiết nhưng không tạo giá trị'],
+      ['Lấy / Đặt lại', 'Picking up / Placing back', 'Semi VA', ''],
+      ['Định vị', 'Positioning', 'Semi VA', ''],
+      ['Đặt cùng nhau', 'Putting together', 'Semi VA', ''],
+      ['Đập / Gõ', 'Hammering', 'Semi VA', ''],
+      ['Nhấn', 'Pressing', 'Semi VA', ''],
+      ['Siết / Bắn ốc', 'Tightening / Fastening', 'Semi VA', ''],
+      ['Bôi / Chấm mỡ', 'Applying grease / lubricant', 'Semi VA', ''],
+      ['Đang chờ đợi', 'Waiting / Idle', 'NVA', 'Lãng phí – cần loại bỏ'],
+      ['Đi bộ / Di chuyển', 'Walking / Moving', 'NVA', ''],
+      ['Vận chuyển / Chuyển', 'Transporting / Transferring', 'NVA', ''],
+      ['Xoay / Lật', 'Rotating / Turning', 'NVA', ''],
+      ['Tìm kiếm', 'Searching', 'NVA', ''],
+      ['Mở / Đóng', 'Open / Close', 'NVA', ''],
+      ['Làm mờ / Tháo gỡ', 'Pre-tightening / Unfastening', 'NVA', ''],
+      ['Lấy ra / Lột bỏ', 'Taking out / Peeling off', 'NVA', ''],
+      ['Hoạt động chất lượng', 'Quality Operations (rework/inspect)', 'NVA', ''],
+      ['Dự kiến Trình', 'Tentative Placement', 'NVA', ''],
+      ['Sắp xếp / Tổ chức lại', 'Sorting / Re-arranging', 'NVA', ''],
+      ['Vệ sinh / Lau dọn', 'Cleaning / Wiping', 'NVA', ''],
+    ];
+
+    let wsDL = wb.Sheets['Dropdown list'];
+    if (!wsDL) {
+      wsDL = {};
+      wb.SheetNames.push('Dropdown list');
+      wb.Sheets['Dropdown list'] = wsDL;
+    }
+    DROPDOWN_DATA.forEach((row, ri) => {
+      row.forEach((val, ci) => setCell(wsDL, ri, ci, val));
     });
+    setRange(wsDL, 0, 0, DROPDOWN_DATA.length - 1, 3);
+
+    const INSTR_SHEET = 'Instructions';
+    const HD_ROWS = [
+      ['=== HUONG DAN / HOW TO PASTE INTO YAMAZUMI TEMPLATE ==='],
+      [''],
+      ['FILE NAY CO 4 SHEET / THIS FILE HAS 4 SHEETS:'],
+      ['  1. Instructions  — Ban dang doc / You are here'],
+      ['  2. Data PT-CT    — Thoi gian tung thao tac theo tram (PERT mean + 10 samples)'],
+      ['  3. VAA-NVAA      — Phan loai VA / Semi-VA / NVA cho tung thao tac'],
+      ['  4. Dropdown list — Danh muc day du cac loai micro-type (doi chieu)'],
+      [''],
+      ['Generated by Monte Carlo Simulator — ' + new Date().toLocaleString()],
+    ];
+
+    const oldIdx = wb.SheetNames.indexOf(INSTR_SHEET);
+    if (oldIdx !== -1) {
+      wb.SheetNames.splice(oldIdx, 1);
+      delete wb.Sheets[INSTR_SHEET];
+    }
+    const wsHD = {};
+    HD_ROWS.forEach((row, ri) => {
+      const val = Array.isArray(row) ? row[0] : row;
+      if (val !== undefined && val !== '') setCell(wsHD, ri, 0, String(val));
+    });
+    wsHD['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:HD_ROWS.length-1,c:0} });
+    wsHD['!cols'] = [{ wch: 90 }];
+    wb.SheetNames.push(INSTR_SHEET);
+    wb.Sheets[INSTR_SHEET] = wsHD;
+
+    const VISIBLE = new Set(['Data PT-CT', 'VAA-NVAA', 'Dropdown list', INSTR_SHEET]);
+    if (!wb.Workbook) wb.Workbook = {};
+    wb.Workbook.Sheets = wb.SheetNames.map(n => ({ name: n, Hidden: VISIBLE.has(n) ? 0 : 2 }));
+
+    XLSX.writeFile(wb, 'Temp_Simulated.xlsx');
   }
 
-  // ── Hide all sheets except Data PT-CT and VAA-NVAA ──
-  const VISIBLE = ['Data PT-CT', 'VAA-NVAA'];
-  if (wb.Workbook && wb.Workbook.Sheets) {
-    wb.Workbook.Sheets.forEach(s => {
-      s.Hidden = VISIBLE.includes(s.name) ? 0 : 2; // 0=visible, 2=very hidden
-    });
-  }
-
-  XLSX.writeFile(wb, 'Temp_Simulated.xlsx');
-}
-function exportMegaCSV() {
+  function exportMegaCSV() {
     if (!simResults.length || !simLineCycleResults.length) return;
     const iters  = simResults.length;
     const sorted = [...simResults].sort((a,b)=>a-b);
     const sortedLine = [...simLineCycleResults].sort((a,b)=>a-b);
     const mean   = simResults.reduce((a,b)=>a+b,0)/iters;
-    const stdDev = parseFloat(document.getElementById('kpi-std').textContent);
+    const stdEl  = document.getElementById('kpi-std');
+    const stdDev = stdEl ? parseFloat(stdEl.textContent) : 0;
 
     let rows = [
       ['TRIMMER ASSEMBLY LINE - COMPREHENSIVE SIMULATION REPORT'],
@@ -1604,10 +1733,10 @@ function exportMegaCSV() {
       [],
       ['--- 1. OVERALL STATISTICS (TOTAL LEAD TIME) ---'],
       ['Metric', 'Seconds'],
-      ['Expected (Mean)', document.getElementById('kpi-mean').textContent],
-      ['Minimum Observed', document.getElementById('kpi-min').textContent],
-      ['Maximum Observed', document.getElementById('kpi-max').textContent],
-      ['Standard Deviation', document.getElementById('kpi-std').textContent],
+      ['Expected (Mean)', document.getElementById('kpi-mean')?.textContent || ''],
+      ['Minimum Observed', document.getElementById('kpi-min')?.textContent || ''],
+      ['Maximum Observed', document.getElementById('kpi-max')?.textContent || ''],
+      ['Standard Deviation', document.getElementById('kpi-std')?.textContent || ''],
       ['Coefficient of Variation', ((stdDev/mean)*100).toFixed(2)+'%'],
       [],
       ['--- 2. SHIFT CAPACITY & DEMAND ---'],
@@ -1639,8 +1768,6 @@ function exportMegaCSV() {
     });
     rows.push([]);
 
-
-    // ── Yamazumi section ──
     if (yamazumiData && yamazumiData.length) {
       const taktEl = document.getElementById('yamazumi-takt');
       const takt   = taktEl ? parseFloat(taktEl.value) : 0;
@@ -1661,7 +1788,6 @@ function exportMegaCSV() {
       rows.push([]);
     }
 
-    // ── Flow Simulation section ──
     if (flowSimResults && flowSimResults.length) {
       const bn  = flowSimResults.find(s=>s.isBottleneck)||flowSimResults[0];
       const thr = (3600/bn.avgProcessTime).toFixed(0);
