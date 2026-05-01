@@ -145,6 +145,40 @@
       margin-bottom: 1rem;
     }
 
+    .scan-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .scan-card {
+      background: rgba(17, 26, 38, 0.82);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--gold);
+      padding: 1.25rem;
+    }
+
+    .scan-card strong {
+      display: block;
+      color: var(--text-main);
+      font-size: 1rem;
+      margin-bottom: .35rem;
+    }
+
+    .scan-card span {
+      color: var(--text-muted);
+      font-size: .88rem;
+    }
+
+    @media (min-width: 768px) {
+      .scan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 1100px) {
+      .scan-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
     /* ── Custom Tables ── */
     .table-dossier {
       width: 100%;
@@ -217,10 +251,16 @@
     <div class="row align-items-end">
       <div class="col-lg-8">
         <div class="metric-label" style="color: var(--gold);">Human Factors Engineering</div>
-        <h1 class="dossier-title">Ergonomic Kitchen Workspace Design</h1>
+        <h1 class="dossier-title">Design a kitchen that reduces strain</h1>
         <p class="body-lead mt-4" style="max-width: 750px;">
-          Integrating human factors engineering, anthropometry, and industrial job design frameworks to architect a high-efficiency, zero-strain culinary workspace.
+          Apply anthropometry, workflow sequencing, and 5S storage logic to build a safer, faster, easier-to-use culinary workspace.
         </p>
+        <div class="scan-grid">
+          <div class="scan-card"><strong>Set heights</strong><span>Match worktops and sinks to user reach.</span></div>
+          <div class="scan-card"><strong>Reduce steps</strong><span>Route prep from storage to cooking.</span></div>
+          <div class="scan-card"><strong>Protect posture</strong><span>Lift sink height to reduce bending.</span></div>
+          <div class="scan-card"><strong>Place tools</strong><span>Keep frequent items in the strike zone.</span></div>
+        </div>
       </div>
       <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
         <div class="d-flex flex-column gap-3 align-items-lg-end">
@@ -239,11 +279,11 @@
 <section>
   <div class="container">
     <span class="chapter-num">Chapter I</span>
-    <h2 class="chapter-title">Executive Summary & Spatial Specs</h2>
+    <h2 class="chapter-title">Set the ergonomic targets</h2>
     
     <div class="callout-box">
       <p class="mb-0" style="font-size: 1.05rem; color: var(--text-main);">
-        Engineered a high-efficiency kitchen workspace utilizing <strong>5th-to-95th percentile anthropometric data</strong> to eliminate musculoskeletal strain. Optimized the primary work triangle to a strict <strong>3600–7000 mm perimeter</strong>, enforcing a critical <strong>1200–1800 mm clearance</strong> between sink and stove to maximize operational throughput. Calibrated dynamic countertop and sink elevations (<strong>930mm to 1090mm</strong>) accommodating male and female ergonomic baselines, lifting the sink datum by <strong>70–90 mm</strong> to neutralize lumbar spinal compression. Deployed the <strong>5S manufacturing framework</strong> across vertical storage strata, consolidating 100% of high-frequency tools within the optimal <strong>800–1100 mm strike zone</strong>. This data-driven layout slashes physical fatigue, mitigates hazard risks, and scales industrial job design principles into residential architecture.
+        Designed a kitchen around <strong>5th-to-95th percentile anthropometric data</strong>. The layout controls travel distance, sets safe clearances, lifts sink height by <strong>70-90 mm</strong>, and places high-frequency tools in the <strong>800-1100 mm</strong> strike zone.
       </p>
     </div>
 
@@ -283,13 +323,13 @@
 <section style="background: var(--bg-alt);">
   <div class="container">
     <span class="chapter-num">Chapter II</span>
-    <h2 class="chapter-title">Spatial Layout & Continuous Workflow</h2>
+    <h2 class="chapter-title">Route the workflow</h2>
     
     <div class="row g-5">
       <div class="col-lg-6">
-        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">The Sequence of Use</h3>
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Sequence the Stations</h3>
         <p class="text-muted mb-4" style="font-size: 0.95rem;">
-          An efficient kitchen layout follows two primary principles: <strong>sequence of use</strong> and <strong>frequency of use</strong>. To minimize cross-traffic and redundant steps, the spatial routing follows a strict left-to-right operational flow (calibrated for right-handed dominance):
+          Arrange stations by use order and frequency. This reduces cross-traffic, repeated reaching, and unnecessary walking during prep.
         </p>
         
         <div class="d-flex align-items-center gap-2 mb-5 flex-wrap" style="font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--gold);">
@@ -306,9 +346,9 @@
       </div>
 
       <div class="col-lg-6">
-        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">The Work Triangle</h3>
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Control the Triangle</h3>
         <p class="text-muted mb-4" style="font-size: 0.95rem;">
-          The classic kitchen work triangle connects three essential work zones (Storage, Cleaning, Cooking). To prevent geometric collision and ensure fluid motion, strict parameters are enforced:
+          Connect storage, cleaning, and cooking with measurable spacing so movement stays clear and predictable.
         </p>
         <ul class="text-muted ps-3" style="font-size: 0.95rem; line-height: 1.8;">
           <li><strong style="color: var(--text-main);">Perimeter Constraint:</strong> Total triangle length must remain within 3600 &ndash; 7000 mm.</li>
@@ -323,19 +363,19 @@
 <section>
   <div class="container">
     <span class="chapter-num">Chapter III</span>
-    <h2 class="chapter-title">Anthropometric Scaling & Spinal Health</h2>
+    <h2 class="chapter-title">Calibrate height and posture</h2>
     
     <div class="row g-5">
       <div class="col-lg-5 d-flex flex-column justify-content-center">
         <p class="text-muted" style="font-size: 0.95rem;">
-          Incorrect countertop height is one of the leading causes of acute physical strain in culinary workspaces. Static architectural heights fail to accommodate the biological variance of end-users.
+          Countertop height directly affects back, shoulder, and neck load. Static dimensions miss important user variation.
         </p>
         <ul class="text-muted ps-3 mb-4" style="font-size: 0.95rem; line-height: 1.8;">
           <li><strong style="color: #c46868;">Deficit Heights:</strong> Induce continuous lumbar flexion, placing critical pressure on the lower spine.</li>
           <li><strong style="color: #c46868;">Surplus Heights:</strong> Force raised arm postures, accumulating localized fatigue in the deltoids and cervical spine.</li>
         </ul>
         <p class="text-muted" style="font-size: 0.95rem;">
-          By lifting the sink datum by <strong>70&ndash;90 mm</strong> relative to the worktop, users maintain a neutral, vertical spine during deep-reach cleaning operations.
+          Raise the sink <strong>70&ndash;90 mm</strong> above the worktop so users can wash deeper items with a more neutral spine.
         </p>
       </div>
       
@@ -370,19 +410,19 @@
 <section style="background: var(--bg-alt);">
   <div class="container">
     <span class="chapter-num">Chapter IV</span>
-    <h2 class="chapter-title">5S Organization & Vertical Stratification</h2>
+    <h2 class="chapter-title">Place tools by reach</h2>
     
     <div class="row g-5">
       <div class="col-lg-7">
         <p class="text-muted" style="font-size: 0.95rem; margin-bottom: 2rem;">
-          Efficient kitchens benefit from industrial organization techniques such as the 5S method: <strong>Sort, Set in Order, Shine, Standardize, and Sustain</strong>. Applying these principles maps tooling directly to biological reach profiles.
+          Use 5S to sort, place, clean, standardize, and maintain tool locations according to reach effort.
         </p>
         
         <div class="d-flex flex-column gap-3">
           <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(74, 179, 141, 0.05); border-left: 3px solid #4ab38d;">
             <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #4ab38d; min-width: 100px;">800-1100 mm</div>
             <div>
-              <div style="color: var(--text-main); font-weight: 500; font-size: 0.95rem;">Optimal Strike Zone</div>
+              <div style="color: var(--text-main); font-weight: 500; font-size: 0.95rem;">Store Daily Tools</div>
               <div style="color: var(--text-muted); font-size: 0.85rem;">High-frequency rotation: Knives, spices, prep boards. Zero-bend reach.</div>
             </div>
           </div>
@@ -390,7 +430,7 @@
           <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(200, 146, 42, 0.05); border-left: 3px solid var(--gold);">
             <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--gold); min-width: 100px;">400-800 mm<br>1100-1800 mm</div>
             <div>
-              <div style="color: var(--text-main); font-weight: 500; font-size: 0.95rem;">Intermediate Access</div>
+              <div style="color: var(--text-main); font-weight: 500; font-size: 0.95rem;">Stage Weekly Tools</div>
               <div style="color: var(--text-muted); font-size: 0.85rem;">Moderate-frequency tooling. Handled via pull-out cabinets and tiered drawers.</div>
             </div>
           </div>
@@ -398,7 +438,7 @@
           <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(196, 104, 104, 0.05); border-left: 3px solid #c46868;">
             <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #c46868; min-width: 100px;">&lt; 400 mm<br>&gt; 1800 mm</div>
             <div>
-              <div style="color: var(--text-main); font-weight: 500; font-size: 0.95rem;">Deficit Zones</div>
+              <div style="color: var(--text-main); font-weight: 500; font-size: 0.95rem;">Archive Rare Tools</div>
               <div style="color: var(--text-muted); font-size: 0.85rem;">Low-frequency storage. Bulky appliances and seasonal equipment. Requires squatting or step-stools.</div>
             </div>
           </div>
