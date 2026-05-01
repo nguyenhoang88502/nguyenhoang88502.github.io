@@ -20,7 +20,9 @@
 
         body {
             font-family: var(--font-family);
-            background-color: var(--bg-color);
+            background:
+                radial-gradient(circle at top left, rgba(92, 156, 230, 0.16), transparent 34%),
+                linear-gradient(180deg, #101010 0%, var(--bg-color) 38%);
             color: var(--text-primary);
             margin: 0;
             padding: 0;
@@ -33,27 +35,90 @@
         .container {
             max-width: 1200px;
             width: 90%;
-            margin: 40px auto;
+            margin: 32px auto;
             padding-bottom: 60px;
         }
 
         /* Header Styles */
         header {
-            text-align: center;
-            margin-bottom: 50px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 28px;
+            margin-bottom: 34px;
+            padding: 34px;
+            border: 1px solid #2b2b2b;
+            border-radius: 8px;
+            background: rgba(30, 30, 30, 0.78);
+            box-shadow: var(--shadow);
         }
 
         header h1 {
             color: white;
-            font-size: 2.5em;
+            font-size: clamp(2.2rem, 6vw, 4.4rem);
+            line-height: 1;
             margin-bottom: 10px;
+            max-width: 820px;
         }
 
         header p {
             color: var(--text-secondary);
             font-size: 1.1em;
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 720px;
+            margin: 0;
+        }
+
+        .eyebrow {
+            color: var(--accent-orange);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .metric-strip {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .metric-card {
+            border: 1px solid #343434;
+            border-left: 4px solid var(--accent-orange);
+            background: #171717;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .metric-card strong {
+            display: block;
+            color: #fff;
+            font-size: 1.4rem;
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+
+        .metric-card span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 860px) {
+            header {
+                grid-template-columns: 1.4fr 0.6fr;
+                align-items: end;
+            }
+
+            .metric-strip {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Dashboard Image Showcase */
@@ -92,6 +157,37 @@
             border-radius: 8px;
             box-shadow: var(--shadow);
             margin-bottom: 30px;
+        }
+
+        .skim-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 22px;
+        }
+
+        .skim-card {
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 18px;
+            background: #171717;
+        }
+
+        .skim-card b {
+            display: block;
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .skim-card span {
+            color: var(--text-secondary);
+            font-size: 0.94rem;
+        }
+
+        @media (min-width: 768px) {
+            .skim-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
         }
 
         .description h2, .code-section h2 {
@@ -176,6 +272,18 @@
             color: white;
         }
 
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid #555;
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #292929;
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
         /* Code Block Styling */
         pre {
             background-color: #0d0d0d;
@@ -223,8 +331,29 @@
 
 <div class="container">
     <header>
-        <h1>Manufacturing Operations Dashboard</h1>
-        <p>An interactive Power BI solution for tracking line efficiency and root cause analysis of production downtime.</p>
+        <div>
+            <div class="eyebrow">Power BI operations case study</div>
+            <h1>Track downtime. Isolate causes. Recover line capacity.</h1>
+            <p>An interactive manufacturing dashboard built to help supervisors scan performance, rank losses, and act on the few issues creating most downtime.</p>
+            <div class="hero-actions">
+                <a href="workshop.pbix" download class="btn btn-pbix">Download PBIX</a>
+                <a href="#build-guide" class="btn btn-secondary">Review build logic</a>
+            </div>
+        </div>
+        <div class="metric-strip">
+            <div class="metric-card">
+                <strong>Monitor</strong>
+                <span>Compare actual batch time against standard time.</span>
+            </div>
+            <div class="metric-card">
+                <strong>Prioritize</strong>
+                <span>Use Pareto ranking to reveal the vital downtime drivers.</span>
+            </div>
+            <div class="metric-card">
+                <strong>Improve</strong>
+                <span>Target operators, products, and process steps with evidence.</span>
+            </div>
+        </div>
     </header>
 
     <div class="showcase-card">
@@ -233,14 +362,22 @@
 
     <div class="details-section">
         <div class="description">
-            <h2>Project Overview</h2>
-            <p>This comprehensive dashboard provides production supervisors and engineering teams with real-time insights into manufacturing line performance. It merges productivity metrics with quality control logs to isolate inefficiencies.</p>
-            <h3>Key Insights:</h3>
-            <ul>
-                <li><strong>Efficiency Tracking:</strong> Monitors daily performance against standard batch times, isolating trends by product and operator.</li>
-                <li><strong>Dynamic Pareto Analysis:</strong> Automatically calculates the "Vital Few" factors causing 80% of total downtime minutes.</li>
-                <li><strong>Error Isolation:</strong> Visualizes operator error frequencies to identify targeted training opportunities.</li>
-            </ul>
+            <h2>Scan the Outcome</h2>
+            <p>This dashboard combines production logs, product standards, and downtime factors into a focused decision view for daily manufacturing reviews.</p>
+            <div class="skim-grid">
+                <div class="skim-card">
+                    <b>Measure efficiency</b>
+                    <span>Track actual batch time against expected standards by day, product, and operator.</span>
+                </div>
+                <div class="skim-card">
+                    <b>Rank downtime</b>
+                    <span>Calculate the top factors responsible for the largest share of lost minutes.</span>
+                </div>
+                <div class="skim-card">
+                    <b>Target action</b>
+                    <span>Spot training, maintenance, and process opportunities without reading raw logs.</span>
+                </div>
+            </div>
         </div>
 
         <div class="download-actions">
@@ -250,20 +387,20 @@
         </div>
     </div>
 
-    <div class="code-section">
-        <h2>Phase 1: Data Architecture & Modeling</h2>
-        <p>Before building visuals, the raw production logs were cleaned in Power Query and modeled into a robust Star Schema to ensure high performance and accurate filtering.</p>
+    <div class="code-section" id="build-guide">
+        <h2>Build Phase 1: Model the Data</h2>
+        <p>Clean the raw logs in Power Query, then organize them into a star schema so slicers stay fast and measures remain reliable.</p>
         <ul>
-            <li><strong>Data Cleaning:</strong> Handled null values by replacing empty text fields with "Uncategorized" and empty numeric fields with <code>0</code>.</li>
-            <li><strong>Fact Table:</strong> <code>Fact Line Productivity</code> & <code>Line downtime</code> act as the core numerical tables containing Batch IDs, Dates, and Duration minutes.</li>
-            <li><strong>Dimension Tables:</strong> <code>Downtime factors</code> and <code>Products</code> act as lookup tables.</li>
-            <li><strong>Relationships:</strong> 1-to-Many (*) relationships established from Dimension tables filtering the Fact tables, with Single cross-filter direction.</li>
+            <li><strong>Clean:</strong> Replace empty text with "Uncategorized" and empty numeric fields with <code>0</code>.</li>
+            <li><strong>Separate:</strong> Use <code>Fact Line Productivity</code> and <code>Line downtime</code> for batch IDs, dates, and duration minutes.</li>
+            <li><strong>Lookup:</strong> Keep <code>Downtime factors</code> and <code>Products</code> as dimension tables.</li>
+            <li><strong>Connect:</strong> Filter fact tables through one-to-many relationships with single cross-filter direction.</li>
         </ul>
     </div>
 
     <div class="code-section">
-        <h2>Phase 2: Base Productivity Measures</h2>
-        <p>These core DAX formulas establish the baseline KPIs for the executive summary cards and trend lines.</p>
+        <h2>Build Phase 2: Define KPI Measures</h2>
+        <p>Create the baseline DAX measures that power the summary cards, trend lines, and Pareto chart.</p>
 <pre>
 <span class="dax-comment">// Calculates total time recorded per batch</span>
 Actual Batch Time = <span class="dax-function">SUM</span>('Fact Line Productivity'[Batch time])
@@ -280,8 +417,8 @@ Total Downtime = <span class="dax-function">SUM</span>('Line downtime'[Downtime]
     </div>
 
     <div class="code-section">
-        <h2>Phase 3: The Pareto Logic</h2>
-        <p>Standard Pareto charts fail in Power BI when data contains tied values. This DAX logic forces the calculation to use the exact Description column on the visual and includes an alphabetical tie-breaker so the cumulative line never flatlines.</p>
+        <h2>Build Phase 3: Rank the Vital Few</h2>
+        <p>Resolve tied downtime values with a stable alphabetical tie-breaker, so the cumulative Pareto line stays accurate instead of flattening.</p>
         
         <h3>1. Cumulative Downtime (Running Total)</h3>
 <pre>
@@ -330,8 +467,8 @@ Pareto Bar Color =
     </div>
 
     <div class="code-section">
-        <h2>Phase 4: Visual Configuration Guide</h2>
-        <p>The exact settings required to assemble the visuals in the Power BI report canvas.</p>
+        <h2>Build Phase 4: Assemble the Report</h2>
+        <p>Use these canvas settings to reproduce the final visuals cleanly in Power BI.</p>
 
         <h3>The Pareto Chart</h3>
         <ol>
@@ -350,9 +487,9 @@ Pareto Bar Color =
 
         <h3>Supporting Visuals</h3>
         <ul>
-            <li><strong>Executive KPIs:</strong> Utilize the 'Card' visual to display <code>Efficiency</code>, <code>Total Batch Time</code>, and <code>Total Downtime</code>.</li>
-            <li><strong>Efficiency by Date:</strong> Line chart plotting <code>Date</code> on the X-axis and <code>Efficiency</code> on the Y-axis.</li>
-            <li><strong>Breakdowns:</strong> Clustered bar charts utilizing <code>Operator</code> and <code>Product</code> dimensions against the <code>Efficiency</code> measure.</li>
+            <li><strong>Show KPIs:</strong> Use card visuals for <code>Efficiency</code>, <code>Total Batch Time</code>, and <code>Total Downtime</code>.</li>
+            <li><strong>Trend efficiency:</strong> Plot <code>Date</code> against <code>Efficiency</code>.</li>
+            <li><strong>Compare breakdowns:</strong> Use operator and product dimensions against the <code>Efficiency</code> measure.</li>
         </ul>
     </div>
 
