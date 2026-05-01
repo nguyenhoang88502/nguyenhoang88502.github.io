@@ -139,6 +139,40 @@
       margin-bottom: 1rem;
     }
 
+    .scan-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .scan-card {
+      background: rgba(17, 26, 38, 0.82);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--gold);
+      padding: 1.25rem;
+    }
+
+    .scan-card strong {
+      display: block;
+      color: var(--text-main);
+      font-size: 1rem;
+      margin-bottom: .35rem;
+    }
+
+    .scan-card span {
+      color: var(--text-muted);
+      font-size: .88rem;
+    }
+
+    @media (min-width: 768px) {
+      .scan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 1100px) {
+      .scan-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
     /* ── Chart Containers ── */
     .chart-box {
       background: var(--bg-surface);
@@ -188,10 +222,16 @@
     <div class="row align-items-end">
       <div class="col-lg-8">
         <div class="metric-label" style="color: var(--gold);">Strategic Decision Analysis</div>
-        <h1 class="dossier-title">Mastering Strategy via the Analytic Hierarchy Process</h1>
+        <h1 class="dossier-title">Rank EVLotus strategy with AHP</h1>
         <p class="body-lead mt-4" style="max-width: 700px;">
-          An exploration of multi-criteria decision making (MCDM). This dossier details the application of AHP to resolve complex strategic bottlenecks for the EVLotus electric vehicle project.
+          Convert subjective tradeoffs into ranked choices across market segment, outreach channel, supplier, and flagship vehicle decisions.
         </p>
+        <div class="scan-grid">
+          <div class="scan-card"><strong>Prioritize B2B</strong><span>46.6% segment score.</span></div>
+          <div class="scan-card"><strong>Select Supplier B</strong><span>49.9% supplier score.</span></div>
+          <div class="scan-card"><strong>Launch E-S35</strong><span>40.0% model score.</span></div>
+          <div class="scan-card"><strong>Activate Co-branding</strong><span>27.1% channel score.</span></div>
+        </div>
       </div>
       <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
         <div class="d-flex flex-column gap-3 align-items-lg-end">
@@ -210,11 +250,11 @@
 <section>
   <div class="container">
     <span class="chapter-num">Chapter I</span>
-    <h2 class="chapter-title">Executive Summary</h2>
+    <h2 class="chapter-title">Decide with weighted evidence</h2>
     
     <div class="callout-box">
       <p class="mb-0" style="font-size: 1.05rem; color: var(--text-main);">
-        Engineered a quantitative go-to-market framework using AHP across 4 matrices. Pinpointed the <strong>B2B sector (46.6%)</strong> as the primary growth engine, driven by a <strong>40%</strong> weight on revenue potential. Optimized acquisition via <strong>Co-branding Partnerships (27.1%)</strong>, leveraging a <strong>48.2%</strong> focus on brand trust. Secured supply chain resilience with <strong>Supplier B (49.9%)</strong>, prioritizing quality (<strong>51.8%</strong>) over raw capacity. Crowned the <strong>E-S35 (40.0%)</strong> as the flagship vehicle, balancing a <strong>38.2%</strong> price-sensitivity requirement. This rigorous analysis eliminated subjective bias, deploying an optimized strategy across <strong>18+ decision variables</strong>.
+        Built four AHP matrices to rank the highest-impact strategic moves. The analysis prioritizes <strong>B2B</strong>, validates <strong>co-branding</strong>, selects <strong>Supplier B</strong>, and recommends the <strong>E-S35</strong> as the best flagship fit across 18+ weighted variables.
       </p>
     </div>
 
@@ -232,13 +272,13 @@
 <section style="background: var(--bg-alt);">
   <div class="container">
     <span class="chapter-num">Chapter II</span>
-    <h2 class="chapter-title">Market Segmentation & Outreach</h2>
+    <h2 class="chapter-title">Choose the market and channel</h2>
     
     <div class="row g-5">
       <div class="col-lg-4">
-        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.5rem;">Target Demographic</h3>
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.5rem;">Prioritize the Segment</h3>
         <p class="text-muted" style="font-size: 0.95rem;">
-          Evaluating four distinct market segments required balancing immediate revenue against long-term loyalty. The B2B sector outpaced consumer markets due to extreme strategic fit and bulk revenue potential.
+          Compare four segments by revenue, growth, loyalty, and strategic fit. B2B wins because bulk demand and strategic alignment outweigh consumer reach.
         </p>
         <div class="data-card mt-4">
           <div class="metric-label">Dominant Segment</div>
@@ -261,9 +301,9 @@
 
     <div class="row g-5 mt-4">
       <div class="col-lg-4 order-lg-2">
-        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.5rem;">Acquisition Strategy</h3>
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.5rem;">Select the Channel</h3>
         <p class="text-muted" style="font-size: 0.95rem;">
-          To capture the B2B sector, the outreach strategy heavily penalized high-cost, low-impact channels. Co-branding partnerships dominated by offering unparalleled trust and brand impact synergy.
+          Filter acquisition channels by brand impact, engagement, sustainability, and implementation cost. Co-branding wins by pairing trust with reach.
         </p>
         <div class="data-card mt-4">
           <div class="metric-label">Optimal Channel</div>
@@ -290,15 +330,15 @@
 <section>
   <div class="container">
     <span class="chapter-num">Chapter III</span>
-    <h2 class="chapter-title">Supply Chain Integrity</h2>
+    <h2 class="chapter-title">Secure the supplier</h2>
 
     <div class="row g-5">
       <div class="col-lg-5">
         <p class="text-muted" style="font-size: 0.95rem;">
-          In selecting a core battery supplier, EVLotus prioritized technological reliability. The pairwise comparison matrix revealed that <strong>Quality (51.8%) was deemed five times more critical than raw Production Capacity (8.6%)</strong>.
+          Rank battery suppliers by quality, cost, risk, and capacity. Quality carries the decision with a <strong>51.8%</strong> criterion weight.
         </p>
         <p class="text-muted" style="font-size: 0.95rem;">
-          Despite Supplier A offering better cost metrics, Supplier B's overwhelming dominance in quality assurance secured them as the definitive strategic partner.
+          Supplier B wins because quality assurance offsets Supplier A's cost advantage.
         </p>
         
         <div class="row g-3 mt-3">
@@ -331,7 +371,7 @@
 <section style="background: var(--bg-alt);">
   <div class="container">
     <span class="chapter-num">Chapter IV</span>
-    <h2 class="chapter-title">Flagship Product Selection</h2>
+    <h2 class="chapter-title">Launch the flagship</h2>
 
     <div class="row g-5">
       <div class="col-lg-8">
@@ -342,10 +382,10 @@
       </div>
       <div class="col-lg-4 d-flex flex-column justify-content-center">
         <p class="text-muted" style="font-size: 0.95rem;">
-          The final matrix synthesized six vehicle criteria. While the E-Z10 modeled highest for absolute affordability, the target B2B segment required operational consistency. 
+          Compare vehicle options across six criteria. The E-Z10 leads on affordability, but B2B buyers need stronger operating consistency.
         </p>
         <p class="text-muted" style="font-size: 0.95rem;">
-          The <strong>E-S35</strong> absorbed the win by balancing the heavy 38.2% price weight with superior scores in charging convenience and onboard technology.
+          The <strong>E-S35</strong> wins by balancing price sensitivity with charging convenience and onboard technology.
         </p>
         
         <div class="data-card mt-3">
