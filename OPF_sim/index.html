@@ -458,7 +458,7 @@
       </div>
       <div class="panel-body" style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
         <strong style="color: var(--text);">1. Setup Tasks:</strong> Click "Add Task" or "Import Tasks Data". <br>
-        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: Seq, Task Name, Type, Opt, ML, Pess, Station.</em></span><br>
+        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: Seq, Task Name, Type, Opt, ML, Pess, Station. Blank time cells import as 0.</em></span><br>
         <strong style="color: var(--text);">2. Value Analysis:</strong> Label each task as VAA, Semi-VA, or NVA.<br>
         <strong style="color: var(--text);">3. Real Data:</strong> Click the REC button next to any task to open the data collector.<br>
         <strong style="color: var(--text);">4. Simulate:</strong> Set iterations and click <strong>RUN</strong> — Yamazumi &amp; Flow Sim auto-generate.
@@ -653,6 +653,11 @@
     return result;
   }
 
+  function parseOptionalTime(value) {
+    const raw = (value || '').toString().trim();
+    return raw === '' ? 0 : Number(raw);
+  }
+
   /* FIX: importTasksCSV now reads 7-column format (Seq, Task, Type, Opt, ML, Pess, Station)
      and falls back to legacy 6-column (Task, Type, Opt, ML, Pess, Station) */
   function importTasksCSV(event) {
@@ -680,17 +685,17 @@
           seq  = parseInt(cols[0]) || null;
           name = cols[1];
           type = normalizeTaskType(cols[2]);
-          opt  = parseFloat(cols[3]);
-          ml   = parseFloat(cols[4]);
-          pess = parseFloat(cols[5]);
+          opt  = parseOptionalTime(cols[3]);
+          ml   = parseOptionalTime(cols[4]);
+          pess = parseOptionalTime(cols[5]);
           stn  = parseInt(cols[6]) || 1;
         } else if (cols.length >= 5) {
           // Legacy 6-column format: Task, Type, Opt, ML, Pess[, Station]
           name = cols[0];
           type = normalizeTaskType(cols[1]);
-          opt  = parseFloat(cols[2]);
-          ml   = parseFloat(cols[3]);
-          pess = parseFloat(cols[4]);
+          opt  = parseOptionalTime(cols[2]);
+          ml   = parseOptionalTime(cols[3]);
+          pess = parseOptionalTime(cols[4]);
           stn  = cols.length >= 6 ? (parseInt(cols[5]) || 1) : 1;
         } else {
           continue;
