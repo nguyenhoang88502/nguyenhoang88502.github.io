@@ -69,6 +69,22 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        .hero-panel {
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.45), transparent 34%),
+                linear-gradient(135deg, #0f172a 0%, #1d4ed8 58%, #0f766e 100%);
+        }
+        .action-card {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+        }
+        .section-eyebrow {
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-size: .72rem;
+            font-weight: 800;
+        }
     </style>
     <!-- Chosen Palette: Bách Khoa Trust (Base: Slate-50, Slate-800. Primary: Blue-700. Accent: Blue-100, Emerald-600) -->
     <!-- Application Structure Plan: SPA dashboard với cấu trúc phân tầng thông tin: Tổng quan hệ sinh thái -> Chi tiết phương thức xét tuyển -> Khám phá 30+ ngành học phân nhóm theo Khoa chuyên môn. Cấu trúc này giúp người dùng dễ dàng định vị ngành học theo đơn vị quản lý, đồng thời cung cấp thông tin thực tế về lộ trình và thu nhập. -->
@@ -85,9 +101,9 @@
                     <span class="font-bold text-xl text-blue-800 tracking-tight">HCMUT<span class="text-slate-500 font-normal text-lg ml-1">Admissions 2026</span></span>
                 </div>
                 <div class="hidden md:flex space-x-8 items-center" id="nav-menu">
-                    <button class="nav-item active px-1 py-2 text-slate-600 hover:text-blue-600 transition" data-target="overview-section">Tổng Quan</button>
-                    <button class="nav-item px-1 py-2 text-slate-600 hover:text-blue-600 transition" data-target="admission-section">Xét Tuyển</button>
-                    <button class="nav-item px-1 py-2 text-slate-600 hover:text-blue-600 transition" data-target="majors-section">Ngành Đào Tạo</button>
+                    <button class="nav-item active px-1 py-2 text-slate-600 hover:text-blue-600 transition" data-target="overview-section">Scan Programs</button>
+                    <button class="nav-item px-1 py-2 text-slate-600 hover:text-blue-600 transition" data-target="admission-section">Compare Scores</button>
+                    <button class="nav-item px-1 py-2 text-slate-600 hover:text-blue-600 transition" data-target="majors-section">Choose Majors</button>
                 </div>
             </div>
         </div>
@@ -95,22 +111,46 @@
 
     <main class="flex-grow w-full">
         
-        <header class="bg-blue-800 text-white py-16 px-4">
-            <div class="max-w-7xl mx-auto text-center">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">Khám Phá Cơ Hội Kỹ Thuật & Công Nghệ</h1>
-                <p class="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
-                    Trường Đại học Bách khoa - ĐHQG-HCM (HCMUT) là trường kỹ thuật trọng điểm quốc gia, thành lập năm 1957. Hiện đào tạo hơn 30.000 sinh viên, với hệ thống kiểm định quốc tế (AUN-QA, ABET, ASIIN, AQAS). Sinh viên tốt nghiệp có tỷ lệ việc làm >95% trong 12 tháng, nhiều ngành đạt chuẩn kỹ sư toàn cầu.
-                </p>
-                <button onclick="document.getElementById('majors-section').scrollIntoView()" class="bg-white text-blue-800 font-semibold px-6 py-3 rounded-full hover:bg-blue-50 transition shadow-lg">Khám Phá Các Ngành tại HCMUT</button>
+        <header class="hero-panel text-white py-16 md:py-20 px-4">
+            <div class="max-w-7xl mx-auto grid lg:grid-cols-[1.35fr_.65fr] gap-10 items-center">
+                <div>
+                    <div class="section-eyebrow text-blue-100 mb-4">Admissions explorer 2026</div>
+                    <h1 class="text-4xl md:text-6xl font-black leading-tight mb-5">Choose your HCMUT engineering path faster.</h1>
+                    <p class="text-lg md:text-xl text-blue-100 max-w-3xl mb-8 leading-relaxed">
+                        Scan programs, compare admission signals, and shortlist majors with salary paths, partner links, and study tracks in one place.
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="document.getElementById('majors-section').scrollIntoView()" class="bg-white text-blue-900 font-bold px-6 py-3 rounded-full hover:bg-blue-50 transition shadow-lg">Explore majors</button>
+                        <button onclick="document.getElementById('admission-section').scrollIntoView()" class="border border-white/40 text-white font-semibold px-6 py-3 rounded-full hover:bg-white/10 transition">Compare admission score</button>
+                    </div>
+                </div>
+                <div class="grid gap-3">
+                    <div class="action-card rounded-2xl p-5">
+                        <div class="text-sm text-blue-100 font-semibold mb-1">Scan</div>
+                        <div class="text-3xl font-black">5,685</div>
+                        <div class="text-sm text-blue-100">available admission seats</div>
+                    </div>
+                    <div class="action-card rounded-2xl p-5">
+                        <div class="text-sm text-blue-100 font-semibold mb-1">Compare</div>
+                        <div class="text-3xl font-black">70 / 20 / 10</div>
+                        <div class="text-sm text-blue-100">DGNL, THPT, and transcript weighting</div>
+                    </div>
+                    <div class="action-card rounded-2xl p-5">
+                        <div class="text-sm text-blue-100 font-semibold mb-1">Choose</div>
+                        <div class="text-3xl font-black">30+</div>
+                        <div class="text-sm text-blue-100">major pathways with detail panels</div>
+                    </div>
+                </div>
             </div>
         </header>
 
         <section id="overview-section" class="py-12 px-4 bg-white">
             <div class="max-w-7xl mx-auto">
                 <div class="mb-10 text-center md:text-left">
-                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Tổng Quan Đào Tạo</h2>
+                    <div class="section-eyebrow text-blue-700 mb-2">Scan the landscape</div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Spot the program fit quickly</h2>
                     <p class="text-slate-600 max-w-4xl text-lg leading-relaxed">
-                        Phần này cung cấp cái nhìn toàn cảnh về quy mô tuyển sinh và hệ sinh thái đào tạo. ĐH Bách khoa hiện có 11 khoa chuyên môn, hơn 100 phòng thí nghiệm, trung tâm nghiên cứu mạnh về AI, vật liệu, năng lượng và logistics. Chương trình đào tạo được thiết kế theo chuẩn CDIO, tích hợp thực hành – nghiên cứu – doanh nghiệp ngay từ năm 2.
+                        Start with the big signals: seat count, program type, language track, and international options. Then drill into the major list when you know what matters most.
                     </p>
                 </div>
 
@@ -134,7 +174,7 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center bg-slate-50 p-8 rounded-2xl">
                     <div>
-                        <h3 class="text-2xl font-bold mb-6 text-slate-800">Các Chương Trình Đào Tạo</h3>
+                        <h3 class="text-2xl font-bold mb-6 text-slate-800">Compare training routes</h3>
                         <div class="space-y-4">
                             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                 <h4 class="font-bold text-blue-800 flex items-center">🇻🇳 Chương trình Tiêu chuẩn</h4>
@@ -168,16 +208,17 @@
         <section id="admission-section" class="py-12 px-4 bg-slate-100">
             <div class="max-w-7xl mx-auto">
                 <div class="mb-10 text-center md:text-left">
-                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Phương Thức Xét Tuyển & Quy Đổi Điểm</h2>
+                    <div class="section-eyebrow text-blue-700 mb-2">Compare the score</div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Break down the admission formula</h2>
                     <p class="text-slate-600 max-w-4xl text-lg leading-relaxed">
-                        HCMUT sử dụng mô hình xét tuyển đa tiêu chí nhằm đánh giá toàn diện năng lực học sinh. Điểm Đánh giá Năng lực (ĐGNL) của ĐHQG-HCM là yếu tố chính, kiểm tra tư duy logic, giải quyết vấn đề và đọc hiểu. Điểm THPT và học bạ đóng vai trò hiệu chỉnh. Ngoài ra, thí sinh có thể được cộng điểm từ thành tích học sinh giỏi, chứng chỉ quốc tế, hoạt động ngoại khóa.
+                        Use the weighted bars to see which evidence carries the decision. DGNL leads, THPT supports, transcript stabilizes, and bonus points can lift strong profiles.
                     </p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-2xl font-bold text-slate-800 mb-6">Công thức Xét tuyển Tổng hợp</h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6">Calculate total score</h3>
                         <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100 text-center">
                             <p class="font-mono text-blue-800 font-bold">Điểm Xét Tuyển = Điểm học lực + Điểm cộng + Điểm ưu tiên</p>
                         </div>
@@ -217,7 +258,7 @@
                     </div>
 
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Quy đổi chứng chỉ Ngoại ngữ</h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Convert English certificates</h3>
                         <p class="text-slate-600 mb-6 text-sm">
                             Chứng chỉ IELTS còn hiệu lực ≤2 năm. Ngoài IELTS, trường chấp nhận TOEFL iBT, SAT, ACT với bảng quy đổi tương đương. Điểm quy đổi được dùng thay thế môn Tiếng Anh trong tổ hợp xét tuyển.
                         </p>
@@ -232,9 +273,10 @@
         <section id="majors-section" class="py-12 px-4 bg-white">
             <div class="max-w-7xl mx-auto">
                 <div class="mb-10 text-center md:text-left">
-                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Khám Phá Các Ngành tại HCMUT</h2>
+                    <div class="section-eyebrow text-blue-700 mb-2">Choose a direction</div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">Shortlist majors by faculty and outcome</h2>
                     <p class="text-slate-600 max-w-4xl text-lg leading-relaxed">
-                        Dưới đây là danh sách chi tiết các ngành đào tạo được phân nhóm theo các Khoa quản lý. Mỗi ngành đều có lộ trình học gồm: nền tảng → chuyên sâu → đồ án → thực tập doanh nghiệp. Sinh viên năm 3–4 tham gia dự án thực tế với doanh nghiệp như Bosch, Intel, Samsung, Viettel. Nhấp vào ngành để xem thông tin chi tiết về lộ trình và mức lương.
+                        Filter by faculty, open a major, and scan the pathway, salary range, global options, and partner companies before you compare another choice.
                     </p>
                 </div>
 
