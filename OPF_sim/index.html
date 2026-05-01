@@ -545,7 +545,7 @@
   window.onload = () => {
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     if (saved.length) {
-      saved.forEach((t, i) => addTask(t.name, (t.type === 'VA' ? 'VAA' : t.type) || 'VAA', t.a, t.m, t.b, t.meta, t.seq || (i+1), t.station || 1));
+      saved.forEach((t, i) => addTask(t.name, normalizeTaskType(t.type), t.a, t.m, t.b, t.meta, t.seq || (i+1), t.station || 1));
     }
     document.getElementById('print-date').textContent = "Generated: " + new Date().toLocaleString();
   };
@@ -556,8 +556,25 @@
     return text.toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
   }
 
+  function normalizeTaskType(type) {
+    const raw = (type || '').toString().trim();
+    const key = raw.toUpperCase().replace(/[\s_-]+/g, '');
+    if (key === 'VA' || key === 'VAA') return 'VAA';
+    if (key === 'SVA' || key === 'SEMIVA' || key === 'SEMIVAA') return 'Semi VA';
+    if (key === 'NVA' || key === 'NVAA') return 'NVA';
+    return 'VAA';
+  }
+
+  function taskTypeClass(type) {
+    const normalized = normalizeTaskType(type);
+    if (normalized === 'VAA') return 'VAA';
+    if (normalized === 'Semi VA') return 'SVA';
+    return 'NVA';
+  }
+
   function addTask(name='', type='VAA', opt=1, ml=5, pess=10, meta=null, seq=null, station=1) {
     taskCount++;
+    type = normalizeTaskType(type);
     const safeName = name || `Task ${taskCount}`;
     const id = `t-${Date.now()}-${taskCount}`;
     const sequenceNum = seq !== null ? seq : taskCount;
@@ -648,6 +665,7 @@
       for (let i = 0; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         const cols = parseCSVRow(rows[i]);
+        if (i === 0 && cols[0]) cols[0] = cols[0].replace(/^\uFEFF/, '');
 
         // Skip header row (contains non-numeric in first column that isn't a task name context)
         if (i === 0) {
@@ -661,8 +679,7 @@
           // New 7-column format: Seq, Task, Type, Opt, ML, Pess, Station
           seq  = parseInt(cols[0]) || null;
           name = cols[1];
-          const rawType7 = (cols[2]||'').toUpperCase();
-          type = ['VA','VAA','SVA','NVA'].includes(rawType7) ? (rawType7 === 'VA' ? 'VAA' : rawType7) : 'VAA';
+          type = normalizeTaskType(cols[2]);
           opt  = parseFloat(cols[3]);
           ml   = parseFloat(cols[4]);
           pess = parseFloat(cols[5]);
@@ -670,8 +687,7 @@
         } else if (cols.length >= 5) {
           // Legacy 6-column format: Task, Type, Opt, ML, Pess[, Station]
           name = cols[0];
-          const rawType6 = (cols[1]||'').toUpperCase();
-          type = ['VA','VAA','SVA','NVA'].includes(rawType6) ? (rawType6 === 'VA' ? 'VAA' : rawType6) : 'VAA';
+          type = normalizeTaskType(cols[1]);
           opt  = parseFloat(cols[2]);
           ml   = parseFloat(cols[3]);
           pess = parseFloat(cols[4]);
@@ -696,7 +712,7 @@
     document.querySelectorAll('.task-row').forEach(row => {
       const seq     = parseFloat(row.querySelector('.seq').value) || 0;
       const station = parseInt(row.querySelector('.stn').value) || 1;
-      const type    = row.querySelector('.task-type-select').value || 'VAA';
+      const type    = normalizeTaskType(row.querySelector('.task-type-select').value);
       const a       = parseFloat(row.querySelector('.opt').value)  || 0;
       const m       = parseFloat(row.querySelector('.ml').value)   || 0;
       const b       = parseFloat(row.querySelector('.pess').value) || 0;
@@ -841,7 +857,7 @@
 
     currentTaskMeans = validTasks.map((t, j) => ({
       name: t.name || 'Task',
-      type: t.type ? (t.type === 'VA' ? 'VAA' : t.type) : 'VAA',
+      type: normalizeTaskType(t.type),
       mean: perTaskSums[j] / iters,
       station: t.station || 1
     }));
@@ -873,8 +889,8 @@
 
     let vaTime = 0, svaTime = 0, nvaTime = 0;
     taskMeans.forEach(t => {
-      if (t.type === 'VAA' || t.type === 'VA') vaTime += t.mean;
-      else if (t.type === 'SVA') svaTime += t.mean;
+      if (taskTypeClass(t.type) === 'VAA') vaTime += t.mean;
+      else if (taskTypeClass(t.type) === 'SVA') svaTime += t.mean;
       else nvaTime += t.mean;
     });
     
@@ -1020,7 +1036,8 @@
               <tbody>
                 ${taskMeans.map(t => {
                   const pct = (t.mean / totalMean * 100).toFixed(1);
-                  const tColor = (t.type==='VAA' || t.type==='VA') ? 'var(--green)' : t.type==='SVA' ? 'var(--amber)' : 'var(--red)';
+                  const typeClass = taskTypeClass(t.type);
+                  const tColor = typeClass === 'VAA' ? 'var(--green)' : typeClass === 'SVA' ? 'var(--amber)' : 'var(--red)';
                   return `<tr>
                     <td style="color:var(--text); white-space: normal; word-break: break-word; max-width: 150px;">${t.name}</td>
                     <td style="color:${tColor}; font-weight:600;">${t.type}</td>
@@ -1072,12 +1089,12 @@
       if (!stationMap[stn]) stationMap[stn] = [];
       const simMean = currentTaskMeans.find(tm => tm.name === t.name);
       const mean = simMean ? simMean.mean : (t.a + 4*t.m + t.b) / 6;
-      stationMap[stn].push({ name: t.name, mean: mean, type: t.type ? (t.type === 'VA' ? 'VAA' : t.type) : 'VAA' });
+      stationMap[stn].push({ name: t.name, mean: mean, type: normalizeTaskType(t.type) });
     });
 
     const stationNums = Object.keys(stationMap).map(Number).sort((a,b)=>a-b);
     yamazumiData = stationNums.map(stn => {
-      stationMap[stn].sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
+      stationMap[stn].sort((a, b) => typeOrder[taskTypeClass(a.type)] - typeOrder[taskTypeClass(b.type)]);
       return {
         station: stn,
         tasks: stationMap[stn],
@@ -1173,7 +1190,8 @@
 
       station.tasks.forEach((task, ti) => {
         const barH  = H - y(task.mean);
-        const color = (task.type === 'VAA' || task.type === 'VA') ? 'var(--green)' : task.type === 'SVA' ? 'var(--amber)' : 'var(--red)';
+        const typeClass = taskTypeClass(task.type);
+        const color = typeClass === 'VAA' ? 'var(--green)' : typeClass === 'SVA' ? 'var(--amber)' : 'var(--red)';
         const yPos  = y(cumY + task.mean);
 
         const rect = svg.append('rect')
@@ -1255,8 +1273,8 @@
     let vaTime = 0, svaTime = 0, nvaTime = 0;
     yamazumiData.forEach(stn => {
       stn.tasks.forEach(t => {
-        if (t.type === 'VAA' || t.type === 'VA') vaTime += t.mean;
-        else if (t.type === 'SVA') svaTime += t.mean;
+        if (taskTypeClass(t.type) === 'VAA') vaTime += t.mean;
+        else if (taskTypeClass(t.type) === 'SVA') svaTime += t.mean;
         else nvaTime += t.mean;
       });
     });
@@ -1542,14 +1560,14 @@
 
   /* ── EXPORTS ── */
 
-  /* FIX: exportTasksCSV now includes Seq as first column so task order is preserved on re-import */
+  /* Export format matches import format: Seq, Task Name, Type, Opt, ML, Pess, Station */
   function exportTasksCSV() {
-    const rows = [['Seq', 'Task', 'Type', 'Optimistic', 'MostLikely', 'Pessimistic', 'Station']];
+    const rows = [['Seq', 'Task Name', 'Type', 'Opt', 'ML', 'Pess', 'Station']];
     document.querySelectorAll('.task-row').forEach(row => {
       rows.push([
         row.querySelector('.seq').value,
         row.querySelector('.task-name-input').value,
-        row.querySelector('.task-type-select').value,
+        normalizeTaskType(row.querySelector('.task-type-select').value),
         row.querySelector('.opt').value,
         row.querySelector('.ml').value,
         row.querySelector('.pess').value,
@@ -1634,14 +1652,14 @@
       });
     }
 
-    const microTypeMap = { VA: 'Lắp ráp', VAA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
+    const microTypeMap = { VAA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
     const wsVAA = wb.Sheets['VAA-NVAA'];
     if (wsVAA) {
       sortedStns.forEach((stnNum, si) => {
         const blockStart = 7 + si * 11;
         stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
           const ri = blockStart + ti;
-          setCell(wsVAA, ri, 5, microTypeMap[task.type] || 'Lắp ráp');
+          setCell(wsVAA, ri, 5, microTypeMap[taskTypeClass(task.type)] || 'Lắp ráp');
         });
       });
     }
@@ -1766,7 +1784,7 @@
     rows.push(['Task Name', 'Type', 'Station', 'Average Time (s)', '% of Total Cycle']);
     const totalMean = currentTaskMeans.reduce((a,t)=>a+t.mean, 0);
     currentTaskMeans.forEach(t => {
-      rows.push([t.name, (t.type === 'VA' ? 'VAA' : t.type) || 'VAA', t.station||1, t.mean.toFixed(2), (t.mean/totalMean*100).toFixed(2)+'%']);
+      rows.push([t.name, normalizeTaskType(t.type), t.station||1, t.mean.toFixed(2), (t.mean/totalMean*100).toFixed(2)+'%']);
     });
     rows.push([]);
 
