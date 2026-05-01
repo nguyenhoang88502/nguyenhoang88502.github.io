@@ -145,6 +145,40 @@
       margin-bottom: 1rem;
     }
 
+    .scan-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .scan-card {
+      background: rgba(17, 26, 38, 0.82);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--gold);
+      padding: 1.25rem;
+    }
+
+    .scan-card strong {
+      display: block;
+      color: var(--text-main);
+      font-size: 1rem;
+      margin-bottom: .35rem;
+    }
+
+    .scan-card span {
+      color: var(--text-muted);
+      font-size: .88rem;
+    }
+
+    @media (min-width: 768px) {
+      .scan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 1100px) {
+      .scan-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
     /* ── Buttons ── */
     .btn-outline-gold {
       display: inline-flex; align-items: center; gap: 0.5rem;
@@ -209,10 +243,16 @@
     <div class="row align-items-end">
       <div class="col-lg-8">
         <div class="metric-label" style="color: var(--gold);">Systems Engineering Architecture</div>
-        <h1 class="dossier-title">“Việc” — Hybrid Co-Working Space System Design</h1>
+        <h1 class="dossier-title">Design a 24/7 co-working cafe system</h1>
         <p class="body-lead mt-4" style="max-width: 750px;">
-          A comprehensive systems engineering solution bridging the gap between affordable coffee shops and premium professional workspaces for remote workers and students.
+          Build a service system that blends affordable coffee, reliable workspace infrastructure, and repeatable operations for students and remote workers.
         </p>
+        <div class="scan-grid">
+          <div class="scan-card"><strong>Define demand</strong><span>Target 200,000+ nearby users.</span></div>
+          <div class="scan-card"><strong>Allocate space</strong><span>Split 80% focus seats and 20% group rooms.</span></div>
+          <div class="scan-card"><strong>Run service</strong><span>Meet 7-minute drink and 15-minute reset SLAs.</span></div>
+          <div class="scan-card"><strong>Recover CAPEX</strong><span>Reach ROI in 30 months at 70% occupancy.</span></div>
+        </div>
       </div>
       <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
         <div class="d-flex flex-column gap-3 align-items-lg-end">
@@ -231,11 +271,11 @@
 <section>
   <div class="container">
     <span class="chapter-num">Chapter I</span>
-    <h2 class="chapter-title">Executive Summary & System Specs</h2>
+    <h2 class="chapter-title">Frame the system targets</h2>
     
     <div class="callout-box">
       <p class="mb-0" style="font-size: 1.05rem; color: var(--text-main);">
-        Engineered a comprehensive systems architecture for a <strong>24/7 hybrid co-working cafe</strong>, targeting a high-density demographic of <strong>200,000+</strong> users in the National University Village. Architected a 3-floor, <strong>120 m²</strong> facility with an <strong>80/20</strong> spatial allocation optimizing individual productivity and group collaboration. Deployed <strong>10</strong> interconnected operational subsystems, enforcing strict Service Level Agreements (SLAs) including <strong>7-minute</strong> beverage delivery and <strong>15-minute</strong> room turnover. Secured continuous operations via enterprise-grade <strong>30 Mbps</strong> network infrastructure and <strong>2KVA</strong> power redundancies. Formulated a high-yield financial model requiring <strong>2 Billion VND</strong> in initial CAPEX, projecting <strong>500 Million VND</strong> monthly revenue to achieve full ROI within <strong>30 months</strong> at a <strong>70%</strong> baseline occupancy.
+        Designed a <strong>24/7 hybrid co-working cafe</strong> for <strong>200,000+</strong> potential users near the National University Village. The system combines a 3-floor, <strong>120 m²</strong> facility, <strong>10</strong> operating subsystems, strict service SLAs, network and power redundancy, and a financial model targeting ROI within <strong>30 months</strong>.
       </p>
     </div>
 
@@ -275,13 +315,13 @@
 <section style="background: var(--bg-alt);">
   <div class="container">
     <span class="chapter-num">Chapter II</span>
-    <h2 class="chapter-title">Spatial & Operational Architecture</h2>
+    <h2 class="chapter-title">Build the operating model</h2>
     
     <div class="row g-5">
       <div class="col-lg-6">
-        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Workspace Optimization</h3>
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Allocate Workspace</h3>
         <p class="text-muted mb-4" style="font-size: 0.95rem;">
-          The goal of “Việc” is to engineer a productivity hub tailored specifically for remote workers and the gig economy. The spatial design heavily favors deep work over transient dining.
+          Shape the cafe around work first, dining second. The plan prioritizes quiet seats, predictable access, and affordable work blocks.
         </p>
         <ul class="sys-list">
           <li><strong style="color: var(--text-main);">Spatial Ratio:</strong> Dedicated 80% of the floor plan strictly to individual workstations, reserving 20% for private, acoustically treated group rooms.</li>
@@ -291,9 +331,9 @@
       </div>
 
       <div class="col-lg-6">
-        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Subsystem Integration</h3>
+        <h3 class="serif" style="color: var(--gold); margin-bottom: 1.2rem;">Integrate Subsystems</h3>
         <p class="text-muted mb-4" style="font-size: 0.95rem;">
-          The facility operates as a centralized service system linking food production, workspace administration, and digital infrastructure via a unified Point-of-Sale (POS) platform.
+          Link beverage production, room booking, cleaning, payment, WiFi, and power backup through one service workflow.
         </p>
         <ul class="sys-list">
           <li><strong style="color: var(--text-main);">Service Level Agreements (SLA):</strong> Mandated operational parameters requiring beverage delivery within 7 minutes and full room turnover/cleaning within 15 minutes.</li>
@@ -308,12 +348,12 @@
 <section>
   <div class="container">
     <span class="chapter-num">Chapter III</span>
-    <h2 class="chapter-title">Financial Blueprint & Risk Management</h2>
+    <h2 class="chapter-title">Control revenue and risk</h2>
     
     <div class="row g-5">
       <div class="col-lg-5 d-flex flex-column justify-content-center">
         <p class="text-muted" style="font-size: 0.95rem;">
-          The system was designed with rigorous financial feasibility, ensuring long-term sustainability while defending against supply chain and operational risks.
+          Validate the system financially, then defend the plan against supply, occupancy, and service continuity risks.
         </p>
         
         <div class="data-card mt-4" style="padding: 1.5rem; background: rgba(200,146,42,0.03);">
@@ -332,13 +372,13 @@
       <div class="col-lg-7">
         <div class="row g-4">
           <div class="col-md-6">
-            <h4 class="serif" style="font-size: 1.3rem; color: var(--gold);">Supply Chain Stability</h4>
+            <h4 class="serif" style="font-size: 1.3rem; color: var(--gold);">Stabilize Supply</h4>
             <p class="text-muted" style="font-size: 0.9rem;">
               Enforced a strict FIFO (First-In, First-Out) inventory system. Integrated secondary and tertiary backup suppliers for mission-critical consumables (coffee beans, specialized milks) to prevent menu outages.
             </p>
           </div>
           <div class="col-md-6">
-            <h4 class="serif" style="font-size: 1.3rem; color: var(--gold);">Occupancy Defense</h4>
+            <h4 class="serif" style="font-size: 1.3rem; color: var(--gold);">Protect Occupancy</h4>
             <p class="text-muted" style="font-size: 0.9rem;">
               Low occupancy risks are aggressively countered through targeted digital marketing in local university forums and dynamic, time-based pricing strategies to fill off-peak hours.
             </p>
