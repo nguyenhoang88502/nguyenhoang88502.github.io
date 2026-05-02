@@ -171,8 +171,59 @@
       font-size: .88rem;
     }
 
+    .layout-gallery {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1.25rem;
+      margin-top: 2.5rem;
+    }
+
+    .layout-card {
+      height: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--gold);
+      overflow: hidden;
+    }
+
+    .layout-frame {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 360px;
+      padding: 1rem;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+        #f7f7f3;
+    }
+
+    .layout-frame img {
+      display: block;
+      width: 100%;
+      max-height: 560px;
+      object-fit: contain;
+    }
+
+    .layout-copy {
+      padding: 1.4rem;
+    }
+
+    .layout-copy h3 {
+      margin-bottom: .75rem;
+      color: var(--gold);
+      font-size: 1.45rem;
+    }
+
+    .layout-copy p {
+      margin-bottom: 0;
+      color: var(--text-muted);
+      font-size: .92rem;
+      line-height: 1.65;
+    }
+
     @media (min-width: 768px) {
       .scan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (min-width: 1100px) {
@@ -315,6 +366,55 @@
 <section style="background: var(--bg-alt);">
   <div class="container">
     <span class="chapter-num">Chapter II</span>
+    <h2 class="chapter-title">Translate the service model into floor layouts</h2>
+
+    <p class="body-lead" style="max-width: 820px;">
+      The 3-floor layout turns the co-working cafe concept into a usable operating system: public-facing service on the ground floor, mixed seating and group capacity on the first floor, and quieter focus capacity on the second floor.
+    </p>
+
+    <div class="layout-gallery">
+      <article class="layout-card">
+        <div class="layout-frame">
+          <img src="groundfloorlayout.png" alt="Ground floor layout plan for the co-working cafe system">
+        </div>
+        <div class="layout-copy">
+          <h3>Ground floor layout</h3>
+          <p>
+            The ground floor handles arrival, ordering, and public seating. It places the entrance, service counter, open cafe tables, wall seating, restrooms, and support rooms together so first-time users can enter, order, sit, and move through the space with minimal confusion.
+          </p>
+        </div>
+      </article>
+
+      <article class="layout-card">
+        <div class="layout-frame">
+          <img src="floor1layout.png" alt="First floor layout plan with mixed study seats and group room capacity">
+        </div>
+        <div class="layout-copy">
+          <h3>First floor layout</h3>
+          <p>
+            The first floor expands the workspace layer with shared tables, perimeter individual seats, a pantry/service point, restrooms, and a separated group-study room. This supports the 80/20 workspace split while giving teams a defined area for discussion.
+          </p>
+        </div>
+      </article>
+
+      <article class="layout-card">
+        <div class="layout-frame">
+          <img src="floor2layout.png" alt="Second floor layout plan emphasizing quiet study and focus seating">
+        </div>
+        <div class="layout-copy">
+          <h3>Second floor layout</h3>
+          <p>
+            The second floor is designed as the quietest work zone, with more open study tables, individual wall seating, and a compact service corner. It increases usable focus capacity without adding the busier arrival and ordering flow from the ground floor.
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <span class="chapter-num">Chapter III</span>
     <h2 class="chapter-title">Build the operating model</h2>
     
     <div class="row g-5">
@@ -345,9 +445,9 @@
   </div>
 </section>
 
-<section>
+<section style="background: var(--bg-alt);">
   <div class="container">
-    <span class="chapter-num">Chapter III</span>
+    <span class="chapter-num">Chapter IV</span>
     <h2 class="chapter-title">Control revenue and risk</h2>
     
     <div class="row g-5">
