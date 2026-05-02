@@ -346,32 +346,26 @@
     .corner-bl { bottom: -1px; left: -1px; transform: scaleY(-1); }
     .corner-br { bottom: -1px; right: -1px; transform: scale(-1); }
 
-    /* ══ STATS STRIP ══ */
-    #stats {
-      background: var(--navy2);
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      padding: 2.5rem 0;
+    /* ══ EDUCATION ══ */
+    #education { background: var(--navy3); }
+    .edu-card {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 2.4rem;
+      height: 100%;
     }
-    .stat-item { text-align: center; }
-    .stat-num {
-      font-family: 'Cormorant', serif;
-      font-size: 2.8rem;
-      font-weight: 600;
-      color: var(--gold);
-      line-height: 1;
+    .cert-bar-wrap {
+      height: 2px;
+      background: rgba(255,255,255,.06);
+      border-radius: 1px;
+      overflow: hidden;
+      margin: .5rem 0 .3rem;
     }
-    .stat-label {
-      font-size: .68rem;
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: .4rem;
-    }
-    .stat-divider {
-      width: 1px;
-      background: var(--line);
-      align-self: stretch;
+    .cert-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt));
+      border-radius: 1px;
     }
 
     /* ══ SKILLS ══ */
@@ -498,28 +492,6 @@
     }
     .timeline-body li { margin-bottom: .5rem; padding-left: .2rem; }
     .timeline-body li::marker { color: var(--gold-dk); font-size: .7em; }
-
-    /* ══ EDUCATION ══ */
-    #education { background: var(--navy3); }
-    .edu-card {
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 2.4rem;
-      height: 100%;
-    }
-    .cert-bar-wrap {
-      height: 2px;
-      background: rgba(255,255,255,.06);
-      border-radius: 1px;
-      overflow: hidden;
-      margin: .5rem 0 .3rem;
-    }
-    .cert-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt));
-      border-radius: 1px;
-    }
 
     /* ══ PROJECTS ══ */
     #projects { background: var(--navy); }
@@ -749,35 +721,73 @@
 
       <div class="col-lg-5 order-1 order-lg-2 d-flex justify-content-center">
         <div class="hero-photo-wrap">
-          <span class="corner corner-tl"></span>
-          <span class="corner corner-tr"></span>
-          <span class="corner corner-bl"></span>
-          <span class="corner corner-br"></span>
-          <img src="DSC_4906a (1).jpg" alt="Nguyen Huy Hoang" class="hero-photo"
-               onerror="this.src='https://placehold.co/360x480/0d1626/c8922a?text=N.H.H'" />
+            <span class="corner corner-tl"></span>
+            <span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span>
+            <span class="corner corner-br"></span>
+            <img src="DSC_4906a (1).jpg" alt="Nguyen Huy Hoang" class="hero-photo"
+                 onerror="this.src='https://placehold.co/360x480/0d1626/c8922a?text=N.H.H'" />
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════ STATS STRIP ══════════ -->
-<section id="stats">
+<!-- ══════════ EDUCATION ══════════ -->
+<section id="education">
   <div class="container">
-    <div class="d-flex flex-wrap justify-content-around align-items-center gap-4 fade-up">
-      <div class="stat-item">
-        <div class="stat-num">3.3<span style="font-size:1.4rem;color:var(--gold-dk);">/4</span></div>
-        <div class="stat-label">GPA (2025–26)</div>
+    <div class="fade-up">
+      <span class="section-label">Academic Background</span>
+      <h2 class="section-title">Education &amp; Certifications</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="row g-4 fade-up">
+      <div class="col-lg-6">
+        <div class="edu-card">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-mortarboard-fill"></i></div>
+            <div>
+              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;line-height:1.2;margin-bottom:.2rem;">Ho Chi Minh City University of Technology</h5>
+              <div style="color:var(--muted);font-size:.8rem;">HCMUT · Bach Khoa</div>
+            </div>
+          </div>
+          <p style="color:#6a84a0;font-size:.88rem;margin-bottom:1.5rem;">Bachelor of Engineering — Industrial Systems Engineering</p>
+          <hr style="border-color:rgba(200,146,42,.12);margin:0 0 1.2rem;" />
+          <div class="d-flex justify-content-between mb-2" style="font-size:.85rem;">
+            <span style="color:var(--muted);">Expected Graduation</span>
+            <span style="color:var(--cream);font-weight:600;">2027</span>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size:.85rem;">
+            <span style="color:var(--muted);">GPA (2025–2026)</span>
+            <span style="color:var(--gold);font-weight:600;">3.3 / 4.0</span>
+          </div>
+        </div>
       </div>
-      <div class="stat-divider d-none d-md-block"></div>
-      <div class="stat-item">
-        <div class="stat-num">935</div>
-        <div class="stat-label">TOEIC LR Score</div>
-      </div>
-       <div class="stat-divider d-none d-md-block"></div>
-      <div class="stat-item">
-        <div class="stat-num">2027</div>
-        <div class="stat-label">Expected Grad</div>
+      <div class="col-lg-6">
+        <div class="edu-card">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-patch-check-fill"></i></div>
+            <div>
+              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;">Certifications</h5>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
+              <span style="color:var(--cream);">TOEIC Listening &amp; Reading</span>
+              <span style="color:var(--gold);font-weight:600;">935 / 990</span>
+            </div>
+            <div class="cert-bar-wrap"><div class="cert-bar" style="width:95%;"></div></div>
+            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Full Professional Proficiency</div>
+          </div>
+          <div>
+            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
+              <span style="color:var(--cream);">Microsoft Office Specialist (MOS) Associate</span>
+              <span style="color:var(--gold);font-weight:600;">Office 365</span>
+            </div>
+            <div class="cert-bar-wrap"><div class="cert-bar" style="width:90%;"></div></div>
+            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Office 365 &amp; Office 2019</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1026,66 +1036,6 @@
         </div>
       </div>
 
-    </div>
-  </div>
-</section>
-
-<!-- ══════════ EDUCATION ══════════ -->
-<section id="education">
-  <div class="container">
-    <div class="fade-up">
-      <span class="section-label">Academic Background</span>
-      <h2 class="section-title">Education &amp; Certifications</h2>
-      <div class="divider"></div>
-    </div>
-    <div class="row g-4 fade-up">
-      <div class="col-lg-6">
-        <div class="edu-card">
-          <div class="d-flex align-items-start gap-3 mb-3">
-            <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-mortarboard-fill"></i></div>
-            <div>
-              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;line-height:1.2;margin-bottom:.2rem;">Ho Chi Minh City University of Technology</h5>
-              <div style="color:var(--muted);font-size:.8rem;">HCMUT · Bach Khoa</div>
-            </div>
-          </div>
-          <p style="color:#6a84a0;font-size:.88rem;margin-bottom:1.5rem;">Bachelor of Engineering — Industrial Systems Engineering</p>
-          <hr style="border-color:rgba(200,146,42,.12);margin:0 0 1.2rem;" />
-          <div class="d-flex justify-content-between mb-2" style="font-size:.85rem;">
-            <span style="color:var(--muted);">Expected Graduation</span>
-            <span style="color:var(--cream);font-weight:600;">2027</span>
-          </div>
-          <div class="d-flex justify-content-between" style="font-size:.85rem;">
-            <span style="color:var(--muted);">GPA (2025–2026)</span>
-            <span style="color:var(--gold);font-weight:600;">3.3 / 4.0</span>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="edu-card">
-          <div class="d-flex align-items-start gap-3 mb-3">
-            <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-patch-check-fill"></i></div>
-            <div>
-              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;">Certifications</h5>
-            </div>
-          </div>
-          <div class="mb-4">
-            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
-              <span style="color:var(--cream);">TOEIC Listening &amp; Reading</span>
-              <span style="color:var(--gold);font-weight:600;">935 / 990</span>
-            </div>
-            <div class="cert-bar-wrap"><div class="cert-bar" style="width:95%;"></div></div>
-            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Full Professional Proficiency</div>
-          </div>
-          <div>
-            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
-              <span style="color:var(--cream);">Microsoft Office Specialist (MOS) Associate</span>
-              <span style="color:var(--gold);font-weight:600;">Office 365</span>
-            </div>
-            <div class="cert-bar-wrap"><div class="cert-bar" style="width:90%;"></div></div>
-            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Office 365 &amp; Office 2019</div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
