@@ -138,6 +138,11 @@
       background: linear-gradient(180deg, #fff6d6, #f0c06a);
     }
 
+    .nav-links .archive {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
     .hero {
       position: relative;
       min-height: 100vh;
@@ -713,6 +718,84 @@
       background: rgba(255, 255, 255, 0.035);
     }
 
+    .artifact-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .poster-preview {
+      position: relative;
+      min-height: 356px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background:
+        linear-gradient(rgba(255, 247, 230, 0.9), rgba(255, 247, 230, 0.9)),
+        repeating-linear-gradient(0deg, transparent 0 31px, rgba(212, 0, 8, 0.14) 32px 34px),
+        repeating-linear-gradient(90deg, transparent 0 31px, rgba(3, 3, 145, 0.12) 32px 34px),
+        #fff7e6;
+      color: #09225a;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+      overflow: hidden;
+    }
+
+    .poster-preview::after {
+      content: "12";
+      position: absolute;
+      right: 20px;
+      top: 16px;
+      color: rgba(212, 0, 8, 0.12);
+      font-size: 5.8rem;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .poster-preview h3 {
+      position: relative;
+      z-index: 1;
+      max-width: 250px;
+      margin: 0 0 18px;
+      color: #d40008;
+      font-size: 2.2rem;
+      line-height: 0.94;
+    }
+
+    .poster-preview p {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: #2c3e6b;
+      font-weight: 720;
+      line-height: 1.55;
+    }
+
+    .poster-preview-list {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 10px;
+      margin: 28px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .poster-preview-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(9, 34, 90, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.68);
+      font-weight: 850;
+    }
+
+    .poster-preview-list span {
+      color: #d40008;
+    }
+
     footer {
       padding: 28px 0;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -838,6 +921,7 @@
         <a href="#story">Câu chuyện</a>
         <a href="#results">Kết quả</a>
         <a href="#role">Vai trò</a>
+        <a class="archive" href="#poster-archive">Kho poster</a>
         <a class="tool" href="tool.html">Mở tool</a>
       </div>
     </nav>
@@ -854,6 +938,7 @@
           </p>
           <div class="button-row">
             <a class="button primary" href="tool.html">Mở tool tuyển sinh</a>
+            <a class="button secondary" href="BKFC%20post/">Xem kho poster</a>
             <a class="button secondary" href="#results">Xem kết quả</a>
           </div>
           <div class="project-meta">
@@ -1013,6 +1098,10 @@
             <h3>Xây tool hỗ trợ tư vấn</h3>
             <p>Tool tuyển sinh được giữ lại ở trang riêng như một artifact của dự án, giúp tra cứu và trình bày thông tin Bách Khoa nhanh hơn.</p>
           </article>
+          <article class="story-card small dark">
+            <h3>Lưu trữ poster &amp; caption</h3>
+            <p>Kho poster được đóng gói thành một thư viện riêng để mở lại từng poster HTML và caption, giúp người xem thấy rõ phần truyền thông đã chuẩn bị cho chiến dịch.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -1056,6 +1145,31 @@
             <li>Tra cứu thông tin ngành và nhóm ngành Bách Khoa.</li>
             <li>Gom dữ liệu tuyển sinh vào một giao diện dễ trình bày.</li>
             <li>Là bằng chứng cho cách mình dùng công cụ số để hỗ trợ một dự án hướng nghiệp thực tế.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="tool-section" id="poster-archive">
+      <div class="container tool-wrap">
+        <div class="tool-copy">
+          <p class="eyebrow">Campaign archive</p>
+          <h2>Kho poster &amp; caption.</h2>
+          <p>
+            Ngoài tool tuyển sinh, mình cũng lưu lại bộ poster mùa thi của BKFC NHC. Trang archive cho phép mở từng poster HTML, xem caption đi kèm, kiểm tra ngày đăng và dùng lại nội dung khi cần chuẩn bị bài post.
+          </p>
+          <div class="artifact-actions">
+            <a class="button primary" href="BKFC%20post/">Mở kho poster</a>
+            <a class="button secondary" href="BKFC%20post/captions/01-tnthpt-registration-deadline.txt" target="_blank" rel="noopener">Xem caption mẫu</a>
+          </div>
+        </div>
+        <aside class="poster-preview" aria-label="Poster archive preview">
+          <h3>Exam Poster Pack</h3>
+          <p>Thư viện lưu 12 poster và 12 caption files cho các mốc TN THPT và ĐGNL Đợt 2.</p>
+          <ul class="poster-preview-list">
+            <li><span>01</span> Đừng để lỡ hạn</li>
+            <li><span>04</span> Mai thi rồi</li>
+            <li><span>12</span> Có điểm rồi!</li>
           </ul>
         </aside>
       </div>
