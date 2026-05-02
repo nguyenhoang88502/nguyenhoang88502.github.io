@@ -1,825 +1,1070 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BK FC Career Orientation Project | Portfolio</title>
-    <style>
-        :root {
-            --ink: #172033;
-            --muted: #657188;
-            --line: #dce3ed;
-            --surface: #ffffff;
-            --soft: #f5f7fb;
-            --navy: #13294b;
-            --blue: #1d5fd6;
-            --red: #c62828;
-            --green: #13795b;
-            --amber: #bf7b16;
-            --shadow: 0 18px 50px rgba(19, 41, 75, 0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            color: var(--ink);
-            background: var(--soft);
-            letter-spacing: 0;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            border-bottom: 1px solid rgba(220, 227, 237, 0.82);
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(14px);
-        }
-
-        .nav {
-            width: min(1120px, calc(100% - 32px));
-            min-height: 66px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 22px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            min-width: 0;
-            font-weight: 800;
-        }
-
-        .brand-mark {
-            width: 36px;
-            height: 36px;
-            display: grid;
-            place-items: center;
-            border-radius: 8px;
-            color: white;
-            background: var(--navy);
-            box-shadow: inset 8px 0 0 var(--red);
-            flex: 0 0 auto;
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.05;
-        }
-
-        .brand-text small {
-            margin-top: 4px;
-            color: var(--muted);
-            font-size: 0.72rem;
-            font-weight: 700;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--muted);
-            font-size: 0.92rem;
-            font-weight: 700;
-        }
-
-        .nav-links a {
-            padding: 10px 12px;
-            border-radius: 8px;
-        }
-
-        .nav-links a:hover {
-            color: var(--navy);
-            background: #eef3fb;
-        }
-
-        .tool-link {
-            color: white !important;
-            background: var(--blue) !important;
-        }
-
-        main {
-            overflow: hidden;
-        }
-
-        .section {
-            width: min(1120px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 82px 0;
-        }
-
-        .hero {
-            position: relative;
-            background:
-                linear-gradient(90deg, rgba(19, 41, 75, 0.94), rgba(19, 41, 75, 0.72)),
-                repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 28px),
-                #13294b;
-            color: white;
-        }
-
-        .hero .section {
-            min-height: calc(100vh - 66px);
-            display: grid;
-            grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
-            align-items: center;
-            gap: 54px;
-            padding-top: 58px;
-            padding-bottom: 58px;
-        }
-
-        .eyebrow {
-            margin: 0 0 18px;
-            color: #a8d0ff;
-            font-size: 0.78rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        h1,
-        h2,
-        h3,
-        p {
-            margin-top: 0;
-        }
-
-        h1 {
-            max-width: 840px;
-            margin-bottom: 18px;
-            font-size: clamp(2.45rem, 5vw, 4.9rem);
-            line-height: 0.97;
-            letter-spacing: 0;
-        }
-
-        .hero-lede {
-            max-width: 760px;
-            margin-bottom: 28px;
-            color: #dbe8f8;
-            font-size: 1.12rem;
-            line-height: 1.8;
-        }
-
-        .meta-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 34px;
-        }
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            min-height: 36px;
-            padding: 8px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            border-radius: 999px;
-            color: #eef6ff;
-            background: rgba(255, 255, 255, 0.08);
-            font-size: 0.92rem;
-            font-weight: 800;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 48px;
-            padding: 13px 18px;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            font-weight: 900;
-        }
-
-        .button.primary {
-            color: white;
-            background: var(--red);
-        }
-
-        .button.secondary {
-            color: white;
-            border-color: rgba(255, 255, 255, 0.28);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .campaign-visual {
-            position: relative;
-            min-height: 560px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .campaign-visual::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at 20% 18%, rgba(198, 40, 40, 0.44), transparent 28%),
-                radial-gradient(circle at 80% 70%, rgba(29, 95, 214, 0.42), transparent 34%);
-            opacity: 0.78;
-        }
-
-        .phone-frame {
-            position: absolute;
-            top: 54px;
-            left: 28px;
-            width: min(236px, 52%);
-            height: 450px;
-            padding: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 28px;
-            background: #0b1220;
-            box-shadow: 0 26px 44px rgba(0, 0, 0, 0.26);
-        }
-
-        .phone-screen {
-            position: relative;
-            height: 100%;
-            border-radius: 18px;
-            overflow: hidden;
-            background:
-                linear-gradient(160deg, rgba(198, 40, 40, 0.92), rgba(19, 41, 75, 0.88)),
-                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 10px);
-        }
-
-        .reel-label {
-            position: absolute;
-            left: 16px;
-            right: 16px;
-            bottom: 18px;
-        }
-
-        .reel-label strong {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 1.72rem;
-            line-height: 1.05;
-        }
-
-        .reel-label span {
-            color: #dbe8f8;
-            font-weight: 800;
-        }
-
-        .visual-card {
-            position: absolute;
-            right: 20px;
-            width: 214px;
-            border: 1px solid rgba(255, 255, 255, 0.24);
-            border-radius: 8px;
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.92);
-            color: var(--ink);
-            box-shadow: 0 18px 34px rgba(10, 18, 32, 0.2);
-        }
-
-        .visual-card.views {
-            top: 82px;
-        }
-
-        .visual-card.reach {
-            bottom: 82px;
-        }
-
-        .visual-card .label {
-            color: var(--muted);
-            font-size: 0.78rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .visual-card .number {
-            margin: 8px 0 10px;
-            color: var(--navy);
-            font-size: 2.15rem;
-            line-height: 1;
-            font-weight: 950;
-        }
-
-        .bar {
-            height: 9px;
-            margin-top: 9px;
-            border-radius: 999px;
-            background: #e5eaf2;
-            overflow: hidden;
-        }
-
-        .bar span {
-            display: block;
-            height: 100%;
-            border-radius: inherit;
-            background: var(--blue);
-        }
-
-        .visual-card.reach .bar span {
-            background: var(--green);
-        }
-
-        .section-header {
-            max-width: 770px;
-            margin-bottom: 30px;
-        }
-
-        .section-kicker {
-            margin-bottom: 12px;
-            color: var(--red);
-            font-size: 0.78rem;
-            font-weight: 950;
-            text-transform: uppercase;
-        }
-
-        h2 {
-            margin-bottom: 14px;
-            font-size: clamp(2rem, 4vw, 3rem);
-            line-height: 1.05;
-            letter-spacing: 0;
-        }
-
-        .section-intro {
-            color: var(--muted);
-            font-size: 1.05rem;
-            line-height: 1.75;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .metric-card,
-        .story-card,
-        .role-card,
-        .timeline-item {
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: var(--surface);
-        }
-
-        .metric-card {
-            min-height: 176px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .metric-card b {
-            color: var(--navy);
-            font-size: 2.35rem;
-            line-height: 1;
-        }
-
-        .metric-card span {
-            display: block;
-            margin-top: 10px;
-            color: var(--muted);
-            line-height: 1.48;
-            font-weight: 700;
-        }
-
-        .metric-card.red b {
-            color: var(--red);
-        }
-
-        .metric-card.green b {
-            color: var(--green);
-        }
-
-        .metric-card.amber b {
-            color: var(--amber);
-        }
-
-        .story-band {
-            background: white;
-            border-top: 1px solid var(--line);
-            border-bottom: 1px solid var(--line);
-        }
-
-        .story-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .story-card {
-            padding: 26px;
-        }
-
-        .story-card h3,
-        .role-card h3 {
-            margin-bottom: 12px;
-            color: var(--navy);
-            font-size: 1.28rem;
-        }
-
-        .story-card p,
-        .role-card p,
-        .timeline-item p {
-            margin-bottom: 0;
-            color: var(--muted);
-            line-height: 1.72;
-        }
-
-        .role-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .role-card {
-            padding: 22px;
-        }
-
-        .role-card .tag {
-            display: inline-flex;
-            min-height: 30px;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            color: white;
-            background: var(--navy);
-            font-size: 0.76rem;
-            font-weight: 900;
-        }
-
-        .timeline {
-            display: grid;
-            gap: 12px;
-        }
-
-        .timeline-item {
-            display: grid;
-            grid-template-columns: 180px minmax(0, 1fr);
-            gap: 22px;
-            padding: 22px;
-        }
-
-        .timeline-item time {
-            color: var(--red);
-            font-weight: 950;
-        }
-
-        .tool-section {
-            color: white;
-            background: var(--navy);
-        }
-
-        .tool-panel {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 26px;
-            align-items: center;
-            padding: 34px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.07);
-        }
-
-        .tool-panel h2 {
-            margin-bottom: 12px;
-        }
-
-        .tool-panel p {
-            max-width: 720px;
-            margin-bottom: 0;
-            color: #dbe8f8;
-            line-height: 1.72;
-        }
-
-        .footer {
-            padding: 28px 0;
-            color: var(--muted);
-            text-align: center;
-            background: #fff;
-            border-top: 1px solid var(--line);
-        }
-
-        @media (max-width: 960px) {
-            .hero .section {
-                grid-template-columns: 1fr;
-            }
-
-            .campaign-visual {
-                min-height: 500px;
-            }
-
-            .metrics-grid,
-            .role-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .story-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 720px) {
-            .nav {
-                align-items: flex-start;
-                flex-direction: column;
-                padding: 14px 0;
-            }
-
-            .nav-links {
-                width: 100%;
-                overflow-x: auto;
-                padding-bottom: 2px;
-            }
-
-            .section {
-                padding: 58px 0;
-            }
-
-            .hero .section {
-                min-height: auto;
-                padding-top: 44px;
-            }
-
-            h1 {
-                font-size: 2.55rem;
-            }
-
-            .campaign-visual {
-                min-height: 620px;
-            }
-
-            .phone-frame {
-                left: 50%;
-                transform: translateX(-50%);
-                width: min(280px, 84%);
-            }
-
-            .visual-card {
-                left: 20px;
-                right: 20px;
-                width: auto;
-            }
-
-            .visual-card.views {
-                top: 418px;
-            }
-
-            .visual-card.reach {
-                bottom: 20px;
-            }
-
-            .metrics-grid,
-            .role-grid,
-            .timeline-item,
-            .tool-panel {
-                grid-template-columns: 1fr;
-            }
-
-            .tool-panel {
-                padding: 24px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BK FC - Career Orientation Project</title>
+  <meta name="description" content="Case study dự án định hướng nghề nghiệp BK FC tại THPT Nguyễn Hữu Cảnh, do Nguyen Huy Hoang dẫn dắt.">
+  <style>
+    :root {
+      --bg: #090a0c;
+      --bg-2: #111318;
+      --paper: #f6f6f2;
+      --paper-2: #ecece5;
+      --ink: #101114;
+      --muted: #7a808d;
+      --muted-dark: #b6bcc8;
+      --white: #ffffff;
+      --blue: #4d8dff;
+      --red: #ff5d55;
+      --gold: #f0c06a;
+      --green: #66d19e;
+      --line: rgba(255, 255, 255, 0.12);
+      --line-dark: rgba(10, 12, 16, 0.12);
+      --max: 1180px;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--white);
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 220px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(9, 10, 12, 0.64);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(77, 141, 255, 0.24), rgba(255, 93, 85, 0.18));
+      color: var(--white);
+      font-size: 0.82rem;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted-dark);
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted-dark);
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    .nav-links a {
+      padding: 9px 11px;
+      border-radius: 8px;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .nav-links .tool {
+      color: #1a1204;
+      background: linear-gradient(180deg, #fff6d6, #f0c06a);
+    }
+
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      padding: 156px 0 86px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 72% 24%, rgba(77, 141, 255, 0.24), transparent 32%),
+        radial-gradient(circle at 18% 72%, rgba(255, 93, 85, 0.18), transparent 28%),
+        linear-gradient(180deg, #090a0c 0%, #111318 100%);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 220px;
+      background: linear-gradient(180deg, rgba(9, 10, 12, 0), #090a0c 72%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.84fr);
+      align-items: center;
+      gap: 64px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      margin: 0 0 26px;
+      padding: 7px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      color: var(--muted-dark);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.78rem;
+      font-weight: 750;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 24px;
+      font-size: clamp(3.1rem, 7vw, 6.4rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+      background: linear-gradient(135deg, #ffffff 18%, #d8e5ff 56%, #ffe1d2 92%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-copy {
+      max-width: 650px;
+      margin-bottom: 32px;
+      color: #c6ccd8;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      line-height: 1.68;
+    }
+
+    .hero-copy strong {
+      color: var(--white);
+      font-weight: 760;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 42px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 850;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button.primary {
+      color: #251402;
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      background: linear-gradient(180deg, #fff8de, #f2bd60);
+      box-shadow: 0 0 34px rgba(240, 192, 106, 0.16);
+    }
+
+    .button.secondary {
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .project-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted-dark);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .project-meta span {
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 620px;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 70px 0 auto auto;
+      width: min(520px, 100%);
+      min-height: 360px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+        #151820;
+      box-shadow: 0 36px 90px rgba(0, 0, 0, 0.44);
+      overflow: hidden;
+    }
+
+    .screen-top {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dce3ef;
+      font-size: 0.78rem;
+      font-weight: 780;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .screen-body {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 0.85fr 1fr;
+      gap: 14px;
+    }
+
+    .mini-panel {
+      min-height: 132px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .mini-panel.wide {
+      grid-column: 1 / -1;
+      min-height: 120px;
+    }
+
+    .mini-label {
+      color: var(--muted-dark);
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mini-number {
+      margin: 10px 0 10px;
+      color: var(--white);
+      font-size: 2.1rem;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .mini-copy {
+      color: #aeb6c5;
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .bar {
+      height: 8px;
+      margin-top: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .phone {
+      position: absolute;
+      left: 4px;
+      bottom: 0;
+      width: 232px;
+      height: 438px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 30px;
+      background: #050608;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.52);
+      transform: rotate(-4deg);
+    }
+
+    .phone-screen {
+      position: relative;
+      height: 100%;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 55% 18%, rgba(255, 255, 255, 0.24), transparent 20%),
+        linear-gradient(160deg, #ff5d55, #26355f 58%, #090a0c);
+    }
+
+    .phone-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.11) 0 1px, transparent 1px 12px),
+        linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.68));
+    }
+
+    .reel-text {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 18px;
+      z-index: 2;
+    }
+
+    .reel-text b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.38rem;
+      line-height: 1.05;
+    }
+
+    .reel-text span {
+      color: #e1e6ef;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .floating-note {
+      position: absolute;
+      right: 20px;
+      bottom: 54px;
+      width: 260px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(246, 246, 242, 0.94);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+    }
+
+    .floating-note p {
+      margin-bottom: 0;
+      color: #3d414a;
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .ticker {
+      position: relative;
+      z-index: 3;
+      margin-top: 70px;
+      overflow: hidden;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.92rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      gap: 28px;
+      animation: scroll 28s linear infinite;
+    }
+
+    .ticker span {
+      display: inline-flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .ticker span::after {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .paper-section {
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    .dark-section {
+      color: var(--white);
+      background: var(--bg);
+    }
+
+    .section {
+      padding: 118px 0;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.62fr) minmax(0, 1fr);
+      gap: 78px;
+      align-items: start;
+    }
+
+    .section-label {
+      margin: 0;
+      color: var(--red);
+      font-size: 0.76rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 14px 0 0;
+      font-size: clamp(2.2rem, 5vw, 5rem);
+      line-height: 0.93;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0;
+      color: #4b515c;
+      font-size: clamp(1.18rem, 2vw, 1.58rem);
+      line-height: 1.52;
+    }
+
+    .lead strong {
+      color: var(--ink);
+    }
+
+    .quiet {
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 46px;
+    }
+
+    .metric {
+      min-height: 208px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+    }
+
+    .metric b {
+      display: block;
+      margin-bottom: 22px;
+      font-size: clamp(2.1rem, 4.5vw, 4.3rem);
+      line-height: 0.86;
+      color: var(--white);
+    }
+
+    .metric p {
+      margin: 0;
+      color: var(--muted-dark);
+      line-height: 1.5;
+      font-weight: 650;
+    }
+
+    .metric.accent b {
+      color: var(--gold);
+    }
+
+    .metric.red b {
+      color: var(--red);
+    }
+
+    .metric.green b {
+      color: var(--green);
+    }
+
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 48px;
+    }
+
+    .story-card {
+      min-height: 250px;
+      padding: 24px;
+      border: 1px solid var(--line-dark);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .story-card.large {
+      grid-column: span 3;
+    }
+
+    .story-card.small {
+      grid-column: span 2;
+    }
+
+    .story-card h3 {
+      margin-bottom: 14px;
+      font-size: 1.28rem;
+      line-height: 1.2;
+    }
+
+    .story-card p {
+      margin-bottom: 0;
+      color: #555d6b;
+      line-height: 1.68;
+    }
+
+    .story-card.dark {
+      color: var(--white);
+      border-color: rgba(255, 255, 255, 0.12);
+      background:
+        radial-gradient(circle at 82% 0%, rgba(77, 141, 255, 0.22), transparent 32%),
+        #101216;
+    }
+
+    .story-card.dark p {
+      color: #c3cad6;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin-top: 44px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 28px;
+      padding: 20px 0;
+      border-top: 1px solid var(--line-dark);
+    }
+
+    .timeline-item:last-child {
+      border-bottom: 1px solid var(--line-dark);
+    }
+
+    .timeline-item time {
+      color: #222631;
+      font-weight: 900;
+    }
+
+    .timeline-item p {
+      margin: 0;
+      color: #555d6b;
+      line-height: 1.7;
+    }
+
+    .tool-section {
+      position: relative;
+      padding: 124px 0 150px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(240, 192, 106, 0.16), transparent 28%),
+        radial-gradient(circle at 80% 70%, rgba(77, 141, 255, 0.18), transparent 30%),
+        #090a0c;
+      overflow: hidden;
+    }
+
+    .tool-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 58px;
+      align-items: center;
+    }
+
+    .tool-copy h2 {
+      max-width: 760px;
+      background: linear-gradient(135deg, #ffffff 24%, #dbe5ff 58%, #ffe5bd 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .tool-copy p {
+      max-width: 680px;
+      margin: 22px 0 30px;
+      color: #c3cad6;
+      font-size: 1.08rem;
+      line-height: 1.72;
+    }
+
+    .artifact-card {
+      min-height: 320px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+    }
+
+    .artifact-card h3 {
+      margin-bottom: 16px;
+      font-size: 1.36rem;
+    }
+
+    .artifact-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted-dark);
+      line-height: 1.5;
+      font-weight: 650;
+    }
+
+    .artifact-list li {
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    footer {
+      padding: 28px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted-dark);
+      background: #090a0c;
+      font-size: 0.9rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1000px) {
+      .hero-inner,
+      .split,
+      .tool-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 560px;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .story-card.large,
+      .story-card.small {
+        grid-column: span 3;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        width: min(100% - 28px, var(--max));
+      }
+
+      .nav {
+        height: auto;
+        min-height: 72px;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .hero {
+        padding-top: 142px;
+      }
+
+      h1 {
+        font-size: 3.2rem;
+      }
+
+      .hero-visual {
+        min-height: 650px;
+      }
+
+      .screen {
+        inset: 0 0 auto 0;
+      }
+
+      .screen-body {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-panel.wide {
+        grid-column: auto;
+      }
+
+      .phone {
+        left: 14px;
+        bottom: 0;
+      }
+
+      .floating-note {
+        right: 0;
+        bottom: 20px;
+        width: min(260px, 68%);
+      }
+
+      .section {
+        padding: 78px 0;
+      }
+
+      .metric-grid,
+      .bento {
+        grid-template-columns: 1fr;
+      }
+
+      .story-card.large,
+      .story-card.small {
+        grid-column: auto;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav" aria-label="Điều hướng trang dự án">
-            <a class="brand" href="#top" aria-label="BK FC portfolio">
-                <span class="brand-mark">BK</span>
-                <span class="brand-text">
-                    BK FC Career Orientation
-                    <small>Portfolio Case Study</small>
-                </span>
-            </a>
-            <div class="nav-links">
-                <a href="#summary">Tổng quan</a>
-                <a href="#execution">Thực thi</a>
-                <a href="#leadership">Vai trò</a>
-                <a class="tool-link" href="tool.html">Mở tool</a>
+  <header class="topbar">
+    <nav class="container nav" aria-label="Điều hướng BK FC">
+      <a class="brand" href="#top" aria-label="BK FC project">
+        <span class="brand-mark">BK</span>
+        <span>
+          BK FC
+          <small>Career orientation case study</small>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="#story">Câu chuyện</a>
+        <a href="#results">Kết quả</a>
+        <a href="#role">Vai trò</a>
+        <a class="tool" href="tool.html">Mở tool</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <p class="eyebrow">Dự án định hướng nghề nghiệp - Project Leader</p>
+          <h1>Một chiến dịch nhỏ về nhân sự, nhưng không nhỏ về tác động.</h1>
+          <p class="hero-copy">
+            Đây là dự án mình dẫn dắt cho <strong>BK FC tại THPT Nguyễn Hữu Cảnh</strong>. Mục tiêu ban đầu khá đơn giản: giúp học sinh lớp 12 hiểu hơn về Bách Khoa và chọn ngành có cơ sở hơn. Nhưng khi bắt tay vào làm, mình muốn nó không chỉ là một buổi tư vấn, mà là một chiến dịch có nội dung, có dữ liệu và có thứ để đo lại.
+          </p>
+          <div class="button-row">
+            <a class="button primary" href="tool.html">Mở tool tuyển sinh</a>
+            <a class="button secondary" href="#results">Xem kết quả</a>
+          </div>
+          <div class="project-meta">
+            <span>11/2025 - 07/2026</span>
+            <span>THPT Nguyễn Hữu Cảnh</span>
+            <span>2 người vận hành chính</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Tổng quan chiến dịch BK FC">
+          <div class="screen">
+            <div class="screen-top">
+              <span>Campaign dashboard</span>
+              <span class="dots"><i></i><i></i><i></i></span>
             </div>
-        </nav>
-    </header>
-
-    <main id="top">
-        <section class="hero" aria-labelledby="project-title">
-            <div class="section">
-                <div>
-                    <p class="eyebrow">Dự án định hướng nghề nghiệp</p>
-                    <h1 id="project-title">BK FC - THPT Nguyễn Hữu Cảnh</h1>
-                    <p class="hero-lede">
-                        Trưởng dự án chiến dịch hướng nghiệp Bách Khoa, ghi dấu ấn với tăng trưởng 932% lượt xem trực tuyến, đạt hơn 11.600 views và tiếp cận trực tiếp 200+ học sinh khối 12 với đội ngũ vận hành tinh gọn 2 người.
-                    </p>
-                    <div class="meta-row" aria-label="Thông tin dự án">
-                        <span class="pill">Project Leader</span>
-                        <span class="pill">11/2025 - 07/2026</span>
-                        <span class="pill">Career Orientation Campaign</span>
-                    </div>
-                    <div class="actions">
-                        <a class="button primary" href="tool.html">Xem công cụ tuyển sinh</a>
-                        <a class="button secondary" href="#summary">Xem thành tựu</a>
-                    </div>
-                </div>
-
-                <aside class="campaign-visual" aria-label="Campaign performance visual">
-                    <div class="phone-frame">
-                        <div class="phone-screen">
-                            <div class="reel-label">
-                                <strong>Vũ trụ Bách Khoa</strong>
-                                <span>Viral reel: 8.582 views</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="visual-card views">
-                        <div class="label">Total views</div>
-                        <div class="number">11.640</div>
-                        <div class="bar" aria-hidden="true"><span style="width: 93%"></span></div>
-                    </div>
-                    <div class="visual-card reach">
-                        <div class="label">Non-followers reached</div>
-                        <div class="number">90.5%</div>
-                        <div class="bar" aria-hidden="true"><span style="width: 90.5%"></span></div>
-                    </div>
-                </aside>
+            <div class="screen-body">
+              <div class="mini-panel">
+                <div class="mini-label">Tổng views</div>
+                <div class="mini-number">11.640</div>
+                <div class="mini-copy">Fanpage tăng 932% so với kỳ trước.</div>
+                <div class="bar"><span style="width: 93%"></span></div>
+              </div>
+              <div class="mini-panel">
+                <div class="mini-label">Non-followers</div>
+                <div class="mini-number">90.5%</div>
+                <div class="mini-copy">Phần lớn lượt xem đến từ người chưa theo dõi page.</div>
+                <div class="bar"><span style="width: 90.5%"></span></div>
+              </div>
+              <div class="mini-panel wide">
+                <div class="mini-label">Điều mình học được</div>
+                <div class="mini-copy">Một nội dung tốt không chỉ cần đúng thông tin. Nó cần đúng nhịp của người xem, đúng định dạng, và đủ rõ để học sinh thấy mình trong đó.</div>
+              </div>
             </div>
-        </section>
+          </div>
 
-        <section class="section" id="summary" aria-labelledby="summary-title">
-            <div class="section-header">
-                <p class="section-kicker">Executive Summary</p>
-                <h2 id="summary-title">Một chiến dịch nhỏ về nhân sự, lớn về tác động.</h2>
-                <p class="section-intro">
-                    Dự án tập trung vào tư vấn hướng nghiệp, chuyển dịch nội dung sang video ngắn và đo lường hiệu quả truyền thông bằng dữ liệu thực chiến.
-                </p>
+          <div class="phone" aria-hidden="true">
+            <div class="phone-screen">
+              <div class="reel-text">
+                <b>Vũ trụ Bách Khoa</b>
+                <span>8.582 lượt xem - 130+ tương tác</span>
+              </div>
             </div>
+          </div>
 
-            <div class="metrics-grid">
-                <article class="metric-card red">
-                    <b>932%</b>
-                    <span>Tăng trưởng lượt xem fanpage so với kỳ trước.</span>
-                </article>
-                <article class="metric-card">
-                    <b>11.640</b>
-                    <span>Tổng lượt xem trực tuyến toàn chiến dịch.</span>
-                </article>
-                <article class="metric-card green">
-                    <b>200+</b>
-                    <span>Học sinh khối 12 được tiếp cận trực tiếp.</span>
-                </article>
-                <article class="metric-card amber">
-                    <b>14</b>
-                    <span>Tập thể lớp được tư vấn liên tục trong chuỗi hoạt động.</span>
-                </article>
-                <article class="metric-card">
-                    <b>2</b>
-                    <span>Nhân sự vận hành, tối ưu khoảng 50% nguồn lực tiêu chuẩn.</span>
-                </article>
-                <article class="metric-card red">
-                    <b>73.7%</b>
-                    <span>Tổng lượt xem đến từ định dạng Reels.</span>
-                </article>
-                <article class="metric-card green">
-                    <b>90.5%</b>
-                    <span>Lượt tiếp cận đến từ người dùng chưa theo dõi trang.</span>
-                </article>
-                <article class="metric-card amber">
-                    <b>130+</b>
-                    <span>Tương tác từ video viral "Vũ trụ Bách Khoa".</span>
-                </article>
-            </div>
-        </section>
+          <div class="floating-note">
+            <p>Mình không muốn chỉ nói rằng dự án “thành công”. Mình muốn cho thấy vì sao nó thành công, và mình đã làm gì để kéo nó đi lên.</p>
+          </div>
+        </div>
+      </div>
 
-        <section class="story-band" id="execution" aria-labelledby="execution-title">
-            <div class="section">
-                <div class="section-header">
-                    <p class="section-kicker">Key Execution & Metrics</p>
-                    <h2 id="execution-title">Từ vận hành lớp học đến tăng trưởng organic.</h2>
-                </div>
+      <div class="container ticker" aria-hidden="true">
+        <div class="ticker-track">
+          <span>Project Leader</span>
+          <span>200+ học sinh tiếp cận trực tiếp</span>
+          <span>14 lớp khối 12</span>
+          <span>932% view growth</span>
+          <span>73.7% views từ Reels</span>
+          <span>Organic reach</span>
+          <span>Project Leader</span>
+          <span>200+ học sinh tiếp cận trực tiếp</span>
+          <span>14 lớp khối 12</span>
+          <span>932% view growth</span>
+          <span>73.7% views từ Reels</span>
+          <span>Organic reach</span>
+        </div>
+      </div>
+    </section>
 
-                <div class="story-grid">
-                    <article class="story-card">
-                        <h3>Orchestrated</h3>
-                        <p>Tổ chức chuỗi tư vấn trực tiếp cho 200 học sinh qua 14 tập thể lớp khối 12, duy trì tiến độ liên tục với đội ngũ chỉ 2 nhân sự.</p>
-                    </article>
-                    <article class="story-card">
-                        <h3>Conceptualized</h3>
-                        <p>Chuyển chiến lược truyền thông sang video ngắn để thu hút Gen Z. Reels đóng góp 73.7% tổng lượt xem toàn chiến dịch.</p>
-                    </article>
-                    <article class="story-card">
-                        <h3>Boosted</h3>
-                        <p>Thúc đẩy fanpage đạt 11.640 views, tăng 932%. Tự sản xuất video "Vũ trụ Bách Khoa" đạt 8.582 lượt xem và hơn 130 tương tác.</p>
-                    </article>
-                    <article class="story-card">
-                        <h3>Expanded</h3>
-                        <p>Mở rộng tệp khán giả khi 90.5% lượt xem đến từ non-followers, thể hiện khả năng tạo organic reach và bắt nhịp thuật toán phân phối.</p>
-                    </article>
-                    <article class="story-card">
-                        <h3>Optimized</h3>
-                        <p>Thiết kế quy trình gọn để một đội nhỏ vẫn xử lý được tư vấn trực tiếp, sản xuất nội dung, theo dõi số liệu và cải tiến thông điệp.</p>
-                    </article>
-                    <article class="story-card">
-                        <h3>Built</h3>
-                        <p>Phát triển công cụ tuyển sinh riêng để hỗ trợ tra cứu, so sánh và trình bày thông tin Bách Khoa nhanh hơn trong quá trình tư vấn.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
+    <section class="paper-section section" id="story">
+      <div class="container split">
+        <div>
+          <p class="section-label">Câu chuyện</p>
+          <h2>Không chỉ là đi tư vấn.</h2>
+        </div>
+        <div>
+          <p class="lead">
+            Với mình, BK FC là một bài toán nhỏ nhưng rất thật: làm sao để một đội rất ít người vẫn có thể nói chuyện với nhiều lớp, giữ thông tin đủ chính xác, và tạo được nội dung khiến học sinh thật sự muốn xem.
+          </p>
+          <p class="quiet">
+            Mình bắt đầu từ phần vận hành: chia luồng lớp, chuẩn bị nội dung tư vấn, thống nhất cách trình bày thông tin. Sau đó mình chuyển trọng tâm truyền thông sang video ngắn, vì học sinh lớp 12 phản ứng nhanh hơn với nội dung có nhịp, có hình ảnh và có cảm giác gần gũi. Kết quả tốt nhất đến từ reel "Vũ trụ Bách Khoa", một video mình tự lên ý tưởng và sản xuất.
+          </p>
+        </div>
+      </div>
+    </section>
 
-        <section class="section" id="leadership" aria-labelledby="leadership-title">
-            <div class="section-header">
-                <p class="section-kicker">Leadership Scope</p>
-                <h2 id="leadership-title">Vai trò lãnh đạo dự án</h2>
-                <p class="section-intro">
-                    Tôi chịu trách nhiệm điều phối chiến dịch từ chiến lược nội dung, vận hành tư vấn, sản xuất video đến phân tích hiệu quả truyền thông.
-                </p>
-            </div>
+    <section class="dark-section section" id="results">
+      <div class="container">
+        <p class="section-label">Kết quả</p>
+        <h2>Những con số biết kể chuyện.</h2>
+        <div class="metric-grid">
+          <article class="metric red">
+            <b>932%</b>
+            <p>Tăng trưởng lượt xem fanpage so với kỳ trước.</p>
+          </article>
+          <article class="metric accent">
+            <b>11.640</b>
+            <p>Tổng lượt xem trực tuyến của chiến dịch.</p>
+          </article>
+          <article class="metric green">
+            <b>200+</b>
+            <p>Học sinh khối 12 được tiếp cận trực tiếp.</p>
+          </article>
+          <article class="metric">
+            <b>14</b>
+            <p>Tập thể lớp được tư vấn trong chuỗi hoạt động.</p>
+          </article>
+          <article class="metric">
+            <b>2</b>
+            <p>Nhân sự vận hành chính, vẫn xử lý được cả tư vấn và truyền thông.</p>
+          </article>
+          <article class="metric accent">
+            <b>73.7%</b>
+            <p>Tổng view đến từ Reels sau khi đổi chiến lược nội dung.</p>
+          </article>
+          <article class="metric green">
+            <b>90.5%</b>
+            <p>Lượt xem đến từ người chưa theo dõi page.</p>
+          </article>
+          <article class="metric red">
+            <b>8.582</b>
+            <p>Lượt xem của video "Vũ trụ Bách Khoa".</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-            <div class="role-grid">
-                <article class="role-card">
-                    <span class="tag">Strategy</span>
-                    <h3>Định hướng nội dung</h3>
-                    <p>Xây dựng thông điệp hướng nghiệp gần với nhu cầu học sinh lớp 12 và định dạng phù hợp với hành vi xem nội dung ngắn.</p>
-                </article>
-                <article class="role-card">
-                    <span class="tag">Operations</span>
-                    <h3>Điều phối thực địa</h3>
-                    <p>Sắp xếp luồng tư vấn qua nhiều lớp, đảm bảo thông tin nhất quán và tiến độ ổn định dù nguồn lực rất tinh gọn.</p>
-                </article>
-                <article class="role-card">
-                    <span class="tag">Production</span>
-                    <h3>Sản xuất truyền thông</h3>
-                    <p>Tự lên ý tưởng, triển khai và tối ưu video ngắn, nổi bật với reel "Vũ trụ Bách Khoa" vượt mốc 8.500 lượt xem.</p>
-                </article>
-                <article class="role-card">
-                    <span class="tag">Analytics</span>
-                    <h3>Đọc số liệu</h3>
-                    <p>Theo dõi view, reach, follower mix và hiệu quả định dạng để điều chỉnh cách phân phối nội dung theo từng giai đoạn.</p>
-                </article>
-            </div>
-        </section>
+    <section class="paper-section section" id="role">
+      <div class="container">
+        <div class="split">
+          <div>
+            <p class="section-label">Vai trò của mình</p>
+            <h2>Mình đứng ở giữa nội dung, vận hành và dữ liệu.</h2>
+          </div>
+          <p class="lead">
+            Vai trò Project Leader ở đây không chỉ là phân việc. Mình phải giữ cho dự án có hướng, có nhịp chạy và có kết quả nhìn thấy được.
+          </p>
+        </div>
 
-        <section class="story-band" aria-labelledby="timeline-title">
-            <div class="section">
-                <div class="section-header">
-                    <p class="section-kicker">Project Timeline</p>
-                    <h2 id="timeline-title">Lộ trình triển khai</h2>
-                </div>
-                <div class="timeline">
-                    <article class="timeline-item">
-                        <time>11/2025</time>
-                        <p>Khởi động chiến dịch, xác định nhóm học sinh mục tiêu, thông điệp hướng nghiệp và cấu trúc nội dung tư vấn.</p>
-                    </article>
-                    <article class="timeline-item">
-                        <time>12/2025 - 03/2026</time>
-                        <p>Triển khai tư vấn trực tiếp, sản xuất video ngắn và đo lường phản hồi để tối ưu nội dung theo hành vi người xem.</p>
-                    </article>
-                    <article class="timeline-item">
-                        <time>04/2026 - 07/2026</time>
-                        <p>Tổng hợp kết quả, mở rộng nội dung có hiệu quả cao và đóng gói dự án thành case study cho portfolio.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
+        <div class="bento">
+          <article class="story-card large dark">
+            <h3>Định hình chiến lược truyền thông</h3>
+            <p>Mình chuyển hướng sang video ngắn vì đây là định dạng hợp với học sinh lớp 12 hơn. Reels sau đó đóng góp 73.7% tổng lượt xem, cho thấy quyết định này không chỉ hợp lý về mặt cảm giác mà còn đúng về mặt dữ liệu.</p>
+          </article>
+          <article class="story-card large">
+            <h3>Điều phối chuỗi tư vấn trực tiếp</h3>
+            <p>Chuỗi tư vấn đi qua 14 lớp khối 12 và tiếp cận hơn 200 học sinh. Điểm khó không nằm ở một buổi nói chuyện, mà ở việc giữ chất lượng ổn định qua nhiều lớp liên tiếp với đội ngũ rất gọn.</p>
+          </article>
+          <article class="story-card small">
+            <h3>Sản xuất nội dung</h3>
+            <p>Mình tự lên ý tưởng và sản xuất video "Vũ trụ Bách Khoa", sau đó theo dõi phản ứng để hiểu kiểu nội dung nào kéo được organic reach tốt hơn.</p>
+          </article>
+          <article class="story-card small dark">
+            <h3>Đọc tín hiệu từ số liệu</h3>
+            <p>90.5% view đến từ non-followers là một tín hiệu quan trọng: nội dung đã vượt khỏi vòng người quen của page.</p>
+          </article>
+          <article class="story-card small">
+            <h3>Xây tool hỗ trợ tư vấn</h3>
+            <p>Tool tuyển sinh được giữ lại ở trang riêng như một artifact của dự án, giúp tra cứu và trình bày thông tin Bách Khoa nhanh hơn.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-        <section class="tool-section" aria-labelledby="tool-title">
-            <div class="section">
-                <div class="tool-panel">
-                    <div>
-                        <p class="eyebrow">Project Artifact</p>
-                        <h2 id="tool-title">Công cụ tuyển sinh BK FC</h2>
-                        <p>
-                            Trang index cũ đã được giữ lại như một artifact của dự án. Công cụ này hỗ trợ tra cứu thông tin tuyển sinh, ngành học và dữ liệu tham khảo trong quá trình tư vấn.
-                        </p>
-                    </div>
-                    <a class="button primary" href="tool.html">Mở công cụ</a>
-                </div>
-            </div>
-        </section>
-    </main>
+    <section class="paper-section section">
+      <div class="container split">
+        <div>
+          <p class="section-label">Timeline</p>
+          <h2>Dự án đi theo từng nhịp rõ ràng.</h2>
+        </div>
+        <div class="timeline">
+          <article class="timeline-item">
+            <time>11/2025</time>
+            <p>Khởi động dự án, xác định học sinh mục tiêu, thông điệp chính và cách tổ chức phần tư vấn trực tiếp.</p>
+          </article>
+          <article class="timeline-item">
+            <time>12/2025 - 03/2026</time>
+            <p>Triển khai tư vấn theo lớp, đồng thời thử nghiệm nội dung ngắn để tìm định dạng học sinh phản hồi tốt nhất.</p>
+          </article>
+          <article class="timeline-item">
+            <time>04/2026 - 07/2026</time>
+            <p>Tổng hợp kết quả, đóng gói dữ liệu, giữ lại tool tuyển sinh và biến dự án thành một case study hoàn chỉnh cho portfolio.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-    <footer class="footer">
-        <span>BK FC Career Orientation Project - Project Leader Portfolio</span>
-    </footer>
+    <section class="tool-section" id="artifact">
+      <div class="container tool-wrap">
+        <div class="tool-copy">
+          <p class="eyebrow">Project artifact</p>
+          <h2>Tool tuyển sinh là phần mình giữ lại từ bản index cũ.</h2>
+          <p>
+            Trang portfolio này kể câu chuyện của dự án. Còn tool tuyển sinh là thứ mình dùng để hỗ trợ việc tư vấn: tra cứu ngành học, so sánh thông tin và giúp phần trình bày bớt rời rạc hơn.
+          </p>
+          <a class="button primary" href="tool.html">Mở công cụ BK FC</a>
+        </div>
+        <aside class="artifact-card">
+          <h3>Công cụ hỗ trợ gì?</h3>
+          <ul class="artifact-list">
+            <li>Tra cứu thông tin ngành và nhóm ngành Bách Khoa.</li>
+            <li>Gom dữ liệu tuyển sinh vào một giao diện dễ trình bày.</li>
+            <li>Là bằng chứng cho cách mình dùng công cụ số để hỗ trợ một dự án hướng nghiệp thực tế.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>BK FC - THPT Nguyễn Hữu Cảnh</span>
+      <span>Project Leader: Nguyen Huy Hoang</span>
+    </div>
+  </footer>
 </body>
 </html>
