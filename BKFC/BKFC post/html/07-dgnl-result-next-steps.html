@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080, initial-scale=1">
+<title>07 - BƯỚC TIẾP THEO LÀ GÌ?</title>
+<style>
+@font-face{font-family:"UTM Bango Pro Regular";src:local("UTM Bango Pro Regular"),local("UTM Bango Pro"),local("UTM-Bango-Pro");font-weight:400;font-style:normal}
+@font-face{font-family:"Phudu";src:local("DT Phudu"),local("DT PHUDU"),local("Phudu"),local("Phudu SemiBold");font-weight:400 900;font-style:normal}
+@font-face{font-family:"NVN Motherland Signature";src:local("NNN Motherland"),local("NVN Motherland Signature"),local("Motherland");font-weight:400;font-style:normal}
+:root{--red:#D40008;--deep-red:#A51D0F;--blue:#030391;--sky:#1488DB;--orange:#FFAF00;--yellow:#FFE564;--cream:#FFF7E6;--ink:#09225A;--font-title:"UTM Bango Pro Regular","UTM Bango Pro",Impact,"Arial Black",sans-serif;--font-body:"DT Phudu","Phudu","Arial Narrow",Arial,sans-serif;--font-subtitle:"NNN Motherland","NVN Motherland Signature","Segoe Script",cursive;--accent:var(--red);--accent-2:var(--sky);--glow:rgba(255,175,0,.3);--glow-x:84%;--glow-y:28%;--title-tilt:-1.5deg;--tag-tilt:-2deg;--content-tilt:.25deg;--slash-tilt:-9deg;--dot-left:770px;--dot-top:250px;--bee-tilt:0deg}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#1b1b1b;font-family:var(--font-body);display:grid;place-items:center}
+.poster{width:1080px;height:1350px;position:relative;overflow:hidden;color:var(--ink);background:radial-gradient(circle at var(--glow-x) var(--glow-y),var(--glow) 0 175px,transparent 176px),linear-gradient(rgba(255,255,255,.84),rgba(255,255,255,.84)),repeating-linear-gradient(0deg,transparent 0 37px,rgba(185,80,80,.2) 38px 40px),repeating-linear-gradient(90deg,transparent 0 37px,rgba(185,80,80,.2) 38px 40px),var(--cream)}
+.poster::before{content:"";position:absolute;right:-145px;bottom:194px;width:620px;height:178px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:44px;opacity:.13;transform:rotate(var(--slash-tilt));z-index:7}
+.poster::after{content:"";position:absolute;left:var(--dot-left);top:var(--dot-top);width:315px;height:315px;background:radial-gradient(circle,var(--accent-2) 0 7px,transparent 8px) 0 0/48px 48px;opacity:.16;transform:rotate(10deg);z-index:7}
+.checker-top,.checker-bottom{position:absolute;left:0;right:0;height:82px;z-index:5;background:linear-gradient(45deg,var(--red) 25%,transparent 25%) 0 0/56px 56px,linear-gradient(45deg,transparent 75%,var(--red) 75%) 0 0/56px 56px,linear-gradient(45deg,transparent 75%,var(--deep-red) 75%) 28px 28px/56px 56px,linear-gradient(45deg,var(--deep-red) 25%,transparent 25%) 28px 28px/56px 56px,#fff}
+.checker-top{top:0}.checker-bottom{bottom:0}
+.school-logo{position:absolute;top:104px;left:66px;width:330px;height:112px;object-fit:contain;background:#fff;padding:12px 16px;border-radius:26px;box-shadow:0 12px 0 rgba(9,34,90,.12);z-index:20}
+.brand-text{position:absolute;top:105px;left:424px;right:62px;height:114px;display:flex;flex-direction:column;justify-content:center;z-index:20}
+.brand-text .small{font-family:var(--font-body);font-weight:800;font-size:25px;letter-spacing:0;color:var(--blue)}
+.brand-text .big{font-family:var(--font-title);font-weight:400;font-size:52px;line-height:.9;color:var(--red);text-transform:uppercase}
+.season-pill{position:absolute;top:246px;left:66px;right:66px;display:flex;justify-content:flex-start;align-items:center;gap:20px;z-index:20}
+.phase{background:var(--blue);color:white;padding:18px 28px;font-weight:900;border-radius:24px;font-size:29px;letter-spacing:0}
+.tag{position:absolute;top:334px;left:88px;z-index:20;transform:rotate(var(--tag-tilt));display:inline-block;background:var(--yellow);border:5px solid var(--orange);color:var(--deep-red);padding:15px 27px 13px;border-radius:20px;font-family:var(--font-title);font-size:39px;font-weight:400;line-height:.9;text-transform:uppercase}
+.title-panel{position:absolute;top:412px;left:72px;width:936px;z-index:18;background:var(--accent);border-radius:58px;padding:43px 52px 48px;color:#fff;box-shadow:18px 18px 0 rgba(3,43,145,.16);transform:rotate(var(--title-tilt))}
+.title{font-family:var(--font-title);font-size:91px;line-height:.88;margin:0;font-weight:400;letter-spacing:0;text-transform:uppercase;text-shadow:4px 4px 0 rgba(0,0,0,.16);text-wrap:balance}
+.subtitle{margin:24px 0 0;font-family:var(--font-subtitle);font-size:42px;line-height:1.02;font-weight:400;letter-spacing:0;text-shadow:2px 2px 0 rgba(0,0,0,.12)}
+.content-card{position:absolute;left:72px;right:72px;top:730px;min-height:390px;z-index:18;background:rgba(255,255,255,.95);border:6px solid var(--orange);border-radius:34px;padding:46px 42px 38px;box-shadow:14px 14px 0 rgba(212,0,8,.15);transform:rotate(var(--content-tilt))}
+.icon-box{position:absolute;right:42px;top:-118px;width:118px;height:118px;border-radius:0;background:transparent;padding:0;border:0;box-shadow:none}
+.icon-box img{width:100%;height:100%;object-fit:contain}
+.point{display:grid;grid-template-columns:54px 1fr;gap:18px;align-items:start;margin:0 0 22px;font-family:var(--font-body);font-size:33px;font-weight:700;line-height:1.15;letter-spacing:0}
+.point::before{content:"";width:42px;height:42px;margin-top:-1px;background:var(--accent);border:8px solid var(--orange);border-radius:50%;box-shadow:5px 5px 0 rgba(3,43,145,.12)}
+.cta{margin-top:28px;background:var(--blue);color:#fff;border-radius:24px;padding:22px 28px;font-family:var(--font-body);font-size:32px;line-height:1.12;font-weight:900;letter-spacing:0}
+.bee{position:absolute;width:292px;right:34px;bottom:88px;z-index:22;filter:drop-shadow(10px 16px 0 rgba(9,34,90,.12));transform:rotate(var(--bee-tilt))}
+.theme-bees{position:absolute;left:18px;bottom:73px;width:680px;opacity:.15;z-index:10;filter:saturate(1.08)}
+.sparkles{position:absolute;left:-42px;top:862px;width:260px;opacity:.62;z-index:12}
+.footer{position:absolute;left:76px;bottom:112px;width:640px;z-index:20;color:#111;font-family:var(--font-body);font-weight:900;font-size:24px;line-height:1.22;text-transform:uppercase;letter-spacing:0}
+.footer span{color:var(--red)}
+.tone-deadline{--accent:#D40008;--accent-2:#1488DB;--glow:rgba(255,175,0,.34);--title-tilt:-1.7deg;--tag-tilt:-2.5deg;--content-tilt:.3deg;--slash-tilt:-9deg;--dot-left:760px;--dot-top:252px;--bee-tilt:-2deg}
+.tone-ticket{--accent:#006FD6;--accent-2:#D40008;--glow:rgba(20,136,219,.25);--title-tilt:1.2deg;--tag-tilt:2deg;--content-tilt:-.35deg;--slash-tilt:7deg;--dot-left:28px;--dot-top:262px;--bee-tilt:2deg}
+.tone-checklist{--accent:#008A61;--accent-2:#FFAF00;--glow:rgba(0,138,97,.2);--title-tilt:-.7deg;--tag-tilt:-1deg;--content-tilt:.15deg;--slash-tilt:-5deg;--dot-left:792px;--dot-top:594px;--bee-tilt:-1deg}
+.tone-goodluck{--accent:#E52265;--accent-2:#1488DB;--glow:rgba(229,34,101,.22);--title-tilt:1.5deg;--tag-tilt:-3deg;--content-tilt:-.25deg;--slash-tilt:9deg;--dot-left:44px;--dot-top:586px;--bee-tilt:3deg}
+.tone-testday{--accent:#D40008;--accent-2:#FFAF00;--glow:rgba(255,229,100,.42);--title-tilt:-1deg;--tag-tilt:1.6deg;--content-tilt:.4deg;--slash-tilt:-7deg;--dot-left:770px;--dot-top:290px;--bee-tilt:-1deg}
+.tone-review{--accent:#6B3FB5;--accent-2:#FFAF00;--glow:rgba(107,63,181,.18);--title-tilt:.8deg;--tag-tilt:-1.8deg;--content-tilt:-.35deg;--slash-tilt:6deg;--dot-left:55px;--dot-top:305px;--bee-tilt:2deg}
+.tone-results{--accent:#0A6BBD;--accent-2:#E52265;--glow:rgba(10,107,189,.22);--title-tilt:-1.3deg;--tag-tilt:2.2deg;--content-tilt:.25deg;--slash-tilt:-10deg;--dot-left:780px;--dot-top:606px;--bee-tilt:-2deg}
+.tone-ready{--accent:#008A61;--accent-2:#D40008;--glow:rgba(255,175,0,.3);--title-tilt:1deg;--tag-tilt:-2deg;--content-tilt:-.2deg;--slash-tilt:8deg;--dot-left:40px;--dot-top:570px;--bee-tilt:1deg}
+.tone-night{--accent:#203A8F;--accent-2:#E52265;--glow:rgba(32,58,143,.2);--title-tilt:-1.2deg;--tag-tilt:1.5deg;--content-tilt:.3deg;--slash-tilt:-6deg;--dot-left:765px;--dot-top:585px;--bee-tilt:3deg}
+.tone-dayone{--accent:#D40008;--accent-2:#008A61;--glow:rgba(20,136,219,.22);--title-tilt:.9deg;--tag-tilt:-1.4deg;--content-tilt:-.3deg;--slash-tilt:7deg;--dot-left:36px;--dot-top:274px;--bee-tilt:-1deg}
+.tone-daytwo{--accent:#0A6BBD;--accent-2:#FFAF00;--glow:rgba(255,175,0,.32);--title-tilt:-.9deg;--tag-tilt:2.6deg;--content-tilt:.3deg;--slash-tilt:-8deg;--dot-left:780px;--dot-top:286px;--bee-tilt:2deg}
+.tone-score{--accent:#E52265;--accent-2:#008A61;--glow:rgba(229,34,101,.22);--title-tilt:1.3deg;--tag-tilt:-2.3deg;--content-tilt:-.25deg;--slash-tilt:9deg;--dot-left:50px;--dot-top:605px;--bee-tilt:-2deg}
+@media print{body{background:white}.poster{transform:none}}
+</style>
+</head>
+<body>
+<main class="poster tone-results">
+<div class="checker-top"></div><div class="checker-bottom"></div>
+<img class="school-logo" src="../assets/school-icon.png" alt="School and BKFC logos">
+<section class="brand-text"><div class="small">BKFC NGUYỄN HỮU CẢNH</div><div class="big">Tôi Yêu Bách Khoa</div></section>
+<section class="season-pill"><div class="phase">ĐGNL ĐỢT 2</div></section>
+<div class="tag">SAU KHI CÓ ĐIỂM</div>
+<section class="title-panel"><h1 class="title">BƯỚC TIẾP THEO LÀ GÌ?</h1><p class="subtitle">Có điểm rồi, đừng hoang mang — hãy kiểm tra từng bước</p></section>
+<section class="content-card"><div class="icon-box"><img src="../assets/icons/result.png" alt=""></div><div class="point"><span>Lưu giấy báo điểm điện tử</span></div>
+<div class="point"><span>So sánh với nguyện vọng dự kiến</span></div>
+<div class="point"><span>Theo dõi thông tin xét tuyển chính thức</span></div>
+<div class="point"><span>Hỏi khi chưa rõ, đừng tự đoán</span></div><div class="cta">Comment câu hỏi để BKFC NHC hỗ trợ.</div></section>
+<img class="sparkles" src="../assets/theme/yellow-sparkles.png" alt="">
+<img class="theme-bees" src="../assets/illustrations/BKFC NHC Resource pack (5) - Copy.png" alt="">
+<img class="bee" src="../assets/illustrations/bee-cool.png" alt="Bee PNG placeholder">
+<div class="footer"><span>#BKFC</span> #ToiYeuBachKhoa #HCMUT<br>#BKFCNguyenHuuCanh #BKFCNHC</div>
+</main>
+</body>
+</html>

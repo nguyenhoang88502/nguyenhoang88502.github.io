@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BKFC NHC Poster Library</title>
+<style>
+@font-face{font-family:"UTM Bango Pro Regular";src:local("UTM Bango Pro Regular"),local("UTM Bango Pro"),local("UTM-Bango-Pro");font-weight:400;font-style:normal}
+@font-face{font-family:"Phudu";src:local("DT Phudu"),local("DT PHUDU"),local("Phudu"),local("Phudu SemiBold");font-weight:400 900;font-style:normal}
+:root{--red:#D40008;--deep-red:#A51D0F;--blue:#030391;--sky:#1488DB;--orange:#FFAF00;--yellow:#FFE564;--cream:#FFF7E6;--ink:#09225A;--paper:#fffdf7;--line:rgba(9,34,90,.12);--title:"UTM Bango Pro Regular","UTM Bango Pro",Impact,"Arial Black",sans-serif;--body:"DT Phudu","Phudu","Arial Narrow",Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(rgba(255,247,230,.92),rgba(255,247,230,.92)),repeating-linear-gradient(0deg,transparent 0 35px,var(--line) 36px 38px),repeating-linear-gradient(90deg,transparent 0 35px,var(--line) 36px 38px),var(--cream);color:var(--ink);font-family:var(--body)}
+a{color:inherit}
+.topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:5px solid var(--red);box-shadow:0 10px 0 rgba(3,3,145,.08)}
+.topbar-inner{max-width:1240px;margin:auto;display:flex;align-items:center;gap:22px;padding:16px 24px}
+.brand-logo{width:260px;height:74px;object-fit:contain;background:#fff}
+.brand-copy{min-width:0}
+.brand-copy h1{margin:0;font-family:var(--title);font-size:clamp(34px,5vw,68px);line-height:.86;color:var(--red);letter-spacing:0;text-transform:uppercase}
+.brand-copy p{margin:7px 0 0;font-size:18px;font-weight:800;color:var(--blue)}
+.shell{max-width:1240px;margin:0 auto;padding:28px 24px 54px}
+.intro{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:28px;align-items:end;padding:28px 0 18px}
+.intro h2{margin:0;font-family:var(--title);font-size:clamp(46px,7vw,92px);line-height:.86;color:var(--blue);letter-spacing:0;text-transform:uppercase;text-shadow:4px 4px 0 rgba(255,175,0,.55)}
+.intro p{max-width:760px;margin:16px 0 0;font-size:24px;line-height:1.22;font-weight:700}
+.hero-bee{width:260px;justify-self:end;filter:drop-shadow(10px 14px 0 rgba(9,34,90,.12))}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 26px}
+.pill{display:inline-flex;align-items:center;min-height:46px;padding:11px 18px;border-radius:18px;background:#fff;border:4px solid var(--orange);font-size:18px;font-weight:900;color:var(--deep-red);box-shadow:6px 6px 0 rgba(212,0,8,.12)}
+.pill.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.poster-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:18px}
+.poster-card{position:relative;min-height:330px;display:flex;flex-direction:column;justify-content:space-between;background:var(--paper);border:5px solid var(--orange);border-radius:8px;padding:18px;overflow:hidden;box-shadow:10px 10px 0 rgba(3,3,145,.12);transition:transform .16s ease,box-shadow .16s ease}
+.poster-card:hover{transform:translate(-3px,-3px);box-shadow:14px 14px 0 rgba(3,3,145,.16)}
+.poster-card::before{content:"";position:absolute;inset:auto -80px -50px auto;width:220px;height:120px;background:var(--accent,#D40008);opacity:.1;transform:rotate(-12deg);border-radius:30px}
+.poster-card::after{content:attr(data-no);position:absolute;right:14px;top:12px;font-family:var(--title);font-size:44px;line-height:.8;color:rgba(9,34,90,.14)}
+.card-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.card-icon{width:54px;height:54px;object-fit:contain}
+.meta-row{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.phase,.upload-date{display:inline-flex;align-items:center;min-height:34px;padding:8px 11px;border-radius:13px;font-size:15px;font-weight:900;white-space:nowrap}
+.phase{background:var(--blue);color:#fff}
+.upload-date{background:#fff;border:3px solid var(--orange);color:var(--deep-red)}
+.poster-card h3{position:relative;z-index:1;margin:22px 0 12px;font-family:var(--title);font-size:42px;line-height:.88;letter-spacing:0;color:var(--accent,var(--red));text-transform:uppercase}
+.poster-card p{position:relative;z-index:1;margin:0;font-size:20px;line-height:1.22;font-weight:750}
+.actions{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;padding-top:16px;border-top:3px solid rgba(9,34,90,.1)}
+.action-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 12px;border-radius:14px;background:var(--yellow);color:var(--deep-red);font-size:16px;font-weight:900;text-decoration:none;text-align:center}
+.action-link.secondary{background:#fff;border:3px solid var(--blue);color:var(--blue)}
+.filename{position:relative;z-index:1;margin-top:12px;font-size:13px;font-weight:800;color:rgba(9,34,90,.62);word-break:break-word}
+.accent-red{--accent:#D40008}.accent-blue{--accent:#0A6BBD}.accent-green{--accent:#008A61}.accent-pink{--accent:#E52265}.accent-purple{--accent:#6B3FB5}
+.footer-note{margin-top:34px;padding:22px 0 0;border-top:5px solid rgba(212,0,8,.16);font-size:17px;font-weight:800;color:rgba(9,34,90,.72)}
+@media (max-width:760px){
+  .topbar-inner{align-items:flex-start;flex-direction:column}
+  .brand-logo{width:220px;height:auto}
+  .intro{grid-template-columns:1fr}
+  .hero-bee{width:180px;justify-self:start}
+  .poster-card{min-height:300px}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <img class="brand-logo" src="assets/school-icon.png" alt="BKFC and school logos">
+    <div class="brand-copy">
+      <h1>BKFC NHC</h1>
+      <p>Poster library cho mùa thi</p>
+    </div>
+  </div>
+</header>
+<main class="shell">
+  <section class="intro">
+    <div>
+      <h2>Exam Poster Pack</h2>
+      <p>Mở nhanh từng poster HTML, kiểm tra caption, rồi xuất hoặc chụp thành ảnh đăng bài.</p>
+      <div class="toolbar">
+        <span class="pill blue">12 posters</span>
+        <span class="pill">12 caption files</span>
+        <span class="pill">TN THPT</span>
+        <span class="pill">ĐGNL Đợt 2</span>
+      </div>
+    </div>
+    <img class="hero-bee" src="assets/illustrations/bee-main.png" alt="BKFC bee mascot">
+  </section>
+  <section class="poster-grid" aria-label="Poster files and captions">
+    <article class="poster-card accent-red" data-no="01">
+      <div class="card-top"><img class="card-icon" src="assets/icons/alarm.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 03/05/2026</span></div>
+      <div><h3>Đừng để lỡ hạn</h3><p>Kiểm tra đăng ký dự thi TN THPT thật kỹ trước khi xác nhận.</p></div>
+      <div class="actions"><a class="action-link" href="html/01-tnthpt-registration-deadline.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/01-tnthpt-registration-deadline.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">01-tnthpt-registration-deadline.html</div>
+    </article>
+    <article class="poster-card accent-blue" data-no="02">
+      <div class="card-top"><img class="card-icon" src="assets/icons/ticket.png" alt=""></div>
+      <div class="meta-row"><span class="phase">ĐGNL Đợt 2</span><span class="upload-date">Upload 16/05/2026</span></div>
+      <div><h3>Kiểm tra ngay</h3><p>Đừng đợi sát ngày thi mới xem địa điểm và thông tin cá nhân.</p></div>
+      <div class="actions"><a class="action-link" href="html/02-dgnl-admission-ticket.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/02-dgnl-admission-ticket.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">02-dgnl-admission-ticket.html</div>
+    </article>
+    <article class="poster-card accent-green" data-no="03">
+      <div class="card-top"><img class="card-icon" src="assets/icons/checklist.png" alt=""></div>
+      <div class="meta-row"><span class="phase">ĐGNL Đợt 2</span><span class="upload-date">Upload 21/05/2026</span></div>
+      <div><h3>Trước ngày thi</h3><p>Mang đủ, ngủ đủ, đến sớm để tâm lý nhẹ hơn.</p></div>
+      <div class="actions"><a class="action-link" href="html/03-dgnl-checklist.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/03-dgnl-checklist.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">03-dgnl-checklist.html</div>
+    </article>
+    <article class="poster-card accent-pink" data-no="04">
+      <div class="card-top"><img class="card-icon" src="assets/icons/heart.png" alt=""></div>
+      <div class="meta-row"><span class="phase">ĐGNL Đợt 2</span><span class="upload-date">Upload 23/05/2026</span></div>
+      <div><h3>Mai thi rồi</h3><p>Bình tĩnh đọc đề, làm chắc từng câu, BKFC NHC tin bạn làm được.</p></div>
+      <div class="actions"><a class="action-link" href="html/04-dgnl-good-luck.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/04-dgnl-good-luck.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">04-dgnl-good-luck.html</div>
+    </article>
+    <article class="poster-card accent-red" data-no="05">
+      <div class="card-top"><img class="card-icon" src="assets/icons/calendar.png" alt=""></div>
+      <div class="meta-row"><span class="phase">ĐGNL Đợt 2</span><span class="upload-date">Upload 24/05/2026</span></div>
+      <div><h3>Chúc sĩ tử vững tâm</h3><p>Đi chậm một chút, đọc kỹ một chút, tự tin thêm một chút.</p></div>
+      <div class="actions"><a class="action-link" href="html/05-dgnl-test-day.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/05-dgnl-test-day.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">05-dgnl-test-day.html</div>
+    </article>
+    <article class="poster-card accent-purple" data-no="06">
+      <div class="card-top"><img class="card-icon" src="assets/icons/book.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 04/06/2026</span></div>
+      <div><h3>Ôn gọn - ngủ đủ</h3><p>Tuần cuối là để giữ nhịp, không phải học lại tất cả.</p></div>
+      <div class="actions"><a class="action-link" href="html/06-tnthpt-one-week-checklist.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/06-tnthpt-one-week-checklist.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">06-tnthpt-one-week-checklist.html</div>
+    </article>
+    <article class="poster-card accent-blue" data-no="07">
+      <div class="card-top"><img class="card-icon" src="assets/icons/result.png" alt=""></div>
+      <div class="meta-row"><span class="phase">ĐGNL Đợt 2</span><span class="upload-date">Upload 06/06/2026</span></div>
+      <div><h3>Bước tiếp theo là gì?</h3><p>Có điểm rồi, đừng hoang mang, hãy kiểm tra từng bước.</p></div>
+      <div class="actions"><a class="action-link" href="html/07-dgnl-result-next-steps.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/07-dgnl-result-next-steps.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">07-dgnl-result-next-steps.html</div>
+    </article>
+    <article class="poster-card accent-green" data-no="08">
+      <div class="card-top"><img class="card-icon" src="assets/icons/checklist.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 09/06/2026</span></div>
+      <div><h3>Trước khi vào thi</h3><p>Một checklist ngắn để không bỏ sót thứ quan trọng.</p></div>
+      <div class="actions"><a class="action-link" href="html/08-tnthpt-final-checklist.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/08-tnthpt-final-checklist.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">08-tnthpt-final-checklist.html</div>
+    </article>
+    <article class="poster-card accent-blue" data-no="09">
+      <div class="card-top"><img class="card-icon" src="assets/icons/heart.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 10/06/2026</span></div>
+      <div><h3>Ngủ sớm nha</h3><p>Bạn đã đi rất xa rồi, ngày mai chỉ cần bình tĩnh thể hiện thôi.</p></div>
+      <div class="actions"><a class="action-link" href="html/09-tnthpt-night-before.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/09-tnthpt-night-before.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">09-tnthpt-night-before.html</div>
+    </article>
+    <article class="poster-card accent-red" data-no="10">
+      <div class="card-top"><img class="card-icon" src="assets/icons/calendar.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 11/06/2026</span></div>
+      <div><h3>Vững tâm vào phòng thi</h3><p>Làm chắc phần mình biết, không để một câu khó kéo tâm trạng xuống.</p></div>
+      <div class="actions"><a class="action-link" href="html/10-tnthpt-test-day-one.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/10-tnthpt-test-day-one.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">10-tnthpt-test-day-one.html</div>
+    </article>
+    <article class="poster-card accent-blue" data-no="11">
+      <div class="card-top"><img class="card-icon" src="assets/icons/calendar.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 12/06/2026</span></div>
+      <div><h3>Cố thêm một chút</h3><p>Chặng cuối rồi, giữ nhịp ổn định đến phút cuối cùng.</p></div>
+      <div class="actions"><a class="action-link" href="html/11-tnthpt-test-day-two.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/11-tnthpt-test-day-two.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">11-tnthpt-test-day-two.html</div>
+    </article>
+    <article class="poster-card accent-pink" data-no="12">
+      <div class="card-top"><img class="card-icon" src="assets/icons/result.png" alt=""></div>
+      <div class="meta-row"><span class="phase">TN THPT</span><span class="upload-date">Upload 01/07/2026</span></div>
+      <div><h3>Có điểm rồi!</h3><p>Bình tĩnh xem điểm, lưu lại kết quả và chuẩn bị bước xét tuyển tiếp theo.</p></div>
+      <div class="actions"><a class="action-link" href="html/12-tnthpt-result-day.html" target="_blank" rel="noopener">Mở poster</a><a class="action-link secondary" href="captions/12-tnthpt-result-day.txt" target="_blank" rel="noopener">Caption</a></div>
+      <div class="filename">12-tnthpt-result-day.html</div>
+    </article>
+  </section>
+  <p class="footer-note">Upload dates follow <code>schedule.csv</code>. Poster and caption links open in a new tab.</p>
+</main>
+</body>
+</html>
