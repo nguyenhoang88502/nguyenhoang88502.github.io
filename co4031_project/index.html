@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CO4031 Manufacturing Failure Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #071018;
+      --panel: #111c25;
+      --panel-2: #172531;
+      --line: rgba(140, 173, 194, 0.2);
+      --text: #eaf2f6;
+      --muted: #9eb2bf;
+      --blue: #6ec6ff;
+      --green: #72d79a;
+      --orange: #ffb15c;
+      --red: #ff6f73;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 80% 4%, rgba(110, 198, 255, 0.16), transparent 30%),
+        radial-gradient(circle at 10% 18%, rgba(114, 215, 154, 0.12), transparent 34%),
+        linear-gradient(180deg, #071018 0%, #0c151d 42%, #071018 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0;
+    }
+
+    .back-link,
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .back-link:hover,
+    .nav-link:hover { color: var(--text); }
+
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hero {
+      min-height: 82vh;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+      gap: 44px;
+      align-items: center;
+      padding: 28px 0 72px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--green);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      background: var(--green);
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(2.8rem, 6vw, 6.2rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 690px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.16rem);
+      margin: 26px 0 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 800;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .button.primary {
+      background: var(--green);
+      color: #06120b;
+      border-color: var(--green);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      border-color: rgba(110, 198, 255, 0.7);
+      background: rgba(110, 198, 255, 0.1);
+    }
+
+    .button.primary:hover {
+      background: #8eeab0;
+      border-color: #8eeab0;
+    }
+
+    .hero-visual {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-visual img {
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: -28px 0 78px;
+    }
+
+    .metric,
+    .step,
+    .asset,
+    .result {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 28, 37, 0.78);
+      box-shadow: 0 14px 46px rgba(0, 0, 0, 0.15);
+    }
+
+    .metric {
+      padding: 22px;
+    }
+
+    .metric strong {
+      display: block;
+      color: white;
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    section {
+      padding: 72px 0;
+      border-top: 1px solid rgba(140, 173, 194, 0.14);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(260px, 0.55fr);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 30px;
+    }
+
+    .section-kicker {
+      color: var(--blue);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .section-copy {
+      color: var(--muted);
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      padding: 22px;
+      min-height: 210px;
+    }
+
+    .step-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #061018;
+      background: var(--blue);
+      margin-bottom: 18px;
+      font-size: 1.2rem;
+    }
+
+    .step:nth-child(2) .step-icon { background: var(--orange); }
+    .step:nth-child(3) .step-icon { background: var(--green); }
+    .step:nth-child(4) .step-icon { background: #b6a1ff; }
+    .step:nth-child(5) .step-icon { background: var(--red); }
+
+    .step h3 {
+      margin: 0 0 10px;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .feature-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.55fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .image-frame {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .image-frame img {
+      min-height: 360px;
+      object-fit: cover;
+    }
+
+    .results-grid,
+    .asset-grid,
+    .gallery {
+      display: grid;
+      gap: 14px;
+    }
+
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .result {
+      padding: 22px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .result b {
+      color: white;
+      font-size: 1.08rem;
+    }
+
+    .result span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .gallery {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    figure {
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+
+    figure img {
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+    }
+
+    figcaption {
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      border-top: 1px solid rgba(140, 173, 194, 0.14);
+    }
+
+    .asset-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .asset {
+      padding: 22px;
+      text-decoration: none;
+      min-height: 150px;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .asset:hover {
+      transform: translateY(-3px);
+      border-color: rgba(114, 215, 154, 0.65);
+      background: rgba(114, 215, 154, 0.07);
+    }
+
+    .asset i {
+      color: var(--green);
+      font-size: 1.35rem;
+      margin-bottom: 18px;
+      display: inline-block;
+    }
+
+    .asset b {
+      display: block;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .asset span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .footer {
+      padding: 34px 0 52px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .section-head,
+      .feature-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics,
+      .workflow,
+      .asset-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 22px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 28px, 1180px); }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .nav-group { justify-content: flex-start; gap: 14px; }
+      .metrics,
+      .workflow,
+      .asset-grid,
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+      section { padding: 54px 0; }
+      .image-frame img { min-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="topbar" aria-label="Project navigation">
+      <a class="back-link" href="../index.html"><i class="bi bi-arrow-left"></i> Portfolio</a>
+      <div class="nav-group">
+        <a class="nav-link" href="#workflow">Workflow</a>
+        <a class="nav-link" href="#dashboard">Dashboard</a>
+        <a class="nav-link" href="#assets">Assets</a>
+        <a class="nav-link" href="https://github.com/nguyenhoang88502/co4031_project" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <div class="eyebrow">CO4031 data warehouse project</div>
+          <h1 id="page-title">Manufacturing Failure Analysis Dashboard</h1>
+          <p class="lead">A complete BI pipeline that turns AI4I predictive maintenance records into cleaned data, a PostgreSQL star schema, OLAP summaries, a Streamlit dashboard, and an optional XGBoost failure prediction model.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/nguyenhoang88502/co4031_project" target="_blank" rel="noreferrer"><i class="bi bi-github"></i> View GitHub Repo</a>
+            <a class="button" href="README.md"><i class="bi bi-file-text"></i> Read Project Notes</a>
+            <a class="button" href="#gallery"><i class="bi bi-images"></i> See Screenshots</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="picture/08_full_dashboard_composite.jpg" alt="Full Streamlit dashboard composite for CO4031 manufacturing failure analysis" />
+        </div>
+      </section>
+
+      <div class="metrics" aria-label="Project summary metrics">
+        <div class="metric">
+          <strong>6,390</strong>
+          <span>cleaned machine operation records used in the dashboard outputs</span>
+        </div>
+        <div class="metric">
+          <strong>240</strong>
+          <span>failure records summarized through OLAP datasets</span>
+        </div>
+        <div class="metric">
+          <strong>3.76%</strong>
+          <span>average failure rate after preprocessing and analysis</span>
+        </div>
+        <div class="metric">
+          <strong>40.00%</strong>
+          <span>failure rate for the critical worn-tool condition segment</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <section id="workflow">
+    <div class="shell">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">End-to-end pipeline</div>
+          <h2>From raw machine data to decision-ready BI.</h2>
+        </div>
+        <p class="section-copy">The project covers the full coursework path: exploration, preprocessing, ETL, dimensional modeling, OLAP analysis, dashboard reporting, and machine learning extension.</p>
+      </div>
+
+      <div class="workflow">
+        <article class="step">
+          <div class="step-icon"><i class="bi bi-database"></i></div>
+          <h3>Raw Dataset</h3>
+          <p>Uses the AI4I 2020 predictive maintenance dataset with operating temperatures, torque, rotational speed, tool wear, and five failure flags.</p>
+        </article>
+        <article class="step">
+          <div class="step-icon"><i class="bi bi-funnel"></i></div>
+          <h3>Preprocessing</h3>
+          <p>Removes duplicates, fills numeric gaps, filters impossible records, trims extreme outliers, and engineers temperature, power, type, and failure labels.</p>
+        </article>
+        <article class="step">
+          <div class="step-icon"><i class="bi bi-diagram-3"></i></div>
+          <h3>Data Warehouse</h3>
+          <p>Loads PostgreSQL staging data into a star schema centered on machine operations with date, product, failure type, and machine condition dimensions.</p>
+        </article>
+        <article class="step">
+          <div class="step-icon"><i class="bi bi-bar-chart-line"></i></div>
+          <h3>OLAP Outputs</h3>
+          <p>Exports failure distribution, monthly trend, product quality failure rate, and machine-condition risk summaries as dashboard-ready CSV files.</p>
+        </article>
+        <article class="step">
+          <div class="step-icon"><i class="bi bi-cpu"></i></div>
+          <h3>Prediction Model</h3>
+          <p>Trains an optional XGBoost classifier with scaling, SMOTE balancing, ROC-AUC evaluation, feature importance, and SHAP explainability.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="dashboard">
+    <div class="shell">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Dashboard showcase</div>
+          <h2>Failure patterns surfaced for practical analysis.</h2>
+        </div>
+        <p class="section-copy">The Streamlit dashboard reads generated OLAP CSVs directly, so the BI view can be reviewed without rebuilding PostgreSQL.</p>
+      </div>
+
+      <div class="feature-layout">
+        <div class="image-frame">
+          <img src="picture/01_overview_top.jpg" alt="Dashboard overview with KPI cards and chart navigation" />
+        </div>
+        <div class="results-grid">
+          <div class="result">
+            <b>Top failure driver</b>
+            <span>Heat Dissipation Failure is the largest named failure category with 80 occurrences.</span>
+          </div>
+          <div class="result">
+            <b>Product quality risk</b>
+            <span>Low Quality products show the highest summarized failure rate at 4.19%.</span>
+          </div>
+          <div class="result">
+            <b>Tool wear signal</b>
+            <span>Worn Tool (&gt;240 min) has only 10 operations but the highest risk segment at 40.00% failure rate.</span>
+          </div>
+          <div class="result">
+            <b>Presentation-ready flow</b>
+            <span>KPI cards, filters, charts, and detail tables support both executive summary and technical drill-down.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery">
+    <div class="shell">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Visual evidence</div>
+          <h2>Dashboard, OLAP, and ML artifacts.</h2>
+        </div>
+        <p class="section-copy">Screenshots from the Streamlit dashboard and saved machine learning plots document the main outputs of the project.</p>
+      </div>
+
+      <div class="gallery">
+        <figure>
+          <img src="picture/01_kpi_cards.jpg" alt="CO4031 KPI cards" />
+          <figcaption>KPI cards summarize records, failures, failure rate, and leading failure type.</figcaption>
+        </figure>
+        <figure>
+          <img src="picture/02_failure_distribution_bar.jpg" alt="Failure distribution bar chart" />
+          <figcaption>Failure distribution ranks no-failure records and each named failure mode.</figcaption>
+        </figure>
+        <figure>
+          <img src="picture/03_monthly_trend_line.jpg" alt="Monthly failure trend line chart" />
+          <figcaption>Monthly trend view shows the simulated 2023 failure count pattern.</figcaption>
+        </figure>
+        <figure>
+          <img src="picture/04_machine_condition_scatter.jpg" alt="Machine condition failure rate chart" />
+          <figcaption>Machine condition chart compares tool-life groups by failure rate.</figcaption>
+        </figure>
+        <figure>
+          <img src="picture/05_product_quality_bar.jpg" alt="Failure rate by product quality" />
+          <figcaption>Product quality chart compares low, medium, and high quality categories.</figcaption>
+        </figure>
+        <figure>
+          <img src="picture/06_data_tables.jpg" alt="Dashboard detail data tables" />
+          <figcaption>Detail tables expose the generated OLAP datasets used by the report.</figcaption>
+        </figure>
+        <figure>
+          <img src="picture/07_sidebar_filters.jpg" alt="Streamlit sidebar filters" />
+          <figcaption>Sidebar filters narrow the report by failure type, month, and condition.</figcaption>
+        </figure>
+        <figure>
+          <img src="ml/plots/model_evaluation.png" alt="XGBoost model evaluation plots" />
+          <figcaption>XGBoost evaluation includes confusion matrix, ROC curve, and feature importance.</figcaption>
+        </figure>
+        <figure>
+          <img src="ml/plots/shap_summary.png" alt="SHAP summary for XGBoost model" />
+          <figcaption>SHAP summary explains how operating features affect failure predictions.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="assets">
+    <div class="shell">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">Project assets</div>
+          <h2>Open the files behind the showcase.</h2>
+        </div>
+        <p class="section-copy">These links point to the coursework repository, local project notes, ETL logic, warehouse schema, OLAP exports, and dashboard entry point.</p>
+      </div>
+
+      <div class="asset-grid">
+        <a class="asset" href="https://github.com/nguyenhoang88502/co4031_project" target="_blank" rel="noreferrer">
+          <i class="bi bi-github"></i>
+          <b>GitHub Repository</b>
+          <span>Source code, assets, and project history.</span>
+        </a>
+        <a class="asset" href="README.md">
+          <i class="bi bi-file-earmark-text"></i>
+          <b>README</b>
+          <span>Full project explanation and run instructions.</span>
+        </a>
+        <a class="asset" href="app.py">
+          <i class="bi bi-window-sidebar"></i>
+          <b>Streamlit App</b>
+          <span>Dashboard code that reads OLAP CSV files.</span>
+        </a>
+        <a class="asset" href="run_etl.py">
+          <i class="bi bi-play-circle"></i>
+          <b>ETL Runner</b>
+          <span>Main preprocessing, loading, and OLAP pipeline script.</span>
+        </a>
+        <a class="asset" href="dw/01_create_star_schema.sql">
+          <i class="bi bi-diagram-2"></i>
+          <b>Star Schema SQL</b>
+          <span>PostgreSQL warehouse fact and dimension tables.</span>
+        </a>
+        <a class="asset" href="dw/OLAP%20Failure%20Distribution%20by%20Failure%20Type.csv">
+          <i class="bi bi-table"></i>
+          <b>OLAP CSV</b>
+          <span>Failure type distribution exported for the dashboard.</span>
+        </a>
+        <a class="asset" href="dw/ETL%20%26%20DW%20%26%20OLAP.docx">
+          <i class="bi bi-file-earmark-word"></i>
+          <b>Coursework Doc</b>
+          <span>ETL, data warehouse, and OLAP documentation.</span>
+        </a>
+        <a class="asset" href="ml/xgboost_failure_prediction.py">
+          <i class="bi bi-robot"></i>
+          <b>ML Script</b>
+          <span>XGBoost training and explainability workflow.</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="shell">
+      <span>CO4031 Manufacturing Failure Analysis Dashboard</span>
+    </div>
+  </footer>
+</body>
+</html>
