@@ -225,6 +225,11 @@
 
     footer {
       padding: 30px clamp(18px, 5vw, 70px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
       background: #0b1220;
       color: #cbd5e1;
       font-family: var(--mono);
@@ -244,12 +249,7 @@
   <nav class="topbar" aria-label="Archive navigation">
     <a class="brand" href="index.html">OPF Visual Archive</a>
     <div class="nav">
-      <a class="btn primary" href="index.html">Back to portfolio</a>
-      <a class="btn" href="#models">Models</a>
-      <a class="btn" href="#web-after">Web after</a>
-      <a class="btn" href="#web-before">Web before</a>
-      <a class="btn" href="#arena">Arena</a>
-      <a class="btn" href="#videos">Videos</a>
+      <a class="btn primary" href="index.html">← Back</a>
     </div>
   </nav>
 
@@ -357,6 +357,9 @@
     </section>
   </main>
 
-  <footer>OPF_sim visual archive. Media is displayed uncropped with full aspect ratios preserved.</footer>
+  <footer>
+    <span>OPF_sim visual archive. Media is displayed uncropped with full aspect ratios preserved.</span>
+    <a class="btn" href="index.html">← Back</a>
+  </footer>
 </body>
 </html>
