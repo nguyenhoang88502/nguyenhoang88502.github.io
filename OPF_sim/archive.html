@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPF Simulation Visual Archive</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #111827;
+      --steel: #334155;
+      --muted: #64748b;
+      --line: #d9e2ec;
+      --paper: #f7f9fc;
+      --navy: #101827;
+      --blue: #2563eb;
+      --head: "Barlow Condensed", sans-serif;
+      --body: "Barlow", sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: var(--body);
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.5;
+    }
+
+    a { color: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      min-height: 62px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 12px clamp(18px, 4vw, 54px);
+      background: rgba(255,255,255,0.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      font-family: var(--head);
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--navy);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: white;
+      color: var(--steel);
+      font-family: var(--head);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-decoration: none;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: var(--navy);
+      color: white;
+      border-color: var(--navy);
+    }
+
+    header {
+      padding: clamp(42px, 8vw, 86px) clamp(18px, 5vw, 70px) 34px;
+      border-bottom: 1px solid var(--line);
+      background: white;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--blue);
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      max-width: 950px;
+      font-family: var(--head);
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 900;
+      line-height: 0.92;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      color: var(--navy);
+    }
+
+    .lede {
+      max-width: 820px;
+      margin-top: 18px;
+      font-size: 19px;
+      color: var(--steel);
+    }
+
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    section {
+      padding: clamp(42px, 7vw, 72px) clamp(18px, 5vw, 70px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.42fr) minmax(0, 0.58fr);
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      font-family: var(--head);
+      font-size: clamp(34px, 5vw, 62px);
+      font-weight: 900;
+      line-height: 0.95;
+      text-transform: uppercase;
+      color: var(--navy);
+    }
+
+    .section-header p { color: var(--steel); font-size: 17px; }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .archive-grid.single { grid-template-columns: 1fr; }
+
+    .item {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .media-frame {
+      padding: 14px;
+      background: #eef3f8;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .media-frame img,
+    .media-frame video {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: none;
+      object-fit: contain;
+      object-position: center;
+      margin: 0 auto;
+      background: white;
+    }
+
+    .media-frame video {
+      width: 100%;
+      background: #0f172a;
+    }
+
+    .caption {
+      padding: 15px 16px 18px;
+    }
+
+    .caption h3 {
+      font-family: var(--head);
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--navy);
+    }
+
+    .caption p {
+      margin-top: 8px;
+      color: var(--steel);
+    }
+
+    .caption a {
+      display: inline-flex;
+      margin-top: 10px;
+      color: var(--blue);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    footer {
+      padding: 30px clamp(18px, 5vw, 70px);
+      background: #0b1220;
+      color: #cbd5e1;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .topbar,
+      .section-header { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .nav { justify-content: flex-start; }
+      .archive-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topbar" aria-label="Archive navigation">
+    <a class="brand" href="index.html">OPF Visual Archive</a>
+    <div class="nav">
+      <a class="btn primary" href="index.html">Back to portfolio</a>
+      <a class="btn" href="#models">Models</a>
+      <a class="btn" href="#web-after">Web after</a>
+      <a class="btn" href="#web-before">Web before</a>
+      <a class="btn" href="#arena">Arena</a>
+      <a class="btn" href="#videos">Videos</a>
+    </div>
+  </nav>
+
+  <header>
+    <p class="eyebrow">Complete uncropped media archive</p>
+    <h1>All simulation visuals and process media</h1>
+    <p class="lede">This page preserves the full aspect ratio of every included screenshot, model image, report page, and video. Media may scale down to fit the browser width, but it is not cropped.</p>
+    <div class="jump">
+      <a class="btn primary" href="tool.html">Open simulator</a>
+      <a class="btn" href="data_collection.html">Open data collector</a>
+      <a class="btn" href="SimReport.pdf">Simulation report</a>
+      <a class="btn" href="SimSlideDeck.pdf">Slide deck</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="models">
+      <div class="section-header">
+        <h2>Model and improvement visuals</h2>
+        <p>Core model and improvement graphics used by the portfolio page and project explanation.</p>
+      </div>
+      <div class="archive-grid single">
+        <article class="item">
+          <div class="media-frame"><img src="ArenaModel.png" alt="Arena model layout"></div>
+          <div class="caption"><h3>Arena model layout</h3><p>Full discrete event simulation model layout.</p><a href="ArenaModel.png">Open original</a></div>
+        </article>
+        <article class="item">
+          <div class="media-frame"><img src="YamazumiAfter.png" alt="After Yamazumi chart"></div>
+          <div class="caption"><h3>After Yamazumi chart</h3><p>Station balance and target-time visualization.</p><a href="YamazumiAfter.png">Open original</a></div>
+        </article>
+        <article class="item">
+          <div class="media-frame"><img src="AutoMachine.png" alt="Automation machine concept"></div>
+          <div class="caption"><h3>Automation machine concept</h3><p>Station automation visual supporting the improved scenario.</p><a href="AutoMachine.png">Open original</a></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="web-after">
+      <div class="section-header">
+        <h2>Web app after report pages</h2>
+        <p>Generated browser simulation report pages for the improved scenario.</p>
+      </div>
+      <div class="archive-grid">
+        <article class="item"><div class="media-frame"><img src="web%20app%20after_page_01.png" alt="Web app after page 1"></div><div class="caption"><h3>After page 1</h3><a href="web%20app%20after_page_01.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20after_page_02.png" alt="Web app after page 2"></div><div class="caption"><h3>After page 2</h3><a href="web%20app%20after_page_02.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20after_page_03.png" alt="Web app after page 3"></div><div class="caption"><h3>After page 3</h3><a href="web%20app%20after_page_03.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20after_page_04.png" alt="Web app after page 4"></div><div class="caption"><h3>After page 4</h3><a href="web%20app%20after_page_04.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20after_page_05.png" alt="Web app after page 5"></div><div class="caption"><h3>After page 5</h3><a href="web%20app%20after_page_05.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20after_page_06.png" alt="Web app after page 6"></div><div class="caption"><h3>After page 6</h3><a href="web%20app%20after_page_06.png">Open original</a></div></article>
+      </div>
+    </section>
+
+    <section id="web-before">
+      <div class="section-header">
+        <h2>Web app before report pages</h2>
+        <p>Generated browser simulation report pages for the baseline scenario.</p>
+      </div>
+      <div class="archive-grid">
+        <article class="item"><div class="media-frame"><img src="web%20app%20before_page_01.png" alt="Web app before page 1"></div><div class="caption"><h3>Before page 1</h3><a href="web%20app%20before_page_01.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20before_page_02.png" alt="Web app before page 2"></div><div class="caption"><h3>Before page 2</h3><a href="web%20app%20before_page_02.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20before_page_03.png" alt="Web app before page 3"></div><div class="caption"><h3>Before page 3</h3><a href="web%20app%20before_page_03.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20before_page_04.png" alt="Web app before page 4"></div><div class="caption"><h3>Before page 4</h3><a href="web%20app%20before_page_04.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20before_page_05.png" alt="Web app before page 5"></div><div class="caption"><h3>Before page 5</h3><a href="web%20app%20before_page_05.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="web%20app%20before_page_06.png" alt="Web app before page 6"></div><div class="caption"><h3>Before page 6</h3><a href="web%20app%20before_page_06.png">Open original</a></div></article>
+      </div>
+    </section>
+
+    <section id="arena">
+      <div class="section-header">
+        <h2>Arena report pages</h2>
+        <p>Before and after Arena report page images exported from the PDF reports.</p>
+      </div>
+      <div class="archive-grid">
+        <article class="item"><div class="media-frame"><img src="before%20arena%20report_page_01.png" alt="Before Arena report page 1"></div><div class="caption"><h3>Before Arena page 1</h3><a href="before%20arena%20report_page_01.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="before%20arena%20report_page_02.png" alt="Before Arena report page 2"></div><div class="caption"><h3>Before Arena page 2</h3><a href="before%20arena%20report_page_02.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="before%20arena%20report_page_03.png" alt="Before Arena report page 3"></div><div class="caption"><h3>Before Arena page 3</h3><a href="before%20arena%20report_page_03.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="before%20arena%20report_page_04.png" alt="Before Arena report page 4"></div><div class="caption"><h3>Before Arena page 4</h3><a href="before%20arena%20report_page_04.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="before%20arena%20report_page_05.png" alt="Before Arena report page 5"></div><div class="caption"><h3>Before Arena page 5</h3><a href="before%20arena%20report_page_05.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="before%20arena%20report_page_06.png" alt="Before Arena report page 6"></div><div class="caption"><h3>Before Arena page 6</h3><a href="before%20arena%20report_page_06.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="after%20arena%20report_page_01.png" alt="After Arena report page 1"></div><div class="caption"><h3>After Arena page 1</h3><a href="after%20arena%20report_page_01.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="after%20arena%20report_page_02.png" alt="After Arena report page 2"></div><div class="caption"><h3>After Arena page 2</h3><a href="after%20arena%20report_page_02.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="after%20arena%20report_page_03.png" alt="After Arena report page 3"></div><div class="caption"><h3>After Arena page 3</h3><a href="after%20arena%20report_page_03.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="after%20arena%20report_page_04.png" alt="After Arena report page 4"></div><div class="caption"><h3>After Arena page 4</h3><a href="after%20arena%20report_page_04.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="after%20arena%20report_page_05.png" alt="After Arena report page 5"></div><div class="caption"><h3>After Arena page 5</h3><a href="after%20arena%20report_page_05.png">Open original</a></div></article>
+        <article class="item"><div class="media-frame"><img src="after%20arena%20report_page_06.png" alt="After Arena report page 6"></div><div class="caption"><h3>After Arena page 6</h3><a href="after%20arena%20report_page_06.png">Open original</a></div></article>
+      </div>
+    </section>
+
+    <section id="videos">
+      <div class="section-header">
+        <h2>Process videos</h2>
+        <p>All video files are embedded with native controls and shown at their original aspect ratio.</p>
+      </div>
+      <div class="archive-grid">
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="1.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 1</h3><a href="1.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="2.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 2</h3><a href="2.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="3.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 3</h3><a href="3.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="4.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 4</h3><a href="4.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="5.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 5</h3><a href="5.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="6.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 6</h3><a href="6.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="7.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 7</h3><a href="7.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata"><source src="8.mp4" type="video/mp4"></video></div><div class="caption"><h3>Operation clip 8</h3><a href="8.mp4">Open video</a></div></article>
+        <article class="item"><div class="media-frame"><video controls preload="metadata" poster="AutoMachine.png"><source src="automate%20blade%20station%203.mp4" type="video/mp4"></video></div><div class="caption"><h3>Automated blade station 3</h3><a href="automate%20blade%20station%203.mp4">Open video</a></div></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>OPF_sim visual archive. Media is displayed uncropped with full aspect ratios preserved.</footer>
+</body>
+</html>

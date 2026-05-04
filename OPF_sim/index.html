@@ -200,6 +200,39 @@
       letter-spacing: 0.06em;
     }
 
+    .stakeholder-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 780px;
+    }
+
+    .summary-box {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--muted);
+      border-radius: 8px;
+      background: white;
+      padding: 18px;
+    }
+
+    .summary-box.after { border-left-color: var(--green); }
+    .summary-box.before { border-left-color: var(--red); }
+
+    .summary-box strong {
+      display: block;
+      font-family: var(--head);
+      font-size: 27px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: var(--navy);
+    }
+
+    .summary-box span {
+      display: block;
+      margin-top: 8px;
+      color: var(--steel);
+    }
+
     .hero-media {
       min-height: 620px;
       display: grid;
@@ -209,20 +242,62 @@
     }
 
     .hero-media .media-stage {
-      position: relative;
       min-height: 0;
       display: grid;
-      place-items: center;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
       padding: clamp(18px, 3vw, 36px);
     }
 
-    .hero-media img {
-      width: 100%;
-      height: 100%;
-      max-height: 650px;
-      object-fit: contain;
+    .comparison-card {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
       background: white;
-      border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .comparison-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 46px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      font-family: var(--head);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--navy);
+    }
+
+    .comparison-label span {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .comparison-card img {
+      width: 100%;
+      height: auto;
+      max-height: 58vh;
+      object-fit: contain;
+      object-position: center;
+      background: white;
+    }
+
+    .comparison-copy {
+      min-height: 92px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--steel);
+      background: #f8fafc;
     }
 
     .media-caption {
@@ -310,9 +385,7 @@
 
     .step h3,
     .project h3,
-    .resource h3,
-    .gallery-item h3,
-    .video-card h3 {
+    .resource h3 {
       margin-top: 16px;
       font-family: var(--head);
       font-size: 26px;
@@ -323,9 +396,7 @@
     }
 
     .step p,
-    .project p,
-    .gallery-item p,
-    .video-card p {
+    .project p {
       margin-top: 12px;
       color: var(--steel);
     }
@@ -344,17 +415,20 @@
     }
 
     .project-media {
-      aspect-ratio: 16 / 9;
       background: #e5edf6;
       overflow: hidden;
       border-bottom: 1px solid var(--line);
+      display: grid;
+      place-items: center;
     }
 
     .project-media img,
     .project-media video {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
+      max-height: 560px;
+      object-fit: contain;
+      background: #f8fafc;
     }
 
     .project-body { padding: 22px; }
@@ -402,8 +476,8 @@
 
     .wide-shot img {
       width: 100%;
-      aspect-ratio: 16 / 8;
-      object-fit: cover;
+      height: auto;
+      object-fit: contain;
       object-position: center;
     }
 
@@ -481,90 +555,6 @@
       letter-spacing: 0.06em;
     }
 
-    .gallery-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 22px;
-    }
-
-    .gallery-tabs button {
-      min-height: 36px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: white;
-      padding: 8px 13px;
-      font-family: var(--head);
-      font-weight: 800;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--steel);
-      cursor: pointer;
-    }
-
-    .gallery-tabs button.active {
-      color: white;
-      background: var(--navy);
-      border-color: var(--navy);
-    }
-
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .gallery-item {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .gallery-item figure { margin: 0; }
-
-    .gallery-item img {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
-      object-position: top center;
-      border-bottom: 1px solid var(--line);
-      background: #f8fafc;
-    }
-
-    .gallery-item.wide img { aspect-ratio: 16 / 8; object-position: center; }
-
-    .gallery-copy { padding: 16px; }
-
-    .gallery-item h3 {
-      margin-top: 0;
-      font-size: 22px;
-    }
-
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .video-card {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .video-card video {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      object-fit: cover;
-      background: #0f172a;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .video-copy { padding: 16px; }
-    .video-card h3 { margin-top: 0; font-size: 21px; }
-
     .deliverables {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -617,9 +607,8 @@
       .site-nav { align-items: flex-start; flex-direction: column; }
       .nav-links { justify-content: flex-start; }
       .hero-stats,
+      .stakeholder-summary,
       .project-grid,
-      .gallery-grid,
-      .video-grid,
       .deliverables,
       .section-header {
         grid-template-columns: 1fr;
@@ -628,6 +617,7 @@
       .resources {
         grid-template-columns: 1fr;
       }
+      .hero-media .media-stage { grid-template-columns: 1fr; }
       .hero-media { min-height: 360px; }
       .media-caption { grid-template-columns: 1fr; }
     }
@@ -652,6 +642,7 @@
       <a href="#workflow">Workflow</a>
       <a href="#projects">Projects</a>
       <a href="#evidence">Evidence</a>
+      <a href="archive.html">Archive</a>
       <a href="tool.html" class="btn primary">Open Tool</a>
     </div>
   </nav>
@@ -660,33 +651,51 @@
     <section class="hero">
       <div class="hero-copy">
         <div>
-          <p class="eyebrow">Discrete event simulation portfolio</p>
-          <h1>Trimmer Assembly Line Simulation</h1>
+          <p class="eyebrow">Before and after improvement story</p>
+          <h1>What changed on the trimmer assembly line</h1>
         </div>
-        <p class="hero-lede">An end-to-end operations research project covering field time study, browser-based Monte Carlo simulation, Yamazumi balancing, Arena DES modeling, before and after scenario reporting, and automation analysis for the trimmer assembly process.</p>
+        <p class="hero-lede">This project shows the production problem, the improved work design, and the evidence used to decide whether the change helps the line meet demand with less bottleneck risk.</p>
+        <div class="stakeholder-summary" aria-label="Before and after summary">
+          <div class="summary-box before">
+            <strong>Before</strong>
+            <span>Work content and timing risk were harder to see clearly across stations, making bottlenecks and daily-output risk difficult to explain.</span>
+          </div>
+          <div class="summary-box after">
+            <strong>After</strong>
+            <span>The improved scenario gives a clearer station balance, visible capacity forecast, and supporting evidence for the proposed automation change.</span>
+          </div>
+        </div>
         <div class="hero-actions">
-          <a class="btn primary" href="tool.html">Launch simulator</a>
-          <a class="btn secondary" href="data_collection.html">Open data collector</a>
-          <a class="btn amber" href="SimReport.pdf">Simulation report PDF</a>
+          <a class="btn amber" href="#evidence">See before and after evidence</a>
+          <a class="btn primary" href="SimReport.pdf">Read report</a>
           <a class="btn secondary" href="SimSlideDeck.pdf">Slide deck</a>
         </div>
         <div class="hero-stats" aria-label="Project scope">
-          <div class="metric"><strong>2</strong><span>web apps</span></div>
-          <div class="metric"><strong>2</strong><span>Arena models</span></div>
-          <div class="metric"><strong>100k</strong><span>max Monte Carlo runs</span></div>
-          <div class="metric"><strong>9</strong><span>process videos</span></div>
+          <div class="metric"><strong>Before</strong><span>baseline line condition</span></div>
+          <div class="metric"><strong>After</strong><span>improved work scenario</span></div>
+          <div class="metric"><strong>Why</strong><span>capacity and bottleneck risk</span></div>
+          <div class="metric"><strong>Proof</strong><span>reports, charts, and videos</span></div>
         </div>
       </div>
       <div class="hero-media">
         <div class="media-stage">
-          <img src="ArenaModel.png" alt="Arena discrete event simulation model layout for the trimmer assembly line">
+          <article class="comparison-card">
+            <div class="comparison-label">Before <span>baseline</span></div>
+            <img src="web%20app%20before_page_01.png" alt="Before report preview for the trimmer assembly line baseline scenario">
+            <p class="comparison-copy">Baseline report view showing the original line performance evidence and timing spread.</p>
+          </article>
+          <article class="comparison-card">
+            <div class="comparison-label">After <span>improved</span></div>
+            <img src="web%20app%20after_page_01.png" alt="After report preview for the trimmer assembly line improved scenario">
+            <p class="comparison-copy">Improved report view showing the updated scenario evidence used for the final recommendation.</p>
+          </article>
         </div>
         <div class="media-caption">
           <div>
-            <strong>Arena DES model</strong>
-            <span>Generator, station flow, assignment, waiting, and disposal logic represented as a process simulation.</span>
+            <strong>Stakeholder view first</strong>
+            <span>The technical simulator, data collector, and model files are still available below for anyone who wants to inspect how the before and after evidence was built.</span>
           </div>
-          <a class="btn secondary" href="ArenaModel.png">View image</a>
+          <a class="btn secondary" href="tool.html">Open technical tool</a>
         </div>
       </div>
     </section>
@@ -733,7 +742,7 @@
       <div class="project-grid">
         <article class="project">
           <div class="project-media">
-            <img src="web%20app%20after_page_01%20-%20Copy.png" alt="Monte Carlo simulator report showing expected cycle time and distribution">
+            <img src="web%20app%20after_page_01.png" alt="Monte Carlo simulator report showing expected cycle time and distribution">
           </div>
           <div class="project-body">
             <p class="eyebrow">Browser simulation tool</p>
@@ -903,135 +912,12 @@
       </div>
     </section>
 
-    <section class="section alt" id="gallery">
+    <section class="section alt" id="visual-archive">
       <div class="section-header">
-        <h2>Visual evidence gallery</h2>
-        <p>Use the tabs to review the generated report pages and model images without leaving the portfolio page.</p>
+        <h2>Full visual archive</h2>
+        <p>The main page keeps only the visuals needed to tell the before and after story. All report screenshots, model images, and process videos are preserved without cropping in a separate archive page.</p>
       </div>
-      <div class="gallery-tabs" role="tablist" aria-label="Evidence gallery filters">
-        <button class="active" type="button" data-filter="all">All</button>
-        <button type="button" data-filter="web">Web app</button>
-        <button type="button" data-filter="arena">Arena</button>
-        <button type="button" data-filter="model">Models</button>
-      </div>
-      <div class="gallery-grid">
-        <article class="gallery-item wide" data-kind="model">
-          <figure><img loading="lazy" src="ArenaModel.png" alt="Arena model diagram"></figure>
-          <div class="gallery-copy">
-            <h3>Arena model layout</h3>
-            <p>Full process model showing generator logic and assembly-line routing.</p>
-          </div>
-        </article>
-        <article class="gallery-item wide" data-kind="model">
-          <figure><img loading="lazy" src="YamazumiAfter.png" alt="After Yamazumi chart"></figure>
-          <div class="gallery-copy">
-            <h3>After Yamazumi chart</h3>
-            <p>Station balance with VAA, Semi-VA, NVA, total time, and target time.</p>
-          </div>
-        </article>
-        <article class="gallery-item wide" data-kind="model">
-          <figure><img loading="lazy" src="AutoMachine.png" alt="Automation machine concept"></figure>
-          <div class="gallery-copy">
-            <h3>Automation concept</h3>
-            <p>Machine concept supporting the improved station scenario.</p>
-          </div>
-        </article>
-
-        <article class="gallery-item" data-kind="web">
-          <figure><img loading="lazy" src="web%20app%20after_page_01.png" alt="Web app after report page 1"></figure>
-          <div class="gallery-copy"><h3>Web app after, page 1</h3><p>Monte Carlo summary and distribution.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="web">
-          <figure><img loading="lazy" src="web%20app%20after_page_03.png" alt="Web app after report page 3"></figure>
-          <div class="gallery-copy"><h3>Web app after, page 3</h3><p>Capacity and risk analysis report page.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="web">
-          <figure><img loading="lazy" src="web%20app%20after_page_05.png" alt="Web app after report page 5"></figure>
-          <div class="gallery-copy"><h3>Web app after, page 5</h3><p>Flow simulation and station utilization output.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="web">
-          <figure><img loading="lazy" src="web%20app%20before_page_01.png" alt="Web app before report page 1"></figure>
-          <div class="gallery-copy"><h3>Web app before, page 1</h3><p>Baseline web simulation report preview.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="web">
-          <figure><img loading="lazy" src="web%20app%20before_page_04.png" alt="Web app before report page 4"></figure>
-          <div class="gallery-copy"><h3>Web app before, page 4</h3><p>Baseline analysis detail page.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="web">
-          <figure><img loading="lazy" src="web%20app%20before_page_06.png" alt="Web app before report page 6"></figure>
-          <div class="gallery-copy"><h3>Web app before, page 6</h3><p>Baseline flow report page.</p></div>
-        </article>
-
-        <article class="gallery-item" data-kind="arena">
-          <figure><img loading="lazy" src="before%20arena%20report_page_01.png" alt="Before Arena report page 1"></figure>
-          <div class="gallery-copy"><h3>Arena before, page 1</h3><p>Baseline Arena report cover and summary page.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="arena">
-          <figure><img loading="lazy" src="before%20arena%20report_page_03.png" alt="Before Arena report page 3"></figure>
-          <div class="gallery-copy"><h3>Arena before, page 3</h3><p>Baseline scenario detailed Arena output.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="arena">
-          <figure><img loading="lazy" src="before%20arena%20report_page_06.png" alt="Before Arena report page 6"></figure>
-          <div class="gallery-copy"><h3>Arena before, page 6</h3><p>Baseline final Arena report page.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="arena">
-          <figure><img loading="lazy" src="after%20arena%20report_page_01.png" alt="After Arena report page 1"></figure>
-          <div class="gallery-copy"><h3>Arena after, page 1</h3><p>Improved scenario Arena report cover and summary page.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="arena">
-          <figure><img loading="lazy" src="after%20arena%20report_page_04.png" alt="After Arena report page 4"></figure>
-          <div class="gallery-copy"><h3>Arena after, page 4</h3><p>Improved scenario detailed Arena output.</p></div>
-        </article>
-        <article class="gallery-item" data-kind="arena">
-          <figure><img loading="lazy" src="after%20arena%20report_page_06.png" alt="After Arena report page 6"></figure>
-          <div class="gallery-copy"><h3>Arena after, page 6</h3><p>Improved scenario final Arena report page.</p></div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section" id="videos">
-      <div class="section-header">
-        <h2>Process videos</h2>
-        <p>The video set documents the observed assembly operations and the automation station media used to support the simulation story.</p>
-      </div>
-      <div class="video-grid">
-        <article class="video-card">
-          <video controls preload="metadata"><source src="1.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 1</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="2.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 2</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="3.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 3</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="4.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 4</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="5.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 5</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="6.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 6</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="7.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 7</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata"><source src="8.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Operation clip 8</h3><p>Observed station or task motion used as simulation context.</p></div>
-        </article>
-        <article class="video-card">
-          <video controls preload="metadata" poster="AutoMachine.png"><source src="automate%20blade%20station%203.mp4" type="video/mp4"></video>
-          <div class="video-copy"><h3>Automated station 3</h3><p>Automation concept media for the improved scenario.</p></div>
-        </article>
-      </div>
+      <a class="btn primary" href="archive.html">Open visual archive</a>
     </section>
 
     <section class="section alt">
@@ -1061,22 +947,7 @@
 
   <footer class="footer">
     <span>OPF_sim portfolio index for trimmer assembly line discrete event simulation.</span>
-    <span>Live tool: tool.html | Data collector: data_collection.html</span>
+    <span>Live tool: tool.html | Data collector: data_collection.html | Archive: archive.html</span>
   </footer>
-
-  <script>
-    const filterButtons = document.querySelectorAll("[data-filter]");
-    const galleryItems = document.querySelectorAll("[data-kind]");
-
-    filterButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const filter = button.dataset.filter;
-        filterButtons.forEach((btn) => btn.classList.toggle("active", btn === button));
-        galleryItems.forEach((item) => {
-          item.style.display = filter === "all" || item.dataset.kind === filter ? "" : "none";
-        });
-      });
-    });
-  </script>
 </body>
 </html>
