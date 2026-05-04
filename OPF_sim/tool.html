@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trimmer Assembly — Monte Carlo Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #181c27;
+      --surface2:  #1e2333;
+      --border:    #252b3b;
+      --amber:     #f59e0b;
+      --amber-dim: #92610a;
+      --amber-bg:  rgba(245, 158, 11, 0.08);
+      --green:     #22c55e;
+      --green-bg:  rgba(34, 197, 94, 0.08);
+      --red:       #ef4444;
+      --blue:      #3b82f6;
+      --purple:    #a855f7;
+      --muted:     #6b7280;
+      --text:      #e2e8f0;
+      --text-dim:  #94a3b8;
+      --mono:      'IBM Plex Mono', monospace;
+      --head:      'Barlow Condensed', sans-serif;
+      --body:      'Barlow', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 60px;
+    }
+
+    .brand {
+      font-family: var(--head);
+      font-size: clamp(16px, 4vw, 22px);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--amber);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .header-pill {
+      margin-left: auto;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-dim);
+      color: var(--amber);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-family: var(--head);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── LAYOUT ── */
+    .workspace {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 28px 60px;
+      display: grid;
+      grid-template-columns: 500px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-family: var(--head);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    /* ── BUTTONS & LINKS ── */
+    .link-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--head);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--amber);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--amber-dim);
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    .link-btn:hover { background: var(--amber-bg); }
+
+    /* ── TASK LIST ── */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 35px 40px 1fr 65px 55px 55px 55px 32px 32px;
+      gap: 6px;
+      align-items: center;
+      transition: border-color 0.2s;
+    }
+
+    .task-row:hover { border-color: #374151; }
+
+    .task-name-input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: var(--head);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      width: 100%;
+      padding: 2px 0;
+    }
+    .task-name-input:focus { outline: none; color: var(--amber); }
+
+    .num-group { display: flex; flex-direction: column; align-items: center; }
+
+    .num-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .num-input {
+      width: 100%; padding: 6px 2px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 13px;
+      text-align: center; transition: border-color 0.2s;
+    }
+    .num-input:focus { outline: none; border-color: var(--amber); }
+    .num-input.opt:focus { border-color: var(--green); }
+    .num-input.pess:focus { border-color: var(--red); }
+    .num-input.seq { border-color: var(--blue); color: var(--blue); font-weight: bold; }
+    .num-input.stn { border-color: var(--purple); color: var(--purple); font-weight: bold; }
+
+    .task-type-select {
+      width: 100%;
+      padding: 6px 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .task-type-select:focus { outline: none; border-color: var(--amber); }
+
+    .text-action-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+      font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 6px 0; border-radius: 4px;
+      transition: all 0.15s; text-align: center;
+    }
+    .text-action-btn:hover { color: var(--amber); border-color: var(--amber); }
+    .text-action-btn.del:hover { color: var(--red); border-color: var(--red); }
+
+    .task-badge {
+      grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; color: var(--muted);
+      background: var(--bg); padding: 3px 8px; border-radius: 4px; display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .task-badge span { color: var(--text-dim); }
+
+    .add-task-btn {
+      width: 100%; padding: 10px; background: transparent; border: 1px dashed var(--border);
+      color: var(--muted); border-radius: 8px; font-family: var(--head); font-size: 14px;
+      font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    }
+    .add-task-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ── CONTROLS ── */
+    .task-controls { margin-top: 18px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .run-btn {
+      flex: 1; padding: 14px 20px; background: var(--amber); color: #1a0f00; border: none;
+      border-radius: 8px; font-family: var(--head); font-size: 18px; font-weight: 800;
+      letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+    }
+    .run-btn:hover { opacity: 0.9; }
+    .run-btn:active { opacity: 0.75; }
+
+    .iter-group { display: flex; align-items: center; gap: 8px; }
+    .iter-label { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+    .iter-input {
+      width: 80px; padding: 8px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; text-align: center;
+    }
+    .iter-input:focus { outline: none; border-color: var(--blue); }
+
+    /* ── ACTION BAR ── */
+    .action-bar { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px; 
+      margin-top: 16px; 
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .action-btn {
+      padding: 10px 12px; 
+      background: var(--surface2); 
+      border: 1px solid var(--border); 
+      border-radius: 6px;
+      color: var(--text-dim); 
+      font-family: var(--head); 
+      font-size: 13px; 
+      font-weight: 700;
+      letter-spacing: 0.06em; 
+      text-transform: uppercase; 
+      cursor: pointer; 
+      transition: all 0.2s;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+    }
+    .action-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .action-btn.green:hover { border-color: var(--green); color: var(--green); }
+    .action-btn.blue { color: var(--blue); border-color: rgba(59, 130, 246, 0.3); }
+    .action-btn.blue:hover { border-color: var(--blue); }
+    .action-btn.red { color: var(--red); border-color: rgba(239, 68, 68, 0.3); }
+    .action-btn.red:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── RESULTS ── */
+    .results-stack { display: flex; flex-direction: column; gap: 20px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .kpi {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 14px; text-align: center; transition: border-color 0.2s;
+    }
+    .kpi.primary { border-color: var(--amber-dim); background: var(--amber-bg); }
+
+    .kpi-label {
+      font-family: var(--head); font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .kpi-value { font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--text); display: block; }
+    .kpi.primary .kpi-value { color: var(--amber); }
+    .kpi-unit { font-family: var(--mono); font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* ── CHART ── */
+    .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    #chart { width: 100%; height: 280px; }
+    .chart-footer { padding: 10px 20px; border-top: 1px solid var(--border); display: flex; gap: 16px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    /* ── TABLES ── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-family: var(--head); font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      font-family: var(--mono); font-size: 13px; color: var(--text); padding: 9px 12px; border-bottom: 1px solid var(--border);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--surface2); }
+
+    .bar-bg { width: 100%; height: 4px; background: var(--border); border-radius: 2px; }
+    .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+    .contrib-bar-wrap { width: 100%; height: 6px; background: var(--border); border-radius: 3px; margin-top: 4px; }
+    .contrib-bar-fill { height: 100%; border-radius: 3px; background: var(--blue); }
+
+    /* ── RISK PANEL ── */
+    .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .risk-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+    .risk-label {
+      font-family: var(--head); font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .risk-value { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+    .risk-value.green { color: var(--green); }
+    .risk-value.amber { color: var(--amber); }
+    .risk-value.red   { color: var(--red); }
+    .risk-value.purple { color: var(--purple); }
+
+    .target-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .target-input {
+      width: 100px; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; transition: border-color 0.2s;
+    }
+    .target-input:focus { outline: none; border-color: var(--purple); }
+
+    .target-btn {
+      padding: 7px 14px; background: var(--purple); color: white; border: none; border-radius: 6px;
+      font-family: var(--head); font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+    }
+    .target-btn:hover { opacity: 0.9; }
+
+    /* ── BOTTLENECK STATUS ── */
+    .bottleneck-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 999px; font-family: var(--head);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .bottleneck-badge.bn { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.4); }
+    .bottleneck-badge.hi { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid var(--amber-dim); }
+    .bottleneck-badge.ok { background: rgba(34,197,94,0.08); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(--muted); }
+    .empty-text { font-family: var(--head); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .placeholder-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 1000px) {
+      .workspace { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      :root {
+        --bg:        #ffffff;
+        --surface:   #ffffff;
+        --surface2:  #f8fafc;
+        --border:    #cbd5e1;
+        --muted:     #475569;
+        --text:      #0f172a;
+        --text-dim:  #334155;
+        --amber:     #d97706;
+        --amber-bg:  #fef3c7;
+        --green:     #16a34a;
+        --red:       #dc2626;
+        --blue:      #2563eb;
+        --purple:    #7c3aed;
+      }
+
+      body { background: var(--bg); color: var(--text); min-height: auto; }
+      header { display: none !important; }
+
+      .workspace { display: block; padding: 0; max-width: 100%; }
+      .workspace > div:first-child { display: none !important; }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: none;
+        break-inside: avoid;
+        margin-bottom: 20px;
+      }
+
+      .kpi-row, .chart-wrap, .data-table tr { break-inside: avoid; }
+      .kpi.primary { background: var(--amber-bg); border-color: var(--amber); }
+      .target-row, .iter-group { display: none !important; }
+
+      #print-header {
+        display: block !important;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--text);
+        padding-bottom: 10px;
+      }
+      #print-header h1, #print-header h2, #print-date { color: var(--text); }
+
+      #yamazumi-chart svg { max-width: 100%; }
+      .bottleneck-badge { border: 1px solid currentColor; }
+    }
+
+    #print-header { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand">Monte Carlo Simulator</div>
+    <div class="brand-sub">Trimmer Assembly Line · Yamazumi + Flow Sim</div>
+  </div>
+  <div class="header-pill" id="header-status">Single Piece Flow</div>
+</header>
+
+<div class="workspace">
+
+  <div>
+    <div class="panel" style="border-color: rgba(59, 130, 246, 0.5);">
+      <div class="panel-header" style="background: rgba(59, 130, 246, 0.05); border-bottom-color: rgba(59, 130, 246, 0.2);">
+        <span class="panel-title" style="color: var(--blue);">How to Use This Tool</span>
+      </div>
+      <div class="panel-body" style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
+        <strong style="color: var(--text);">1. Setup Tasks:</strong> Click "Add Task" or "Import Tasks Data". <br>
+        <span style="color: var(--amber); margin-left: 14px;">↳ <em>CSV Format: Seq, Task Name, Type, Opt, ML, Pess, Station. Blank time cells import as 0.</em></span><br>
+        <strong style="color: var(--text);">2. Value Analysis:</strong> Label each task as VAA, Semi-VA, or NVA.<br>
+        <strong style="color: var(--text);">3. Real Data:</strong> Click the REC button next to any task to open the data collector.<br>
+        <strong style="color: var(--text);">4. Simulate:</strong> Set iterations and click <strong>RUN</strong> — Yamazumi &amp; Flow Sim auto-generate.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Tasks — Sequential</span>
+        <a href="javascript:void(0)" onclick="goToDataCollection()" class="link-btn" title="Add a completely new data collection task">
+          Collect Data
+        </a>
+      </div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:35px 40px 1fr 65px 55px 55px 55px 32px 32px;gap:6px;padding:0 0 4px 0;margin-bottom:4px;border-bottom:1px solid var(--border);">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;letter-spacing:0.08em;text-transform:uppercase;">Seq</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--purple);text-align:center;letter-spacing:0.08em;text-transform:uppercase;">Stn</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Task Name</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;letter-spacing:0.08em;text-transform:uppercase;">Type</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--green);text-align:center;letter-spacing:0.08em;text-transform:uppercase;">Opt</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;letter-spacing:0.08em;text-transform:uppercase;">M.Like</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--red);text-align:center;letter-spacing:0.08em;text-transform:uppercase;">Pess</span>
+          <span></span><span></span>
+        </div>
+        <div class="task-list" id="task-list"></div>
+        <div style="margin-top:12px; display: flex; gap: 8px;">
+          <button class="add-task-btn" onclick="addTask()">+ Add Task</button>
+        </div>
+
+        <div class="task-controls">
+          <div class="iter-group">
+            <span class="iter-label">Iterations</span>
+            <input type="number" class="iter-input" id="iterations" value="5000" min="100" max="100000">
+          </div>
+          <button class="run-btn" onclick="runSimulation()">Run</button>
+        </div>
+
+        <div class="action-bar">
+          <button class="action-btn blue" onclick="sortTasks()">Sort Order</button>
+          <button class="action-btn red" onclick="clearAllTasks()">Clear Data</button>
+
+          <input type="file" id="import-tasks" accept=".csv" style="display:none" onchange="importTasksCSV(event)">
+          <button class="action-btn" onclick="document.getElementById('import-tasks').click()">Import Tasks Data</button>
+          <button class="action-btn green" onclick="exportTasksCSV()">Export Tasks Data</button>
+
+          <button class="action-btn blue" id="print-report-btn" onclick="window.print()" style="display:none">PDF Report</button>
+          <button class="action-btn green" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">Report CSV</button>
+          <button class="action-btn" onclick="downloadRawTemplate()">Download Yamazumi Template (XLSX)</button>
+          <button class="action-btn green" onclick="exportToTemplateXLSX()">Data PT-CT, VAA-NVAA XLSX</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-stack" id="results-stack">
+    <div class="placeholder-panel">
+      <div class="empty-state">
+        <div class="empty-text">Add tasks and run simulation</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;max-width:260px">
+          Assign tasks to stations using the <span style="color:var(--purple)">Stn</span> column. Yamazumi &amp; Flow Sim generate automatically after each run.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="print-header">
+  <h1 style="font-family: 'Barlow Condensed'; margin:0; font-size:32px;">TRIMMER ASSEMBLY LINE</h1>
+  <h2 style="font-family: 'IBM Plex Mono'; margin:0; font-size:14px; color:#555; font-weight:normal;">Monte Carlo · Yamazumi · Flow Simulation Report</h2>
+  <div style="font-family: 'IBM Plex Mono'; font-size:11px; margin-top:5px;" id="print-date"></div>
+</div>
+
+<script>
+  /* ── State ── */
+  let taskCount = 0;
+  let simResults = [];
+  let simLineCycleResults = [];
+  let currentTaskMeans = [];
+  let flowSimResults = null;
+  let yamazumiData  = null;
+
+  /* ── Init ── */
+  window.onload = () => {
+    const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    if (saved.length) {
+      saved.forEach((t, i) => addTask(t.name, normalizeTaskType(t.type), t.a, t.m, t.b, t.meta, t.seq || (i+1), t.station || 1));
+    }
+    document.getElementById('print-date').textContent = "Generated: " + new Date().toLocaleString();
+  };
+
+  /* ── Core Task Management ── */
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+
+  function normalizeTaskType(type) {
+    const raw = (type || '').toString().trim();
+    const key = raw.toUpperCase().replace(/[\s_-]+/g, '');
+    if (key === 'VA' || key === 'VAA') return 'VAA';
+    if (key === 'SVA' || key === 'SEMIVA' || key === 'SEMIVAA') return 'Semi VA';
+    if (key === 'NVA' || key === 'NVAA') return 'NVA';
+    return 'VAA';
+  }
+
+  function taskTypeClass(type) {
+    const normalized = normalizeTaskType(type);
+    if (normalized === 'VAA') return 'VAA';
+    if (normalized === 'Semi VA') return 'SVA';
+    return 'NVA';
+  }
+
+  function addTask(name='', type='VAA', opt=1, ml=5, pess=10, meta=null, seq=null, station=1) {
+    taskCount++;
+    type = normalizeTaskType(type);
+    const safeName = name || `Task ${taskCount}`;
+    const id = `t-${Date.now()}-${taskCount}`;
+    const sequenceNum = seq !== null ? seq : taskCount;
+
+    let badgeHTML = '';
+    if (meta && meta.readings && meta.readings.length) {
+      badgeHTML = `
+        <div class="task-badge">
+          <span>n=${meta.readings.length} cycles</span>
+          ${meta.notes ? `<span title="${escapeHtml(meta.notes)}">NOTE: ${escapeHtml(meta.notes).substring(0,40)}${meta.notes.length>40?'…':''}</span>` : ''}
+          ${meta.timestamp ? `<span>${new Date(meta.timestamp).toLocaleString()}</span>` : ''}
+        </div>`;
+    }
+
+    const metaString = meta ? escapeHtml(JSON.stringify(meta)) : '{}';
+
+    const html = `
+      <div class="task-row" id="${id}" data-meta="${metaString}">
+        <div class="num-group">
+          <input type="number" class="num-input seq" value="${sequenceNum}" title="Sequence order">
+        </div>
+        <div class="num-group">
+          <input type="number" class="num-input stn" value="${station}" min="1" title="Station / Operator number">
+        </div>
+        <input type="text" class="task-name-input" value="${escapeHtml(safeName)}" placeholder="Task name">
+        
+          <div class="num-group">
+            <select class="task-type-select">
+              <option value="VAA" ${type==='VAA'?'selected':''}>VAA</option>
+              <option value="Semi VA" ${type==='Semi VA'?'selected':''}>Semi VA</option>
+              <option value="NVA" ${type==='NVA'?'selected':''}>NVA</option>
+            </select>
+          </div>
+
+        <div class="num-group">
+          <input type="number" class="num-input opt" value="${opt}" step="0.01" min="0">
+        </div>
+        <div class="num-group">
+          <input type="number" class="num-input ml" value="${ml}" step="0.01" min="0">
+        </div>
+        <div class="num-group">
+          <input type="number" class="num-input pess" value="${pess}" step="0.01" min="0">
+        </div>
+        <button class="text-action-btn" onclick="collectDataForTask('${id}')" title="Record Data">REC</button>
+        <button class="text-action-btn del" onclick="document.getElementById('${id}').remove()" title="Delete">DEL</button>
+        ${badgeHTML}
+      </div>
+    `;
+    document.getElementById('task-list').insertAdjacentHTML('beforeend', html);
+  }
+
+  function sortTasks() {
+    const list = document.getElementById('task-list');
+    const rows = Array.from(list.querySelectorAll('.task-row'));
+    rows.sort((a, b) => {
+      const seqA = parseFloat(a.querySelector('.seq').value) || 0;
+      const seqB = parseFloat(b.querySelector('.seq').value) || 0;
+      return seqA - seqB;
+    });
+    list.innerHTML = '';
+    rows.forEach(row => list.appendChild(row));
+    saveCurrentTasks();
+  }
+
+  function parseCSVRow(str) {
+    const result = [];
+    let curr = '', inQuotes = false;
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      if (char === '"' && str[i+1] === '"') { curr += '"'; i++; }
+      else if (char === '"') { inQuotes = !inQuotes; }
+      else if (char === ',' && !inQuotes) { result.push(curr.trim()); curr = ''; }
+      else { curr += char; }
+    }
+    result.push(curr.trim());
+    return result;
+  }
+
+  function parseOptionalTime(value) {
+    const raw = (value || '').toString().trim();
+    return raw === '' ? 0 : Number(raw);
+  }
+
+  /* FIX: importTasksCSV now reads 7-column format (Seq, Task, Type, Opt, ML, Pess, Station)
+     and falls back to legacy 6-column (Task, Type, Opt, ML, Pess, Station) */
+  function importTasksCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const rows = e.target.result.split(/\r?\n/);
+      let importedCount = 0;
+      for (let i = 0; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        const cols = parseCSVRow(rows[i]);
+        if (i === 0 && cols[0]) cols[0] = cols[0].replace(/^\uFEFF/, '');
+
+        // Skip header row (contains non-numeric in first column that isn't a task name context)
+        if (i === 0) {
+          const firstCol = cols[0].toLowerCase();
+          if (firstCol === 'seq' || firstCol === 'task' || firstCol === 'task name') continue;
+        }
+
+        let seq = null, name, type, opt, ml, pess, stn;
+
+        if (cols.length >= 7) {
+          // New 7-column format: Seq, Task, Type, Opt, ML, Pess, Station
+          seq  = parseInt(cols[0]) || null;
+          name = cols[1];
+          type = normalizeTaskType(cols[2]);
+          opt  = parseOptionalTime(cols[3]);
+          ml   = parseOptionalTime(cols[4]);
+          pess = parseOptionalTime(cols[5]);
+          stn  = parseInt(cols[6]) || 1;
+        } else if (cols.length >= 5) {
+          // Legacy 6-column format: Task, Type, Opt, ML, Pess[, Station]
+          name = cols[0];
+          type = normalizeTaskType(cols[1]);
+          opt  = parseOptionalTime(cols[2]);
+          ml   = parseOptionalTime(cols[3]);
+          pess = parseOptionalTime(cols[4]);
+          stn  = cols.length >= 6 ? (parseInt(cols[5]) || 1) : 1;
+        } else {
+          continue;
+        }
+
+        if (!isNaN(opt) && !isNaN(ml) && !isNaN(pess)) {
+          addTask(name, type, opt, ml, pess, null, seq, stn);
+          importedCount++;
+        }
+      }
+      if (importedCount > 0) saveCurrentTasks();
+      document.getElementById('import-tasks').value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  function saveCurrentTasks() {
+    const tasks = [];
+    document.querySelectorAll('.task-row').forEach(row => {
+      const seq     = parseFloat(row.querySelector('.seq').value) || 0;
+      const station = parseInt(row.querySelector('.stn').value) || 1;
+      const type    = normalizeTaskType(row.querySelector('.task-type-select').value);
+      const a       = parseFloat(row.querySelector('.opt').value)  || 0;
+      const m       = parseFloat(row.querySelector('.ml').value)   || 0;
+      const b       = parseFloat(row.querySelector('.pess').value) || 0;
+      const name    = row.querySelector('.task-name-input').value || 'Task';
+      let meta = null;
+      try { const ms = row.getAttribute('data-meta'); if (ms) meta = JSON.parse(ms); } catch(e){}
+      tasks.push({ seq, station, type, a, m, b, name, meta });
+    });
+    localStorage.setItem('projectTasks', JSON.stringify(tasks));
+  }
+
+  /* FIX: clearAllTasks now resets all simulation state so stale data doesn't persist */
+  function clearAllTasks() {
+    if (!confirm('Delete all tasks?')) return;
+    document.getElementById('task-list').innerHTML = '';
+    taskCount = 0;
+    // Reset all sim state
+    simResults = [];
+    simLineCycleResults = [];
+    currentTaskMeans = [];
+    flowSimResults = null;
+    yamazumiData = null;
+    localStorage.removeItem('projectTasks');
+    // Reset results panel to placeholder
+    document.getElementById('results-stack').innerHTML = `
+      <div class="placeholder-panel">
+        <div class="empty-state">
+          <div class="empty-text">Add tasks and run simulation</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;max-width:260px">
+            Assign tasks to stations using the <span style="color:var(--purple)">Stn</span> column. Yamazumi &amp; Flow Sim generate automatically after each run.
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('header-status').textContent = 'Single Piece Flow';
+    document.getElementById('export-results-btn').style.display = 'none';
+    document.getElementById('print-report-btn').style.display = 'none';
+  }
+
+  function collectDataForTask(taskId) {
+    saveCurrentTasks();
+    const row = document.getElementById(taskId);
+    const rowsArray = Array.from(document.querySelectorAll('.task-row'));
+    const taskIndex = rowsArray.indexOf(row);
+    const taskName  = row.querySelector('.task-name-input').value;
+    localStorage.setItem('pendingTaskIndex', taskIndex);
+    localStorage.setItem('pendingTaskName', taskName);
+    window.location.href = 'data_collection.html';
+  }
+
+  function goToDataCollection() {
+    saveCurrentTasks();
+    localStorage.removeItem('pendingTaskIndex');
+    localStorage.removeItem('pendingTaskName');
+    window.location.href = 'data_collection.html';
+  }
+
+  /* ── Triangular Distribution ── */
+  function triangular(a, m, b) {
+    if (a >= b) return a;
+    const U = Math.random(), F = (m - a) / (b - a);
+    return U < F ? a + Math.sqrt(U * (b-a) * (m-a)) : b - Math.sqrt((1-U) * (b-a) * (b-m));
+  }
+
+  /* ── Capacity & Takt Time Calc ── */
+  window.calcCapacity = function() {
+    if (!simLineCycleResults || !simLineCycleResults.length) return;
+
+    const start      = document.getElementById('shift-start').value;
+    const lunchDur   = parseInt(document.getElementById('lunch-dur').value) || 0;
+    const end        = document.getElementById('shift-end').value;
+    const demand     = parseInt(document.getElementById('customer-demand').value) || 1;
+
+    const parseTime = (str) => { if (!str) return 0; const [h,m] = str.split(':').map(Number); return h*60+m; };
+    const totalMins = (parseTime(end) - parseTime(start)) - lunchDur;
+    if (totalMins <= 0) return;
+
+    const totalSecs = totalMins * 60;
+    const hrs  = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+
+    const elWT = document.getElementById('work-time-val');
+    if (elWT) elWT.textContent = `${hrs} hrs ${mins} mins (${totalSecs.toLocaleString()}s)`;
+
+    const iters = simLineCycleResults.length;
+    const mean  = simLineCycleResults.reduce((a,b)=>a+b,0)/iters;
+    const p90   = simLineCycleResults[Math.floor(0.9*iters)] || simLineCycleResults[iters-1];
+    const p10   = simLineCycleResults[Math.floor(0.1*iters)] || simLineCycleResults[0];
+
+    let outMean = Math.floor(totalSecs / mean);
+    let outP90  = Math.floor(totalSecs / p90);
+    let outP10  = Math.floor(totalSecs / p10);
+
+    const calculatedTakt = totalSecs / demand;
+
+    const setEl = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    setEl('out-mean', outMean.toLocaleString() + " units");
+    setEl('out-p90',  outP90.toLocaleString()  + " units");
+    setEl('out-p10',  outP10.toLocaleString()  + " units");
+    setEl('calc-takt-val', calculatedTakt.toFixed(2) + " s");
+
+    const yTaktInput = document.getElementById('yamazumi-takt');
+    if (yTaktInput) {
+      yTaktInput.value = calculatedTakt.toFixed(1);
+      if (typeof drawYamazumiChart === 'function') drawYamazumiChart();
+    }
+    
+    const targetInput = document.getElementById('target-val');
+    if (targetInput && (!targetInput.value || targetInput.value === '')) {
+       targetInput.value = demand;
+       if (typeof analyzeTarget === 'function') analyzeTarget();
+    }
+  };
+
+  /* ── MAIN SIMULATION ── */
+  function runSimulation() {
+    saveCurrentTasks();
+    const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
+
+    if (!validTasks.length) { alert('Add at least one valid task (a ≤ m ≤ b).'); return; }
+
+    const iters = parseInt(document.getElementById('iterations').value, 10) || 1000;
+    simResults = [];
+    simLineCycleResults = [];
+    const perTaskSums = Array(validTasks.length).fill(0);
+
+    for (let i = 0; i < iters; i++) {
+      let total = 0;
+      let stnSums = {};
+      validTasks.forEach((t, j) => {
+        const v = triangular(t.a, t.m, t.b);
+        perTaskSums[j] += v;
+        total += v;
+        const stn = t.station || 1;
+        stnSums[stn] = (stnSums[stn] || 0) + v;
+      });
+      simResults.push(total);
+      simLineCycleResults.push(Math.max(...Object.values(stnSums)));
+    }
+    simResults.sort((a, b) => a - b);
+    simLineCycleResults.sort((a, b) => a - b);
+
+    currentTaskMeans = validTasks.map((t, j) => ({
+      name: t.name || 'Task',
+      type: normalizeTaskType(t.type),
+      mean: perTaskSums[j] / iters,
+      station: t.station || 1
+    }));
+
+    renderResults(simResults, simLineCycleResults, iters, currentTaskMeans, validTasks);
+
+    document.getElementById('header-status').textContent = `${iters.toLocaleString()} iterations`;
+    document.getElementById('export-results-btn').style.display = 'block';
+    document.getElementById('print-report-btn').style.display = 'block';
+
+    const resultsStack = document.getElementById('results-stack');
+    const printHeader  = document.getElementById('print-header');
+    resultsStack.parentNode.insertBefore(printHeader, resultsStack);
+  }
+
+  /* ── RENDER RESULTS ── */
+  function renderResults(totalData, lineCycleData, iters, taskMeans, validTasks) {
+    const mean     = totalData.reduce((a,b)=>a+b,0) / iters;
+    const variance = totalData.reduce((acc,v)=>acc+(v-mean)**2,0) / iters;
+    const std      = Math.sqrt(variance);
+
+    const meanLine     = lineCycleData.reduce((a,b)=>a+b,0) / iters;
+    const varianceLine = lineCycleData.reduce((acc,v)=>acc+(v-meanLine)**2,0) / iters;
+    const stdLine      = Math.sqrt(varianceLine);
+
+    const p = pct => totalData[Math.floor(iters * pct / 100)];
+    const percentiles = [10, 25, 50, 75, 80, 85, 90, 95, 99];
+    const totalMean   = taskMeans.reduce((a, t) => a + t.mean, 0);
+
+    let vaTime = 0, svaTime = 0, nvaTime = 0;
+    taskMeans.forEach(t => {
+      if (taskTypeClass(t.type) === 'VAA') vaTime += t.mean;
+      else if (taskTypeClass(t.type) === 'SVA') svaTime += t.mean;
+      else nvaTime += t.mean;
+    });
+    
+    const calcTotal = vaTime + svaTime + nvaTime || 1;
+    const vaPct = ((vaTime / calcTotal) * 100).toFixed(1);
+    const svaPct = ((svaTime / calcTotal) * 100).toFixed(1);
+    const nvaPct = ((nvaTime / calcTotal) * 100).toFixed(1);
+
+    // Use a fixed 8-hour default for initial output estimate; calcCapacity() will override
+    const effSecs = 28800;
+    const simOutputs = lineCycleData.map(ct => Math.floor(effSecs / ct)).sort((a, b) => a - b);
+    const pOutput = pct => simOutputs[Math.floor(iters * pct / 100)];
+
+    document.getElementById('results-stack').innerHTML = `
+      <div class="kpi-row">
+        <div class="kpi primary">
+          <span class="kpi-label">Expected (Mean)</span>
+          <span class="kpi-value" id="kpi-mean">${mean.toFixed(2)}</span>
+          <span class="kpi-unit">seconds</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Minimum</span>
+          <span class="kpi-value" id="kpi-min">${totalData[0].toFixed(2)}</span>
+          <span class="kpi-unit">seconds</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Maximum</span>
+          <span class="kpi-value" id="kpi-max">${totalData[iters-1].toFixed(2)}</span>
+          <span class="kpi-unit">seconds</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Std Deviation</span>
+          <span class="kpi-value" id="kpi-std">${std.toFixed(2)}</span>
+          <span class="kpi-unit">± seconds</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap panel">
+        <div class="panel-header">
+          <span class="panel-title">Distribution — Total Cycle Time</span>
+        </div>
+        <div id="chart"></div>
+        <div class="chart-footer">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Frequency</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Mean (${mean.toFixed(1)}s)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>P90 (${p(90).toFixed(1)}s)</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Value-Added Analysis</span></div>
+        <div class="panel-body">
+          <div style="width:100%; height:16px; display:flex; border-radius:6px; overflow:hidden; margin-bottom:12px;">
+            <div style="width:${vaPct}%; background:var(--green);" title="VAA: ${vaPct}%"></div>
+            <div style="width:${svaPct}%; background:var(--amber);" title="Semi-VA: ${svaPct}%"></div>
+            <div style="width:${nvaPct}%; background:var(--red);" title="NVA: ${nvaPct}%"></div>
+          </div>
+          <div style="display:flex; justify-content:space-around; font-family:var(--mono); font-size:14px; flex-wrap:wrap; gap:10px;">
+            <div><span style="color:var(--green); font-size:18px;">■</span> <strong>VAA</strong>: ${vaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${vaPct}%)</span></div>
+            <div><span style="color:var(--amber); font-size:18px;">■</span> <strong>Semi-VA</strong>: ${svaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${svaPct}%)</span></div>
+            <div><span style="color:var(--red); font-size:18px;">■</span> <strong>NVA</strong>: ${nvaTime.toFixed(1)}s <span style="color:var(--text-dim)">(${nvaPct}%)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Shift Capacity Forecast & Customer Demand</span></div>
+        <div class="panel-body">
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;">
+            <div class="iter-group" style="flex-direction:column;align-items:flex-start;gap:4px;">
+              <span class="iter-label">Shift Start</span>
+              <input type="time" class="target-input" id="shift-start" value="07:30" style="width:110px">
+            </div>
+            <div class="iter-group" style="flex-direction:column;align-items:flex-start;gap:4px;">
+              <span class="iter-label">Lunch (mins)</span>
+              <input type="number" class="target-input" id="lunch-dur" value="45" style="width:80px">
+            </div>
+            <div class="iter-group" style="flex-direction:column;align-items:flex-start;gap:4px;">
+              <span class="iter-label">Shift End</span>
+              <input type="time" class="target-input" id="shift-end" value="16:15" style="width:110px">
+            </div>
+            <div class="iter-group" style="flex-direction:column;align-items:flex-start;gap:4px;">
+              <span class="iter-label" style="color:var(--purple); font-weight:bold;">Customer Demand</span>
+              <input type="number" class="target-input" id="customer-demand" value="450" style="width:110px" title="Required units per shift">
+            </div>
+            <button class="target-btn" onclick="calcCapacity()" style="height:35px">Update Plan</button>
+          </div>
+          <div class="risk-grid">
+            <div class="risk-box">
+              <span class="risk-label">Available Working Time</span>
+              <span class="risk-value" id="work-time-val">—</span>
+            </div>
+            <div class="risk-box">
+              <span class="risk-label" style="color:var(--purple)">Required Takt Time (per unit)</span>
+              <span class="risk-value purple" id="calc-takt-val">—</span>
+            </div>
+            <div class="risk-box" style="grid-column:1/-1">
+              <span class="risk-label">Expected Daily Output (Mean Forecast)</span>
+              <span class="risk-value amber" id="out-mean">—</span>
+            </div>
+            <div class="risk-box">
+              <span class="risk-label">P90 Guarantee (Conservative)</span>
+              <span class="risk-value red" id="out-p90">—</span>
+            </div>
+            <div class="risk-box">
+              <span class="risk-label">P10 Potential (Optimistic)</span>
+              <span class="risk-value green" id="out-p10">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Percentile Breakdown (Expected Output)</span></div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead><tr><th>Pct</th><th>Output (Units)</th><th>Conf.</th><th style="width:120px">Visual</th></tr></thead>
+              <tbody>
+                ${percentiles.map(pc => {
+                  const val = pOutput(pc);
+                  const minOut = simOutputs[0];
+                  const maxOut = simOutputs[iters-1];
+                  const pctWidth = maxOut > minOut ? ((val - minOut) / (maxOut - minOut) * 100).toFixed(1) : 100;
+                  const color = pc <= 25 ? 'var(--green)' : pc <= 75 ? 'var(--amber)' : 'var(--red)';
+                  return `<tr>
+                    <td style="color:var(--text-dim)">P${pc}</td>
+                    <td style="font-weight:600">${val}</td>
+                    <td style="color:${color}">${pc}%</td>
+                    <td><div class="bar-bg"><div class="bar-fill" style="width:${pctWidth}%;background:${color}"></div></div></td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Task Contribution</span></div>
+          <div class="panel-body" style="padding:0">
+            <table class="data-table">
+              <thead><tr><th>Task</th><th>Type</th><th>Avg (s)</th><th>% of Total</th><th>Stn</th></tr></thead>
+              <tbody>
+                ${taskMeans.map(t => {
+                  const pct = (t.mean / totalMean * 100).toFixed(1);
+                  const typeClass = taskTypeClass(t.type);
+                  const tColor = typeClass === 'VAA' ? 'var(--green)' : typeClass === 'SVA' ? 'var(--amber)' : 'var(--red)';
+                  return `<tr>
+                    <td style="color:var(--text); white-space: normal; word-break: break-word; max-width: 150px;">${t.name}</td>
+                    <td style="color:${tColor}; font-weight:600;">${t.type}</td>
+                    <td>${t.mean.toFixed(2)}</td>
+                    <td><span style="color:var(--blue)">${pct}%</span><div class="contrib-bar-wrap"><div class="contrib-bar-fill" style="width:${pct}%"></div></div></td>
+                    <td style="color:var(--purple);font-weight:600">${t.station||1}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="page-break-before: always;">
+        <div class="panel-header"><span class="panel-title">Target Daily Output Analysis</span></div>
+        <div class="panel-body">
+          <div class="target-row">
+            <span style="font-family:var(--head);font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Target Output (Units):</span>
+            <input type="number" class="target-input" id="target-val" placeholder="e.g. 450" step="1">
+            <button class="target-btn" onclick="analyzeTarget()">Analyze</button>
+          </div>
+          <div class="risk-grid" id="risk-grid">
+            <div class="risk-box"><span class="risk-label">P10 (Optimistic)</span><span class="risk-value green" id="risk-p10">${(effSecs/lineCycleData[Math.floor(iters*0.1)]).toFixed(0)}</span></div>
+            <div class="risk-box"><span class="risk-label">P50 (Median)</span><span class="risk-value amber" id="risk-p50">${(effSecs/lineCycleData[Math.floor(iters*0.5)]).toFixed(0)}</span></div>
+            <div class="risk-box"><span class="risk-label">P90 (Conservative)</span><span class="risk-value red" id="risk-p90">${(effSecs/lineCycleData[Math.floor(iters*0.9)]).toFixed(0)}</span></div>
+            <div class="risk-box"><span class="risk-label">Coeff. of Variation</span><span class="risk-value amber" id="risk-cv">${(stdLine/meanLine*100).toFixed(1)}%</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    drawHistogram(totalData, mean, p(90));
+    window.calcCapacity();
+
+    if (validTasks && validTasks.length) {
+      renderYamazumi(validTasks);
+      renderFlowSim(validTasks);
+    }
+  }
+
+  /* ── YAMAZUMI CHART ── */
+  function renderYamazumi(validTasks) {
+    const stationMap = {};
+    const typeOrder = { 'VAA': 1, 'SVA': 2, 'NVA': 3 };
+
+    validTasks.forEach(t => {
+      const stn = t.station || 1;
+      if (!stationMap[stn]) stationMap[stn] = [];
+      const simMean = currentTaskMeans.find(tm => tm.name === t.name);
+      const mean = simMean ? simMean.mean : (t.a + 4*t.m + t.b) / 6;
+      stationMap[stn].push({ name: t.name, mean: mean, type: normalizeTaskType(t.type) });
+    });
+
+    const stationNums = Object.keys(stationMap).map(Number).sort((a,b)=>a-b);
+    yamazumiData = stationNums.map(stn => {
+      stationMap[stn].sort((a, b) => typeOrder[taskTypeClass(a.type)] - typeOrder[taskTypeClass(b.type)]);
+      return {
+        station: stn,
+        tasks: stationMap[stn],
+        totalTime: stationMap[stn].reduce((s,t)=>s+t.mean, 0)
+      };
+    });
+
+    const demand = parseInt(document.getElementById('customer-demand')?.value) || 1;
+    const start = document.getElementById('shift-start')?.value || "07:30";
+    const end = document.getElementById('shift-end')?.value || "16:15";
+    const lunch = parseInt(document.getElementById('lunch-dur')?.value) || 45;
+    const [sh,sm] = start.split(':').map(Number);
+    const [eh,em] = end.split(':').map(Number);
+    const totalSecs = ((eh*60+em) - (sh*60+sm) - lunch) * 60;
+    
+    let defaultTakt = (totalSecs > 0) ? (totalSecs / demand).toFixed(1) : (simLineCycleResults.length ? simLineCycleResults[Math.floor(0.9*simLineCycleResults.length)].toFixed(1) : 30);
+
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.id = 'yamazumi-panel';
+    panel.style.pageBreakBefore = 'always';
+    panel.innerHTML = `
+      <div class="panel-header">
+        <span class="panel-title">Yamazumi — Operator Loading Chart</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="iter-label">Takt Time (s)</span>
+          <input type="number" class="iter-input" id="yamazumi-takt" value="${defaultTakt}" style="width:75px" oninput="drawYamazumiChart()">
+        </div>
+      </div>
+      <div id="yamazumi-chart" style="width:100%;height:340px;"></div>
+      <div class="chart-footer" style="flex-wrap:wrap;gap:12px; justify-content: center;" id="yamazumi-legend"></div>
+      <div class="panel-body">
+        <div class="kpi-row" id="yamazumi-kpis"></div>
+      </div>
+    `;
+    document.getElementById('results-stack').appendChild(panel);
+
+    drawYamazumiChart();
+  }
+
+  function drawYamazumiChart() {
+    if (!yamazumiData || !yamazumiData.length) return;
+    const taktTime = parseFloat(document.getElementById('yamazumi-takt')?.value) || 30;
+
+    const container = document.getElementById('yamazumi-chart');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const margin = { top: 32, right: 40, bottom: 52, left: 64 };
+    const W = Math.max(200, container.clientWidth - margin.left - margin.right);
+    const H = container.clientHeight - margin.top - margin.bottom;
+
+    const maxY = Math.max(...yamazumiData.map(s=>s.totalTime), taktTime) * 1.18;
+
+    const svg = d3.select('#yamazumi-chart').append('svg')
+      .attr('width', W + margin.left + margin.right)
+      .attr('height', H + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleBand()
+      .domain(yamazumiData.map(d => `Stn ${d.station}`))
+      .range([0, W])
+      .padding(yamazumiData.length === 1 ? 0.6 : 0.35);
+
+    const y = d3.scaleLinear().domain([0, maxY]).range([H, 0]);
+
+    svg.append('g').attr('transform',`translate(0,${H})`)
+      .call(d3.axisBottom(x))
+      .call(g => {
+        g.selectAll('text').attr('fill','var(--text)').attr('font-family','IBM Plex Mono').attr('font-size','12').attr('font-weight','600');
+        g.select('.domain').attr('stroke','var(--border)');
+        g.selectAll('.tick line').remove();
+      });
+
+    svg.append('g').call(d3.axisLeft(y).ticks(6).tickSize(-W))
+      .call(g => {
+        g.selectAll('text').attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','10');
+        g.select('.domain').remove();
+        g.selectAll('.tick line').attr('stroke','var(--border)').attr('stroke-dasharray','3,3').attr('opacity','0.5');
+      });
+
+    svg.append('text')
+      .attr('transform','rotate(-90)').attr('x',-H/2).attr('y',-50)
+      .attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','11')
+      .text('Cycle Time (s)');
+
+    yamazumiData.forEach(station => {
+      let cumY = 0;
+      const isOver = station.totalTime > taktTime;
+      const xPos = x(`Stn ${station.station}`);
+      const bw   = x.bandwidth();
+
+      station.tasks.forEach((task, ti) => {
+        const barH  = H - y(task.mean);
+        const typeClass = taskTypeClass(task.type);
+        const color = typeClass === 'VAA' ? 'var(--green)' : typeClass === 'SVA' ? 'var(--amber)' : 'var(--red)';
+        const yPos  = y(cumY + task.mean);
+
+        const rect = svg.append('rect')
+          .attr('x', xPos).attr('y', yPos)
+          .attr('width', bw).attr('height', Math.max(0, barH))
+          .attr('fill', color).attr('opacity', 0.88);
+
+        rect.append('title').text(`${task.name} (${task.type}): ${task.mean.toFixed(2)}s`);
+
+        if (barH > 18) {
+          svg.append('text')
+            .attr('x', xPos + bw/2).attr('y', yPos + barH/2 + 4)
+            .attr('text-anchor','middle').attr('fill','rgba(255,255,255,0.85)')
+            .attr('font-family','IBM Plex Mono').attr('font-size','10').attr('pointer-events','none')
+            .text(task.mean.toFixed(1)+'s');
+        }
+
+        cumY += task.mean;
+      });
+
+      const xCenter = xPos + bw/2;
+      svg.append('text')
+        .attr('x', xCenter).attr('y', y(station.totalTime) - 7)
+        .attr('text-anchor','middle')
+        .attr('fill', isOver ? 'var(--red)' : 'var(--green)')
+        .attr('font-family','IBM Plex Mono').attr('font-size','13').attr('font-weight','600')
+        .text(`${station.totalTime.toFixed(1)}s`);
+
+      if (isOver) {
+        const overH = Math.max(0, y(taktTime) - y(station.totalTime));
+        svg.append('rect')
+          .attr('x', xPos).attr('y', y(station.totalTime))
+          .attr('width', bw).attr('height', overH)
+          .attr('fill','rgba(239,68,68,0.18)').attr('stroke','var(--red)')
+          .attr('stroke-width','1.5').attr('stroke-dasharray','4,3');
+      } else {
+        const idleTime = taktTime - station.totalTime;
+        const idleY = y(taktTime);
+        const idleH = y(station.totalTime) - y(taktTime);
+
+        const idleRect = svg.append('rect')
+          .attr('x', xPos).attr('y', idleY)
+          .attr('width', bw).attr('height', idleH)
+          .attr('fill', 'rgba(255,255,255,0.03)')
+          .attr('stroke', 'var(--border)')
+          .attr('stroke-dasharray', '3,3');
+
+        idleRect.append('title').text(`Unbusy / Idle: ${idleTime.toFixed(2)}s`);
+
+        if (idleH > 18) {
+          svg.append('text')
+            .attr('x', xPos + bw/2).attr('y', idleY + idleH/2 + 4)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-dim)')
+            .attr('font-family', 'IBM Plex Mono')
+            .attr('font-size', '10')
+            .attr('pointer-events', 'none')
+            .text(idleTime.toFixed(1) + 's');
+        }
+      }
+    });
+
+    svg.append('line')
+      .attr('x1', 0).attr('x2', W)
+      .attr('y1', y(taktTime)).attr('y2', y(taktTime))
+      .attr('stroke','var(--red)').attr('stroke-width',2).attr('stroke-dasharray','7,4');
+
+    svg.append('rect')
+      .attr('x', W-70).attr('y', y(taktTime)-18)
+      .attr('width',68).attr('height',16).attr('rx',3)
+      .attr('fill','rgba(239,68,68,0.15)');
+
+    svg.append('text')
+      .attr('x', W-4).attr('y', y(taktTime)-6)
+      .attr('text-anchor','end')
+      .attr('fill','var(--red)').attr('font-family','IBM Plex Mono').attr('font-size','11').attr('font-weight','600')
+      .text(`Takt: ${taktTime}s`);
+
+    let vaTime = 0, svaTime = 0, nvaTime = 0;
+    yamazumiData.forEach(stn => {
+      stn.tasks.forEach(t => {
+        if (taskTypeClass(t.type) === 'VAA') vaTime += t.mean;
+        else if (taskTypeClass(t.type) === 'SVA') svaTime += t.mean;
+        else nvaTime += t.mean;
+      });
+    });
+    const overallTime = vaTime + svaTime + nvaTime || 1;
+    const vaPct = ((vaTime / overallTime) * 100).toFixed(1);
+    const svaPct = ((svaTime / overallTime) * 100).toFixed(1);
+    const nvaPct = ((nvaTime / overallTime) * 100).toFixed(1);
+
+    const legendEl = document.getElementById('yamazumi-legend');
+    if (legendEl) {
+      legendEl.innerHTML = `
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>VAA (Green) — ${vaPct}%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Semi-VA (Yellow) — ${svaPct}%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>NVA (Red) — ${nvaPct}%</div>
+        <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 1px dashed var(--border)"></div>Unbusy / Idle</div>
+      `;
+    }
+
+    const bottleneck  = yamazumiData.reduce((max,s)=>s.totalTime>max.totalTime?s:max, yamazumiData[0]);
+    const avgStnTime  = yamazumiData.reduce((s,st)=>s+st.totalTime,0)/yamazumiData.length;
+    const balanceEff  = (avgStnTime / bottleneck.totalTime * 100).toFixed(1);
+    const overloaded  = yamazumiData.filter(s=>s.totalTime>taktTime).length;
+
+    const kpisEl = document.getElementById('yamazumi-kpis');
+    if (kpisEl) {
+      kpisEl.innerHTML = `
+        <div class="kpi">
+          <span class="kpi-label">Stations</span>
+          <span class="kpi-value">${yamazumiData.length}</span>
+          <span class="kpi-unit">operators</span>
+        </div>
+        <div class="kpi" style="${bottleneck.totalTime>taktTime?'border-color:var(--red);background:rgba(239,68,68,0.05)':'border-color:var(--amber-dim);background:var(--amber-bg)'}">
+          <span class="kpi-label">Peak Station</span>
+          <span class="kpi-value" style="color:${bottleneck.totalTime>taktTime?'var(--red)':'var(--amber)'}">Stn ${bottleneck.station}</span>
+          <span class="kpi-unit">${bottleneck.totalTime.toFixed(2)}s</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Balance Efficiency</span>
+          <span class="kpi-value" style="color:${parseFloat(balanceEff)>=85?'var(--green)':parseFloat(balanceEff)>=70?'var(--amber)':'var(--red)'}">${balanceEff}%</span>
+          <span class="kpi-unit">line balance</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Over Takt</span>
+          <span class="kpi-value" style="color:${overloaded>0?'var(--red)':'var(--green)'}">${overloaded}</span>
+          <span class="kpi-unit">stations / ${yamazumiData.length}</span>
+        </div>
+      `;
+    }
+  }
+
+  /* ── FLOW SIMULATION (DES) ── */
+  function _runFlowDES(validTasks, numParts) {
+    const stationMap = {};
+    validTasks.forEach(t => {
+      const stn = t.station || 1;
+      if (!stationMap[stn]) stationMap[stn] = [];
+      stationMap[stn].push(t);
+    });
+
+    const stationNums = Object.keys(stationMap).map(Number).sort((a,b)=>a-b);
+    const n = stationNums.length;
+
+    let stationAvail = new Array(n).fill(0);
+    let stationBusy  = new Array(n).fill(0);
+    let queueWaits   = new Array(n).fill(0);
+    let queueSamples = Array.from({length: n}, ()=>[]);
+
+    for (let p = 0; p < numParts; p++) {
+      let prevDone = 0;
+
+      for (let si = 0; si < n; si++) {
+        const stnTasks = stationMap[stationNums[si]];
+        let processTime = 0;
+        stnTasks.forEach(t => { processTime += triangular(t.a, t.m, t.b); });
+
+        const arrivalTime  = (si === 0) ? stationAvail[si] : prevDone;
+        const startProcess = Math.max(arrivalTime, stationAvail[si]);
+        const wait         = startProcess - arrivalTime;
+
+        queueWaits[si]  += wait;
+        stationBusy[si] += processTime;
+        stationAvail[si] = startProcess + processTime;
+        prevDone         = stationAvail[si];
+
+        if (p % 10 === 0) queueSamples[si].push(wait > 0 ? 1 : 0);
+      }
+    }
+
+    const totalTime = Math.max(...stationAvail);
+    const maxBusy   = Math.max(...stationBusy);
+
+    return stationNums.map((stn, si) => ({
+      station:        stn,
+      tasks:          stationMap[stn].map(t=>t.name),
+      avgProcessTime: stationBusy[si] / numParts,
+      utilization:    (stationBusy[si] / totalTime) * 100,
+      avgQueueWait:   queueWaits[si] / numParts,
+      avgQueueDepth:  queueSamples[si].length ? (queueSamples[si].reduce((a,b)=>a+b,0)/queueSamples[si].length).toFixed(2) : '0.00',
+      isBottleneck:   stationBusy[si] === maxBusy,
+      totalBusy:      stationBusy[si]
+    }));
+  }
+
+  function renderFlowSim(validTasks) {
+    const numParts = 500;
+    flowSimResults = _runFlowDES(validTasks, numParts);
+    if (!flowSimResults || !flowSimResults.length) return;
+
+    const bottleneck      = flowSimResults.find(s=>s.isBottleneck) || flowSimResults[0];
+    const throughputHr    = (3600 / bottleneck.avgProcessTime).toFixed(0);
+    const totalWorkLoad   = flowSimResults.reduce((s,st)=>s+st.avgProcessTime, 0);
+    const totalCapacity   = flowSimResults.length * bottleneck.avgProcessTime;
+    const lineEff         = (totalWorkLoad / totalCapacity * 100).toFixed(1);
+    const totalAvgWait    = flowSimResults.reduce((s,st)=>s+st.avgQueueWait, 0).toFixed(2);
+
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.id = 'flowsim-panel';
+    panel.innerHTML = `
+      <div class="panel-header">
+        <span class="panel-title">Flow Simulation — Bottleneck &amp; Utilization Analysis</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${numParts.toLocaleString()} units simulated (DES)</span>
+      </div>
+      <div class="panel-body">
+        <div class="kpi-row" style="margin-bottom:20px">
+          <div class="kpi" style="border-color:var(--red);background:rgba(239,68,68,0.06)">
+            <span class="kpi-label">Bottleneck</span>
+            <span class="kpi-value" style="color:var(--red)">Stn ${bottleneck.station}</span>
+            <span class="kpi-unit">${bottleneck.avgProcessTime.toFixed(2)}s / unit</span>
+          </div>
+          <div class="kpi primary">
+            <span class="kpi-label">Throughput Rate</span>
+            <span class="kpi-value">${throughputHr}</span>
+            <span class="kpi-unit">units / hour</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Line Efficiency</span>
+            <span class="kpi-value" style="color:${parseFloat(lineEff)>=85?'var(--green)':parseFloat(lineEff)>=70?'var(--amber)':'var(--red)'}">${lineEff}%</span>
+            <span class="kpi-unit">balance rate</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Avg System Wait</span>
+            <span class="kpi-value" style="color:${parseFloat(totalAvgWait)<1?'var(--green)':parseFloat(totalAvgWait)<5?'var(--amber)':'var(--red)'}">${totalAvgWait}s</span>
+            <span class="kpi-unit">queue delay / unit</span>
+          </div>
+        </div>
+
+        <table class="data-table" id="flowsim-table">
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>Tasks Assigned</th>
+              <th>Avg Cycle (s)</th>
+              <th style="width:160px">Utilization</th>
+              <th>Avg Queue Wait</th>
+              <th>Avg Queue Depth</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${flowSimResults.map(s => {
+              const util  = s.utilization.toFixed(1);
+              const color = s.isBottleneck ? 'var(--red)' : s.utilization > 80 ? 'var(--amber)' : 'var(--green)';
+              const statusBadge = s.isBottleneck
+                ? '<span class="bottleneck-badge bn">BOTTLENECK</span>'
+                : s.utilization > 80
+                ? '<span class="bottleneck-badge hi">High Load</span>'
+                : '<span class="bottleneck-badge ok">OK</span>';
+              return `<tr style="${s.isBottleneck ? 'background:rgba(239,68,68,0.04)' : ''}">
+                <td style="color:var(--text);font-weight:700">Stn ${s.station}</td>
+                <td style="color:var(--text-dim);font-size:12px;max-width:200px">${s.tasks.join(', ')}</td>
+                <td style="font-weight:600">${s.avgProcessTime.toFixed(2)}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="color:${color};font-weight:600;min-width:42px">${util}%</span>
+                    <div class="bar-bg" style="flex:1"><div class="bar-fill" style="width:${Math.min(100,s.utilization).toFixed(1)}%;background:${color}"></div></div>
+                  </div>
+                </td>
+                <td style="color:${parseFloat(s.avgQueueWait)<0.5?'var(--green)':parseFloat(s.avgQueueWait)<3?'var(--amber)':'var(--red)'}">${s.avgQueueWait.toFixed(2)}s</td>
+                <td style="color:var(--text-dim)">${s.avgQueueDepth}</td>
+                <td>${statusBadge}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    document.getElementById('results-stack').appendChild(panel);
+  }
+
+  /* ── HISTOGRAM ── */
+  function drawHistogram(data, mean, p90) {
+    const container = document.getElementById('chart');
+    if (!container || !data.length) return;
+    container.innerHTML = '';
+
+    const margin = { top:18, right:24, bottom:48, left:48 };
+    const W = container.clientWidth - margin.left - margin.right;
+    const H = container.clientHeight - margin.top - margin.bottom;
+
+    const svg = d3.select('#chart').append('svg')
+      .attr('width', W+margin.left+margin.right)
+      .attr('height', H+margin.top+margin.bottom)
+      .append('g').attr('transform',`translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear()
+      .domain([Math.max(0, d3.min(data)*0.95), d3.max(data)*1.05]).range([0,W]);
+
+    const bins = d3.bin().domain(x.domain()).thresholds(30)(data);
+    const y = d3.scaleLinear().domain([0, d3.max(bins,d=>d.length)]).range([H,0]);
+
+    svg.append('g').attr('transform',`translate(0,${H})`)
+      .call(d3.axisBottom(x).ticks(8).tickSize(5))
+      .call(g => {
+        g.selectAll('line').attr('stroke','var(--border)');
+        g.selectAll('text').attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','11');
+        g.select('.domain').attr('stroke','var(--border)');
+      });
+
+    svg.append('text').attr('x',W/2).attr('y',H+38).attr('text-anchor','middle')
+      .attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','12').text('Total Time (s)');
+
+    svg.append('g').call(d3.axisLeft(y).ticks(5).tickSize(5))
+      .call(g => {
+        g.selectAll('line').attr('stroke','var(--border)');
+        g.selectAll('text').attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','11');
+        g.select('.domain').attr('stroke','var(--border)');
+      });
+
+    svg.append('text').attr('transform','rotate(-90)').attr('x',-H/2).attr('y',-34)
+      .attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-family','IBM Plex Mono').attr('font-size','12').text('Frequency');
+
+    svg.selectAll('rect').data(bins).join('rect')
+      .attr('x', d=>x(d.x0)+1).attr('y', d=>y(d.length))
+      .attr('width', d=>Math.max(0,x(d.x1)-x(d.x0)-1)).attr('height', d=>H-y(d.length))
+      .attr('fill','var(--blue)').attr('opacity',0.85).attr('rx',2);
+
+    svg.append('line').attr('x1',x(mean)).attr('x2',x(mean)).attr('y1',0).attr('y2',H)
+      .attr('stroke','var(--amber)').attr('stroke-width',2).attr('stroke-dasharray','4,3');
+    svg.append('text').attr('x',x(mean)).attr('y',-6).attr('text-anchor','middle')
+      .attr('fill','var(--amber)').attr('font-family','IBM Plex Mono').attr('font-size','11').text('Mean');
+
+    svg.append('line').attr('x1',x(p90)).attr('x2',x(p90)).attr('y1',0).attr('y2',H)
+      .attr('stroke','var(--red)').attr('stroke-width',2).attr('stroke-dasharray','4,3');
+    svg.append('text').attr('x',x(p90)).attr('y',-6).attr('text-anchor','middle')
+      .attr('fill','var(--red)').attr('font-family','IBM Plex Mono').attr('font-size','11').text('P90');
+  }
+
+  /* ── Target Analysis ── */
+  function analyzeTarget() {
+    const targetUnits = parseFloat(document.getElementById('target-val').value);
+    if (isNaN(targetUnits) || !simLineCycleResults.length) return;
+
+    const start = document.getElementById('shift-start').value;
+    const lunchDur = parseInt(document.getElementById('lunch-dur').value) || 0;
+    const end = document.getElementById('shift-end').value;
+    const parseTime = (str) => { if (!str) return 0; const [h,m] = str.split(':').map(Number); return h*60+m; };
+    const totalSecs = ((parseTime(end) - parseTime(start)) - lunchDur) * 60;
+
+    if (totalSecs <= 0) return;
+
+    const requiredTakt = totalSecs / targetUnits;
+    const countMet = simLineCycleResults.filter(v => v <= requiredTakt).length;
+    
+    const pctMet   = (countMet/simLineCycleResults.length*100).toFixed(1);
+    const pctMiss  = (100-pctMet).toFixed(1);
+    const color    = pctMet >= 90 ? 'green' : pctMet >= 70 ? 'amber' : 'red';
+
+    window.currentAnalysisTarget   = targetUnits;
+    window.currentAnalysisPctBelow = pctMet;
+    window.currentAnalysisPctAbove = pctMiss;
+
+    document.getElementById('risk-grid').innerHTML = `
+      <div class="risk-box" style="grid-column:1/-1;border-color:var(--${color})">
+        <span class="risk-label">Probability of producing ${targetUnits} units/day</span>
+        <span class="risk-value ${color}" style="font-size:2rem">${pctMet}%</span>
+      </div>
+      <div class="risk-box"><span class="risk-label">≥ Target (Met)</span><span class="risk-value">${pctMet}%</span></div>
+      <div class="risk-box"><span class="risk-label">< Target (Missed)</span><span class="risk-value red">${pctMiss}%</span></div>
+    `;
+  }
+
+  /* ── EXPORTS ── */
+
+  /* Export format matches import format: Seq, Task Name, Type, Opt, ML, Pess, Station */
+  function exportTasksCSV() {
+    const rows = [['Seq', 'Task Name', 'Type', 'Opt', 'ML', 'Pess', 'Station']];
+    document.querySelectorAll('.task-row').forEach(row => {
+      rows.push([
+        row.querySelector('.seq').value,
+        row.querySelector('.task-name-input').value,
+        normalizeTaskType(row.querySelector('.task-type-select').value),
+        row.querySelector('.opt').value,
+        row.querySelector('.ml').value,
+        row.querySelector('.pess').value,
+        row.querySelector('.stn').value || '1'
+      ]);
+    });
+    downloadCSV(rows, 'Tasks_Input.csv');
+  }
+
+  async function downloadRawTemplate() {
+    try {
+      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await resp.arrayBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'temp.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert("Could not download template: " + err.message);
+    }
+  }
+
+  /* ── XLSX TEMPLATE INJECTION (SHEETJS) ── */
+  async function exportToTemplateXLSX() {
+    if (typeof XLSX === 'undefined') {
+      alert("SheetJS library not loaded."); return;
+    }
+
+    saveCurrentTasks();
+    const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
+    const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
+    if (!validTasks.length) { alert("No valid tasks to export."); return; }
+
+    const stationMap = {};
+    validTasks.forEach(t => {
+      const stn = t.station || 1;
+      if (!stationMap[stn]) stationMap[stn] = [];
+      stationMap[stn].push(t);
+    });
+    const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
+
+    let wb;
+    try {
+      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await resp.arrayBuffer();
+      wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
+    } catch (err) {
+      alert("Could not load template: " + err.message); return;
+    }
+
+    function setCell(ws, r, c, value) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (value === null || value === undefined) { delete ws[addr]; return; }
+      ws[addr] = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
+    }
+    function setRange(ws, r1, c1, r2, c2) {
+      if (!ws['!ref']) { ws['!ref'] = XLSX.utils.encode_range({ s:{r:r1,c:c1}, e:{r:r2,c:c2} }); return; }
+      const cur = XLSX.utils.decode_range(ws['!ref']);
+      cur.s.r = Math.min(cur.s.r, r1); cur.s.c = Math.min(cur.s.c, c1);
+      cur.e.r = Math.max(cur.e.r, r2); cur.e.c = Math.max(cur.e.c, c2);
+      ws['!ref'] = XLSX.utils.encode_range(cur);
+    }
+
+    const wsPT = wb.Sheets['Data PT-CT'];
+    if (wsPT) {
+      sortedStns.forEach((stnNum, si) => {
+        const blockStart = 2 + si * 12;
+        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
+          const ri = blockStart + ti;
+          setCell(wsPT, ri, 2, task.name);
+          setCell(wsPT, ri, 4, parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2)));
+          for (let i = 0; i < 10; i++) {
+            setCell(wsPT, ri, 5 + i, parseFloat(triangular(task.a, task.m, task.b).toFixed(2)));
+          }
+        });
+      });
+    }
+
+    const microTypeMap = { VAA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
+    const wsVAA = wb.Sheets['VAA-NVAA'];
+    if (wsVAA) {
+      sortedStns.forEach((stnNum, si) => {
+        const blockStart = 7 + si * 11;
+        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
+          const ri = blockStart + ti;
+          setCell(wsVAA, ri, 5, microTypeMap[taskTypeClass(task.type)] || 'Lắp ráp');
+        });
+      });
+    }
+
+    const DROPDOWN_DATA = [
+      ['MICRO TYPE (Tiếng Việt)', 'MICRO TYPE (English)', 'MACRO TYPE', 'Ghi chú / Note'],
+      ['Lắp ráp', 'Assembling', 'VAA', 'Thao tác tạo ra giá trị trực tiếp'],
+      ['Gia công / Xử lý', 'Processing / Machining', 'VAA', ''],
+      ['Kiểm tra chất lượng', 'Quality Inspection', 'VAA', ''],
+      ['Giữ', 'Holding', 'Semi VA', 'Cần thiết nhưng không tạo giá trị'],
+      ['Lấy / Đặt lại', 'Picking up / Placing back', 'Semi VA', ''],
+      ['Định vị', 'Positioning', 'Semi VA', ''],
+      ['Đặt cùng nhau', 'Putting together', 'Semi VA', ''],
+      ['Đập / Gõ', 'Hammering', 'Semi VA', ''],
+      ['Nhấn', 'Pressing', 'Semi VA', ''],
+      ['Siết / Bắn ốc', 'Tightening / Fastening', 'Semi VA', ''],
+      ['Bôi / Chấm mỡ', 'Applying grease / lubricant', 'Semi VA', ''],
+      ['Đang chờ đợi', 'Waiting / Idle', 'NVA', 'Lãng phí – cần loại bỏ'],
+      ['Đi bộ / Di chuyển', 'Walking / Moving', 'NVA', ''],
+      ['Vận chuyển / Chuyển', 'Transporting / Transferring', 'NVA', ''],
+      ['Xoay / Lật', 'Rotating / Turning', 'NVA', ''],
+      ['Tìm kiếm', 'Searching', 'NVA', ''],
+      ['Mở / Đóng', 'Open / Close', 'NVA', ''],
+      ['Làm mờ / Tháo gỡ', 'Pre-tightening / Unfastening', 'NVA', ''],
+      ['Lấy ra / Lột bỏ', 'Taking out / Peeling off', 'NVA', ''],
+      ['Hoạt động chất lượng', 'Quality Operations (rework/inspect)', 'NVA', ''],
+      ['Dự kiến Trình', 'Tentative Placement', 'NVA', ''],
+      ['Sắp xếp / Tổ chức lại', 'Sorting / Re-arranging', 'NVA', ''],
+      ['Vệ sinh / Lau dọn', 'Cleaning / Wiping', 'NVA', ''],
+    ];
+
+    let wsDL = wb.Sheets['Dropdown list'];
+    if (!wsDL) {
+      wsDL = {};
+      wb.SheetNames.push('Dropdown list');
+      wb.Sheets['Dropdown list'] = wsDL;
+    }
+    DROPDOWN_DATA.forEach((row, ri) => {
+      row.forEach((val, ci) => setCell(wsDL, ri, ci, val));
+    });
+    setRange(wsDL, 0, 0, DROPDOWN_DATA.length - 1, 3);
+
+    const INSTR_SHEET = 'Instructions';
+    const HD_ROWS = [
+      ['=== HUONG DAN / HOW TO PASTE INTO YAMAZUMI TEMPLATE ==='],
+      [''],
+      ['FILE NAY CO 4 SHEET / THIS FILE HAS 4 SHEETS:'],
+      ['  1. Instructions  — Ban dang doc / You are here'],
+      ['  2. Data PT-CT    — Thoi gian tung thao tac theo tram (PERT mean + 10 samples)'],
+      ['  3. VAA-NVAA      — Phan loai VAA / Semi-VA / NVA cho tung thao tac'],
+      ['  4. Dropdown list — Danh muc day du cac loai micro-type (doi chieu)'],
+      [''],
+      ['Generated by Monte Carlo Simulator — ' + new Date().toLocaleString()],
+    ];
+
+    const oldIdx = wb.SheetNames.indexOf(INSTR_SHEET);
+    if (oldIdx !== -1) {
+      wb.SheetNames.splice(oldIdx, 1);
+      delete wb.Sheets[INSTR_SHEET];
+    }
+    const wsHD = {};
+    HD_ROWS.forEach((row, ri) => {
+      const val = Array.isArray(row) ? row[0] : row;
+      if (val !== undefined && val !== '') setCell(wsHD, ri, 0, String(val));
+    });
+    wsHD['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:HD_ROWS.length-1,c:0} });
+    wsHD['!cols'] = [{ wch: 90 }];
+    wb.SheetNames.push(INSTR_SHEET);
+    wb.Sheets[INSTR_SHEET] = wsHD;
+
+    const VISIBLE = new Set(['Data PT-CT', 'VAA-NVAA', 'Dropdown list', INSTR_SHEET]);
+    if (!wb.Workbook) wb.Workbook = {};
+    wb.Workbook.Sheets = wb.SheetNames.map(n => ({ name: n, Hidden: VISIBLE.has(n) ? 0 : 2 }));
+
+    XLSX.writeFile(wb, 'Temp_Simulated.xlsx');
+  }
+
+  function exportMegaCSV() {
+    if (!simResults.length || !simLineCycleResults.length) return;
+    const iters  = simResults.length;
+    const sorted = [...simResults].sort((a,b)=>a-b);
+    const sortedLine = [...simLineCycleResults].sort((a,b)=>a-b);
+    const mean   = simResults.reduce((a,b)=>a+b,0)/iters;
+    const stdEl  = document.getElementById('kpi-std');
+    const stdDev = stdEl ? parseFloat(stdEl.textContent) : 0;
+
+    let rows = [
+      ['TRIMMER ASSEMBLY LINE - COMPREHENSIVE SIMULATION REPORT'],
+      ['Generated On', new Date().toLocaleString()],
+      ['Iterations Run', iters],
+      [],
+      ['--- 1. OVERALL STATISTICS (TOTAL LEAD TIME) ---'],
+      ['Metric', 'Seconds'],
+      ['Expected (Mean)', document.getElementById('kpi-mean')?.textContent || ''],
+      ['Minimum Observed', document.getElementById('kpi-min')?.textContent || ''],
+      ['Maximum Observed', document.getElementById('kpi-max')?.textContent || ''],
+      ['Standard Deviation', document.getElementById('kpi-std')?.textContent || ''],
+      ['Coefficient of Variation', ((stdDev/mean)*100).toFixed(2)+'%'],
+      [],
+      ['--- 2. SHIFT CAPACITY & DEMAND ---'],
+      ['Metric', 'Value'],
+      ['Shift Schedule', (document.getElementById('shift-start')?.value||'') + ' to ' + (document.getElementById('shift-end')?.value||'') + ' (Lunch: ' + (document.getElementById('lunch-dur')?.value||'')+'m)'],
+      ['Available Work Time', document.getElementById('work-time-val')?.textContent||''],
+      ['Customer Demand', document.getElementById('customer-demand')?.value || ''],
+      ['Calculated Takt Time', document.getElementById('calc-takt-val')?.textContent || ''],
+      ['Expected Daily Output (Mean)', document.getElementById('out-mean')?.textContent||''],
+      ['P90 Guarantee (Conservative)', document.getElementById('out-p90')?.textContent||''],
+      ['P10 Potential (Optimistic)', document.getElementById('out-p10')?.textContent||''],
+      []
+    ];
+
+    if (window.currentAnalysisTarget) {
+      rows.push(['--- 3. TARGET DAILY OUTPUT ANALYSIS ---']);
+      rows.push(['Metric', 'Value']);
+      rows.push(['Target Daily Output', window.currentAnalysisTarget+' units']);
+      rows.push(['Probability of hitting target', window.currentAnalysisPctBelow+'%']);
+      rows.push(['Probability of missing target', window.currentAnalysisPctAbove+'%']);
+      rows.push([]);
+    }
+
+    rows.push(['--- 4. TASK CONTRIBUTION ---']);
+    rows.push(['Task Name', 'Type', 'Station', 'Average Time (s)', '% of Total Cycle']);
+    const totalMean = currentTaskMeans.reduce((a,t)=>a+t.mean, 0);
+    currentTaskMeans.forEach(t => {
+      rows.push([t.name, normalizeTaskType(t.type), t.station||1, t.mean.toFixed(2), (t.mean/totalMean*100).toFixed(2)+'%']);
+    });
+    rows.push([]);
+
+    if (yamazumiData && yamazumiData.length) {
+      const taktEl = document.getElementById('yamazumi-takt');
+      const takt   = taktEl ? parseFloat(taktEl.value) : 0;
+      const stnTotals = yamazumiData.map(s=>s.totalTime);
+      const maxStn    = Math.max(...stnTotals);
+      const avgStn    = stnTotals.reduce((a,b)=>a+b,0)/stnTotals.length;
+      const balEff    = (avgStn/maxStn*100).toFixed(1);
+
+      rows.push(['--- 5. YAMAZUMI LINE BALANCE ---']);
+      rows.push(['Takt Time (s)', takt]);
+      rows.push(['Balance Efficiency', balEff+'%']);
+      rows.push(['Station', 'Assigned Tasks', 'Total Cycle Time (s)', 'vs Takt', 'Status']);
+      yamazumiData.forEach(s => {
+        const vs  = takt > 0 ? ((s.totalTime/takt)*100).toFixed(1)+'%' : 'N/A';
+        const sts = takt > 0 ? (s.totalTime > takt ? 'OVERLOADED' : 'OK') : 'N/A';
+        rows.push([`Station ${s.station}`, s.tasks.map(t=>t.name).join(' | '), s.totalTime.toFixed(2), vs, sts]);
+      });
+      rows.push([]);
+    }
+
+    if (flowSimResults && flowSimResults.length) {
+      const bn  = flowSimResults.find(s=>s.isBottleneck)||flowSimResults[0];
+      const thr = (3600/bn.avgProcessTime).toFixed(0);
+      const tw  = flowSimResults.reduce((s,st)=>s+st.avgProcessTime,0);
+      const tc  = flowSimResults.length * bn.avgProcessTime;
+      const le  = (tw/tc*100).toFixed(1);
+
+      rows.push(['--- 6. FLOW SIMULATION (DES) RESULTS ---']);
+      rows.push(['Simulated Units', 500]);
+      rows.push(['Bottleneck Station', `Station ${bn.station}`]);
+      rows.push(['Throughput Rate', thr+' units/hour']);
+      rows.push(['Line Efficiency', le+'%']);
+      rows.push([]);
+      rows.push(['Station', 'Assigned Tasks', 'Avg Cycle Time (s)', 'Utilization (%)', 'Avg Queue Wait (s)', 'Avg Queue Depth', 'Bottleneck?']);
+      flowSimResults.forEach(s => {
+        rows.push([
+          `Station ${s.station}`,
+          s.tasks.join(' | '),
+          s.avgProcessTime.toFixed(2),
+          s.utilization.toFixed(1)+'%',
+          s.avgQueueWait.toFixed(2),
+          s.avgQueueDepth,
+          s.isBottleneck ? 'YES' : ''
+        ]);
+      });
+      rows.push([]);
+    }
+
+    rows.push(['--- 7. PERCENTILE BREAKDOWN (LINE CYCLE TIME / BOTTLENECK TIME) ---']);
+    rows.push(['Percentile', 'Time (s)']);
+    [10,25,50,75,80,85,90,95,99].forEach(pc => {
+      rows.push(['P'+pc, sortedLine[Math.floor(iters*pc/100)].toFixed(2)]);
+    });
+    rows.push([]);
+
+    rows.push(['--- 8. RAW ITERATION DATA ---']);
+    rows.push(['Iteration', 'Total Time (s)', 'Bottleneck Line Cycle Time (s)', 'Cumulative Pct']);
+    simResults.forEach((v,i) => {
+      rows.push([i+1, v.toFixed(4), simLineCycleResults[i].toFixed(4), ((i+1)/iters*100).toFixed(2)]);
+    });
+
+    downloadCSV(rows, 'Mega_Simulation_Report.csv');
+  }
+
+  function downloadCSV(rows, filename) {
+    const csv = rows.map(r => r.map(field => {
+      let text = String(field);
+      if (text.includes(',') || text.includes('\n') || text.includes('"')) {
+        return `"${text.replace(/"/g,'""')}"`;
+      }
+      return text;
+    }).join(',')).join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+</script>
+</body>
+</html>
