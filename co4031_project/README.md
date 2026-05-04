@@ -1,4 +1,6 @@
-# Manufacturing Failure Analysis Dashboard
+# Manufacturing Failure Analytics Pipeline
+
+Repository name: `manufacturing-failure-analytics-pipeline`
 
 CO4031 project: a data warehouse and business intelligence system for analyzing manufacturing machine failures using the AI4I 2020 predictive maintenance dataset.
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CO4031 Manufacturing Failure Analysis</title>
+  <title>Manufacturing Failure Analytics Pipeline</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -341,7 +341,9 @@
     }
 
     .gallery {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
     }
 
     figure {
@@ -352,12 +354,19 @@
       background: var(--panel);
     }
 
+    .gallery figure { grid-column: span 6; }
+    .gallery figure.full { grid-column: 1 / -1; }
+    .gallery figure.large { grid-column: span 8; }
+    .gallery figure.side { grid-column: span 4; }
+
     .screenshot-slot {
       display: grid;
       place-items: center;
-      aspect-ratio: 16 / 10;
+      aspect-ratio: var(--slot-ratio, 16 / 10);
       background: #0d1720;
       overflow: hidden;
+      min-height: 220px;
+      max-height: 560px;
     }
 
     .screenshot-slot img {
@@ -366,10 +375,26 @@
       object-fit: contain;
     }
 
-    .screenshot-slot.wide { aspect-ratio: 5 / 1; }
-    .screenshot-slot.dashboard { aspect-ratio: 16 / 9; }
-    .screenshot-slot.tall { aspect-ratio: 3 / 4; }
-    .screenshot-slot.composite { aspect-ratio: 10 / 11; }
+    .screenshot-slot.kpi {
+      --slot-ratio: 5 / 1;
+      min-height: 180px;
+      max-height: 260px;
+    }
+
+    .screenshot-slot.overview { --slot-ratio: 14 / 9; }
+    .screenshot-slot.chart-wide { --slot-ratio: 21 / 10; }
+    .screenshot-slot.chart-standard { --slot-ratio: 16 / 10; }
+    .screenshot-slot.table-shot { --slot-ratio: 16 / 9; }
+
+    .screenshot-slot.tall {
+      --slot-ratio: 2 / 3;
+      max-height: 500px;
+    }
+
+    .screenshot-slot.composite {
+      --slot-ratio: 10 / 11;
+      max-height: 620px;
+    }
 
     figcaption {
       padding: 14px 16px;
@@ -432,9 +457,13 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .gallery {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .gallery figure,
+      .gallery figure.large,
+      .gallery figure.side {
+        grid-column: span 6;
       }
+
+      .gallery figure.full { grid-column: 1 / -1; }
 
       .hero {
         min-height: auto;
@@ -449,14 +478,19 @@
       .metrics,
       .workflow,
       .asset-grid,
-      .gallery {
-        grid-template-columns: 1fr;
+      .gallery { grid-template-columns: 1fr; }
+      .gallery figure,
+      .gallery figure.full,
+      .gallery figure.large,
+      .gallery figure.side {
+        grid-column: 1 / -1;
       }
       section { padding: 54px 0; }
       .image-frame img { min-height: 220px; }
-      .screenshot-slot.wide { aspect-ratio: 16 / 6; }
-      .screenshot-slot.tall,
-      .screenshot-slot.composite { aspect-ratio: 4 / 5; }
+      .screenshot-slot { min-height: 190px; max-height: 460px; }
+      .screenshot-slot.kpi { --slot-ratio: 16 / 5; min-height: 140px; }
+      .screenshot-slot.tall { --slot-ratio: 3 / 4; }
+      .screenshot-slot.composite { --slot-ratio: 4 / 5; }
     }
   </style>
 </head>
@@ -468,7 +502,7 @@
         <a class="nav-link" href="#workflow">Workflow</a>
         <a class="nav-link" href="#dashboard">Dashboard</a>
         <a class="nav-link" href="#assets">Assets</a>
-        <a class="nav-link" href="https://github.com/nguyenhoang88502/co4031_project" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="nav-link" href="https://github.com/nguyenhoang88502/manufacturing-failure-analytics-pipeline" target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </nav>
 
@@ -476,16 +510,16 @@
       <section class="hero" aria-labelledby="page-title">
         <div>
           <div class="eyebrow">CO4031 data warehouse project</div>
-          <h1 id="page-title">Manufacturing Failure Analysis Dashboard</h1>
+          <h1 id="page-title">Manufacturing Failure Analytics Pipeline</h1>
           <p class="lead">A complete BI pipeline that turns AI4I predictive maintenance records into cleaned data, a PostgreSQL star schema, OLAP summaries, a Streamlit dashboard, and an optional XGBoost failure prediction model.</p>
           <div class="actions">
-            <a class="button primary" href="https://github.com/nguyenhoang88502/co4031_project" target="_blank" rel="noreferrer"><i class="bi bi-github"></i> View GitHub Repo</a>
+            <a class="button primary" href="https://github.com/nguyenhoang88502/manufacturing-failure-analytics-pipeline" target="_blank" rel="noreferrer"><i class="bi bi-github"></i> View GitHub Repo</a>
             <a class="button" href="README.md"><i class="bi bi-file-text"></i> Read Project Notes</a>
             <a class="button" href="#gallery"><i class="bi bi-images"></i> See Screenshots</a>
           </div>
         </div>
         <div class="hero-visual">
-          <img src="picture/08_full_dashboard_composite.jpg" alt="Full Streamlit dashboard composite for CO4031 manufacturing failure analysis" />
+          <img src="picture/Manufacturing Failure Analysis Dashboard_page_01.png" alt="Dashboard overview for CO4031 manufacturing failure analysis" />
         </div>
       </section>
 
@@ -562,7 +596,7 @@
 
       <div class="feature-layout">
         <div class="image-frame">
-          <img src="picture/01_overview_top.jpg" alt="Dashboard overview with KPI cards and chart navigation" />
+          <img src="picture/Manufacturing Failure Analysis Dashboard_page_01.png" alt="Dashboard overview with KPI cards and chart navigation" />
         </div>
         <div class="results-grid">
           <div class="result">
@@ -597,62 +631,74 @@
       </div>
 
       <div class="gallery">
-        <figure>
-          <div class="screenshot-slot dashboard">
-            <img src="picture/01_overview_top.jpg" alt="Dashboard overview top section" />
+        <figure class="full">
+          <div class="screenshot-slot overview">
+            <img src="picture/Manufacturing Failure Analysis Dashboard_page_01.png" alt="Dashboard overview with KPI cards and chart navigation" />
           </div>
-          <figcaption>Overview top section shows the dashboard title, controls, and KPI context.</figcaption>
+          <figcaption>Dashboard overview shows the Streamlit report layout with KPI cards, chart navigation, and analysis context.</figcaption>
+        </figure>
+        <figure class="full">
+          <div class="screenshot-slot kpi">
+            <img src="picture/01_kpi_cards.jpg" alt="CO4031 KPI cards" />
+          </div>
+          <figcaption>KPI cards summarize records, failures, failure rate, and leading failure type.</figcaption>
         </figure>
         <figure>
-          <div class="screenshot-slot">
+          <div class="screenshot-slot table-shot">
+            <img src="picture/01_overview_top.jpg" alt="Dashboard top section crop" />
+          </div>
+          <figcaption>Top section crop focuses on the dashboard header and first visible report controls.</figcaption>
+        </figure>
+        <figure>
+          <div class="screenshot-slot chart-standard">
             <img src="picture/02_failure_distribution_bar.jpg" alt="Failure distribution bar chart" />
           </div>
           <figcaption>Failure distribution ranks no-failure records and each named failure mode.</figcaption>
         </figure>
         <figure>
-          <div class="screenshot-slot">
+          <div class="screenshot-slot chart-wide">
             <img src="picture/03_monthly_trend_line.jpg" alt="Monthly failure trend line chart" />
           </div>
           <figcaption>Monthly trend view shows the simulated 2023 failure count pattern.</figcaption>
         </figure>
         <figure>
-          <div class="screenshot-slot">
+          <div class="screenshot-slot chart-standard">
             <img src="picture/04_machine_condition_scatter.jpg" alt="Machine condition failure rate chart" />
           </div>
           <figcaption>Machine condition chart compares tool-life groups by failure rate.</figcaption>
         </figure>
         <figure>
-          <div class="screenshot-slot">
+          <div class="screenshot-slot chart-standard">
             <img src="picture/05_product_quality_bar.jpg" alt="Failure rate by product quality" />
           </div>
           <figcaption>Product quality chart compares low, medium, and high quality categories.</figcaption>
         </figure>
-        <figure>
-          <div class="screenshot-slot dashboard">
+        <figure class="large">
+          <div class="screenshot-slot table-shot">
             <img src="picture/06_data_tables.jpg" alt="Dashboard detail data tables" />
           </div>
           <figcaption>Detail tables expose the generated OLAP datasets used by the report.</figcaption>
         </figure>
-        <figure>
+        <figure class="side">
           <div class="screenshot-slot tall">
             <img src="picture/07_sidebar_filters.jpg" alt="Streamlit sidebar filters" />
           </div>
           <figcaption>Sidebar filters narrow the report by failure type, month, and condition.</figcaption>
         </figure>
-        <figure>
+        <figure class="large">
           <div class="screenshot-slot composite">
             <img src="picture/08_full_dashboard_composite.jpg" alt="Full dashboard composite screenshot" />
           </div>
           <figcaption>Full dashboard composite captures the complete Streamlit report in one image.</figcaption>
         </figure>
-        <figure>
-          <div class="screenshot-slot">
+        <figure class="side">
+          <div class="screenshot-slot chart-standard">
             <img src="ml/plots/model_evaluation.png" alt="XGBoost model evaluation plots" />
           </div>
           <figcaption>XGBoost evaluation includes confusion matrix, ROC curve, and feature importance.</figcaption>
         </figure>
-        <figure>
-          <div class="screenshot-slot">
+        <figure class="full">
+          <div class="screenshot-slot chart-wide">
             <img src="ml/plots/shap_summary.png" alt="SHAP summary for XGBoost model" />
           </div>
           <figcaption>SHAP summary explains how operating features affect failure predictions.</figcaption>
@@ -672,7 +718,7 @@
       </div>
 
       <div class="asset-grid">
-        <a class="asset" href="https://github.com/nguyenhoang88502/co4031_project" target="_blank" rel="noreferrer">
+        <a class="asset" href="https://github.com/nguyenhoang88502/manufacturing-failure-analytics-pipeline" target="_blank" rel="noreferrer">
           <i class="bi bi-github"></i>
           <b>GitHub Repository</b>
           <span>Source code, assets, and project history.</span>
@@ -718,7 +764,7 @@
 
   <footer class="footer">
     <div class="shell">
-      <span>CO4031 Manufacturing Failure Analysis Dashboard</span>
+      <span>Manufacturing Failure Analytics Pipeline</span>
     </div>
   </footer>
 </body>
