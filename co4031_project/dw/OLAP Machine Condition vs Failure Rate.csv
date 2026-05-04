@@ -1,0 +1,5 @@
+"Condition","Risk Level","Operations","Failures","Failure Rate (%)","Recommended Action"
+"New Tool (0-100 min)","Low",2956,76,2.57,"Continue normal operation. Schedule next inspection."
+"Mid-Life Tool (100-200 min)","Medium",2930,84,2.87,"Monitor closely. Plan tool replacement within 3 days."
+"Aging Tool (200-240 min)","High",494,76,15.38,"Prioritize tool replacement at next opportunity."
+"Worn Tool (>240 min)","Critical",10,4,40.00,"Stop machine and replace tool immediately."

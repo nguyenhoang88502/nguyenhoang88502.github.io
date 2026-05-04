@@ -1,0 +1,4 @@
+"Product Quality","Total Operations","Total Failures","Failure Rate (%)","Avg Torque (Nm)","Avg Tool Wear (min)"
+"Low Quality",3844,161,4.19,40.00,108.8
+"Medium Quality",1909,60,3.14,40.17,108.5
+"High Quality",637,19,2.98,40.04,107.4

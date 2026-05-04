@@ -1,0 +1,7 @@
+"Failure Type","Category","Severity","Occurrences","% of All Records","Avg Tool Wear (min)","Avg Torque (Nm)"
+"No Failure","Normal",1,6145,96.17,107.2,39.69
+"Heat Dissipation Failure","Thermal",3,80,1.25,104.5,52.55
+"Power Failure","Electrical",3,65,1.02,98.6,45.25
+"Overstrain Failure","Mechanical",3,55,0.86,207.9,56.88
+"Tool Wear Failure","Mechanical",2,34,0.53,217.6,37.38
+"Random Failure","Unknown",2,11,0.17,146.4,45.33
