@@ -176,7 +176,9 @@
 
     .hero-visual img {
       aspect-ratio: 16 / 10;
-      object-fit: cover;
+      height: 100%;
+      object-fit: contain;
+      background: #0d1720;
     }
 
     .metrics {
@@ -304,8 +306,11 @@
     }
 
     .image-frame img {
+      aspect-ratio: 16 / 9;
       min-height: 360px;
-      object-fit: cover;
+      height: 100%;
+      object-fit: contain;
+      background: #0d1720;
     }
 
     .results-grid,
@@ -347,10 +352,24 @@
       background: var(--panel);
     }
 
-    figure img {
+    .screenshot-slot {
+      display: grid;
+      place-items: center;
       aspect-ratio: 16 / 10;
-      object-fit: cover;
+      background: #0d1720;
+      overflow: hidden;
     }
+
+    .screenshot-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .screenshot-slot.wide { aspect-ratio: 5 / 1; }
+    .screenshot-slot.dashboard { aspect-ratio: 16 / 9; }
+    .screenshot-slot.tall { aspect-ratio: 3 / 4; }
+    .screenshot-slot.composite { aspect-ratio: 10 / 11; }
 
     figcaption {
       padding: 14px 16px;
@@ -435,6 +454,9 @@
       }
       section { padding: 54px 0; }
       .image-frame img { min-height: 220px; }
+      .screenshot-slot.wide { aspect-ratio: 16 / 6; }
+      .screenshot-slot.tall,
+      .screenshot-slot.composite { aspect-ratio: 4 / 5; }
     }
   </style>
 </head>
@@ -463,7 +485,7 @@
           </div>
         </div>
         <div class="hero-visual">
-          <img src="picture\Manufacturing Failure Analysis Dashboard_page_01.png" alt="Full Streamlit dashboard composite for CO4031 manufacturing failure analysis" />
+          <img src="picture/08_full_dashboard_composite.jpg" alt="Full Streamlit dashboard composite for CO4031 manufacturing failure analysis" />
         </div>
       </section>
 
@@ -540,7 +562,7 @@
 
       <div class="feature-layout">
         <div class="image-frame">
-          <img src="picture\Manufacturing Failure Analysis Dashboard_page_01.png" alt="Dashboard overview with KPI cards and chart navigation" />
+          <img src="picture/01_overview_top.jpg" alt="Dashboard overview with KPI cards and chart navigation" />
         </div>
         <div class="results-grid">
           <div class="result">
@@ -576,39 +598,69 @@
 
       <div class="gallery">
         <figure>
-          <img src="picture/01_kpi_cards.jpg" alt="CO4031 KPI cards" />
+          <div class="screenshot-slot wide">
+            <img src="picture/01_kpi_cards.jpg" alt="CO4031 KPI cards" />
+          </div>
           <figcaption>KPI cards summarize records, failures, failure rate, and leading failure type.</figcaption>
         </figure>
         <figure>
-          <img src="picture/02_failure_distribution_bar.jpg" alt="Failure distribution bar chart" />
+          <div class="screenshot-slot dashboard">
+            <img src="picture/01_overview_top.jpg" alt="Dashboard overview top section" />
+          </div>
+          <figcaption>Overview top section shows the dashboard title, controls, and KPI context.</figcaption>
+        </figure>
+        <figure>
+          <div class="screenshot-slot">
+            <img src="picture/02_failure_distribution_bar.jpg" alt="Failure distribution bar chart" />
+          </div>
           <figcaption>Failure distribution ranks no-failure records and each named failure mode.</figcaption>
         </figure>
         <figure>
-          <img src="picture/03_monthly_trend_line.jpg" alt="Monthly failure trend line chart" />
+          <div class="screenshot-slot">
+            <img src="picture/03_monthly_trend_line.jpg" alt="Monthly failure trend line chart" />
+          </div>
           <figcaption>Monthly trend view shows the simulated 2023 failure count pattern.</figcaption>
         </figure>
         <figure>
-          <img src="picture/04_machine_condition_scatter.jpg" alt="Machine condition failure rate chart" />
+          <div class="screenshot-slot">
+            <img src="picture/04_machine_condition_scatter.jpg" alt="Machine condition failure rate chart" />
+          </div>
           <figcaption>Machine condition chart compares tool-life groups by failure rate.</figcaption>
         </figure>
         <figure>
-          <img src="picture/05_product_quality_bar.jpg" alt="Failure rate by product quality" />
+          <div class="screenshot-slot">
+            <img src="picture/05_product_quality_bar.jpg" alt="Failure rate by product quality" />
+          </div>
           <figcaption>Product quality chart compares low, medium, and high quality categories.</figcaption>
         </figure>
         <figure>
-          <img src="picture/06_data_tables.jpg" alt="Dashboard detail data tables" />
+          <div class="screenshot-slot dashboard">
+            <img src="picture/06_data_tables.jpg" alt="Dashboard detail data tables" />
+          </div>
           <figcaption>Detail tables expose the generated OLAP datasets used by the report.</figcaption>
         </figure>
         <figure>
-          <img src="picture/07_sidebar_filters.jpg" alt="Streamlit sidebar filters" />
+          <div class="screenshot-slot tall">
+            <img src="picture/07_sidebar_filters.jpg" alt="Streamlit sidebar filters" />
+          </div>
           <figcaption>Sidebar filters narrow the report by failure type, month, and condition.</figcaption>
         </figure>
         <figure>
-          <img src="ml/plots/model_evaluation.png" alt="XGBoost model evaluation plots" />
+          <div class="screenshot-slot composite">
+            <img src="picture/08_full_dashboard_composite.jpg" alt="Full dashboard composite screenshot" />
+          </div>
+          <figcaption>Full dashboard composite captures the complete Streamlit report in one image.</figcaption>
+        </figure>
+        <figure>
+          <div class="screenshot-slot">
+            <img src="ml/plots/model_evaluation.png" alt="XGBoost model evaluation plots" />
+          </div>
           <figcaption>XGBoost evaluation includes confusion matrix, ROC curve, and feature importance.</figcaption>
         </figure>
         <figure>
-          <img src="ml/plots/shap_summary.png" alt="SHAP summary for XGBoost model" />
+          <div class="screenshot-slot">
+            <img src="ml/plots/shap_summary.png" alt="SHAP summary for XGBoost model" />
+          </div>
           <figcaption>SHAP summary explains how operating features affect failure predictions.</figcaption>
         </figure>
       </div>
