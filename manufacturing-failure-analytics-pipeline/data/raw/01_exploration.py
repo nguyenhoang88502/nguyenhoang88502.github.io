@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import warnings
+from pathlib import Path
 
 warnings.filterwarnings('ignore')
 
@@ -17,12 +18,14 @@ warnings.filterwarnings('ignore')
 # PATHS
 # ============================================================
 
-RAW_PATH     = r"C:\co4031_project\data\raw\ai4i2020.csv"
-CLEANED_PATH = r"C:\co4031_project\data\cleaned\machine_data_cleaned.csv"
-DIST_PATH    = r"C:\co4031_project\data\cleaned\eda_distributions.png"
-HEATMAP_PATH = r"C:\co4031_project\data\cleaned\correlation_heatmap.png"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-os.makedirs(os.path.dirname(CLEANED_PATH), exist_ok=True)
+RAW_PATH     = PROJECT_ROOT / "data" / "raw" / "ai4i2020.csv"
+CLEANED_PATH = PROJECT_ROOT / "data" / "cleaned" / "machine_data_cleaned.csv"
+DIST_PATH    = PROJECT_ROOT / "data" / "cleaned" / "eda_distributions.png"
+HEATMAP_PATH = PROJECT_ROOT / "data" / "cleaned" / "correlation_heatmap.png"
+
+os.makedirs(CLEANED_PATH.parent, exist_ok=True)
 
 # ============================================================
 # SECTION 1: Load Raw Data (READ ONLY — never written back)

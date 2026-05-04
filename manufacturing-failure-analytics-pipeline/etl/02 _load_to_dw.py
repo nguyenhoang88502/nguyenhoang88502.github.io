@@ -6,6 +6,7 @@ Purpose: Load the transformed CSV into the staging.machine_data table
 import pandas as pd
 from sqlalchemy import create_engine, text
 import warnings
+from pathlib import Path
 warnings.filterwarnings('ignore')
 
 # ============================================================
@@ -18,7 +19,8 @@ DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "co4031_dw"
 
-CLEANED_PATH = r"C:\co4031_project\data\cleaned\machine_data_cleaned.csv"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+CLEANED_PATH = PROJECT_ROOT / "data" / "cleaned" / "machine_data_cleaned.csv"
 
 # Build connection string
 conn_str = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

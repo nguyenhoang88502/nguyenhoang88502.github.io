@@ -855,7 +855,7 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <filename>C:\co4031_project\data\raw\ai4i2020.csv</filename>
+    <filename>${Internal.Entry.Current.Directory}/../data/raw/ai4i2020.csv</filename>
     <filename_field/>
     <rownum_field/>
     <include_filename>N</include_filename>
