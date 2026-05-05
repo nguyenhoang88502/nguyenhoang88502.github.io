@@ -2,7 +2,6 @@
 
 BOM Dataset Indexer là giải pháp tối ưu giúp tự động hóa việc phân loại, lập chỉ mục và tìm kiếm dữ liệu Bill of Materials (BOM) từ các tệp tin Excel. Công cụ hỗ trợ nhận diện đa ngôn ngữ (Anh - Việt - Trung) và tối ưu hóa hiệu suất truy vấn thông qua hệ thống lưu trữ đệm (cache) thông minh.
 
-* * *
 
 ## Hướng dẫn sử dụng nhanh
 
@@ -46,7 +45,6 @@ Nhập bất kỳ giá trị nào (mã vật tư, kho, người duyệt...) vào
 
 Nhấn "Export CSV" để tải về kết quả đã lọc hoặc tìm kiếm. Tệp CSV được tối ưu để mở bằng Excel, Power BI hoặc các công cụ phân tích dữ liệu khác.
 
-* * *
 
 ## Các tính năng chi tiết
 
@@ -81,7 +79,6 @@ Hệ thống tự động nhận diện và phân loại tệp dựa trên cấu
 *   Hiệu suất: Giảm thiểu việc xử lý lại các tệp không thay đổi, tiết kiệm tài nguyên hệ thống.
     
 
-* * *
 
 ## Bảng trường dữ liệu được hỗ trợ
 
@@ -89,7 +86,6 @@ Hệ thống tự động nhận diện các cột dữ liệu dựa trên tiêu
 
 <table data-path-to-node="31"><thead><tr><th><span data-path-to-node="31,0,0,0">Trường dữ liệu</span></th><th><span data-path-to-node="31,0,1,0">Mô tả</span></th></tr></thead><tbody><tr><td><span data-path-to-node="31,1,0,0">Item Number</span></td><td><span data-path-to-node="31,1,1,0">Mã số định danh vật tư</span></td></tr><tr><td><span data-path-to-node="31,2,0,0">BOM Number</span></td><td><span data-path-to-node="31,2,1,0">Mã số danh mục vật tư</span></td></tr><tr><td><span data-path-to-node="31,3,0,0">Product Name</span></td><td><span data-path-to-node="31,3,1,0">Tên sản phẩm hoặc thành phẩm</span></td></tr><tr><td><span data-path-to-node="31,4,0,0">Quantity</span></td><td><span data-path-to-node="31,4,1,0">Số lượng vật tư</span></td></tr><tr><td><span data-path-to-node="31,5,0,0">Unit</span></td><td><span data-path-to-node="31,5,1,0">Đơn vị tính (EA, KG, M, bộ...)</span></td></tr><tr><td><span data-path-to-node="31,6,0,0">Warehouse</span></td><td><span data-path-to-node="31,6,1,0">Kho lưu trữ hoặc vị trí lưu kho</span></td></tr><tr><td><span data-path-to-node="31,7,0,0">Approved By</span></td><td><span data-path-to-node="31,7,1,0">Người phê duyệt dữ liệu</span></td></tr><tr><td><span data-path-to-node="31,8,0,0">Status</span></td><td><span data-path-to-node="31,8,1,0">Trạng thái (Active, Inactive, v.v.)</span></td></tr></tbody></table>
 
-* * *
 
 ## Xử lý sự cố thường gặp
 
@@ -102,7 +98,6 @@ Hệ thống tự động nhận diện các cột dữ liệu dựa trên tiêu
 *   Dữ liệu nhận diện sai cột: Kiểm tra lại tệp Excel gốc để đảm bảo dòng tiêu đề không bị gộp ô (merge cells) và nằm ở các dòng đầu tiên.
     
 
-* * *
 
 ## Ghi chú quan trọng
 
@@ -113,4 +108,3 @@ Hệ thống tự động nhận diện các cột dữ liệu dựa trên tiêu
 *   Khuyến nghị: Nên sử dụng cache để tối ưu hóa thời gian làm việc với các bộ dữ liệu lớn.
     
 
-* * *
