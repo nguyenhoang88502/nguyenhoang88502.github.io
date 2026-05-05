@@ -9,7 +9,7 @@ BOM Dataset Indexer là giải pháp tối ưu giúp tự động hóa việc ph
 
 1.  Truy cập ứng dụng trên trình duyệt.
     
-2.  Nhấn nút "Select dataset folder" (Chọn thư mục dữ liệu).
+2.  Nhấn nút "Select dataset folder" (Chọn thư mục dữ liệu). (Chỉ nạp 1 lần, lần sau load cache nạp dữ liệu cũ, tự nạp thêm dữ liệu mới)
     
 3.  Chọn thư mục chứa các tệp Excel (.xls, .xlsx, .xlsm, .xlsb).
     
