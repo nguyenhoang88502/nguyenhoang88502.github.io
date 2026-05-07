@@ -9,6 +9,23 @@
     if (!window.XLSX) document.write('<script src="xlsx.full.min.js"><\/script>');
   </script>
   <style>
+    :root[data-theme="dark"] {
+      --bg: #181c20;
+      --panel: #23272e;
+      --text: #e3e7ed;
+      --muted: #8a97a7;
+      --line: #2c323a;
+      --accent: #14b8a6;
+      --accent-dark: #0e766e;
+      --accent-light: #164e63;
+      --bad: #ef4444;
+      --warn: #fbbf24;
+      --good: #22c55e;
+      --header: #10151b;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.32);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.45);
+    }
     :root {
       --bg: #f8fafb;
       --panel: #fff;
@@ -657,6 +674,23 @@
       <p>Use SheetJS to read Excel files, recognize titles and headers, focused on file quick indexing and legacy/new BOM indexing.</p>
     </div>
     <div class="top-actions">
+      <button id="themeToggle" class="secondary" style="margin-right: 8px; min-width: 40px;" title="Toggle dark mode">🌙</button>
+          // --- Dark mode logic ---
+          const themeToggle = document.getElementById("themeToggle");
+          function setTheme(theme) {
+            document.documentElement.setAttribute("data-theme", theme);
+            localStorage.setItem("bomTheme", theme);
+            themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+            themeToggle.title = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+          }
+          function getPreferredTheme() {
+            return localStorage.getItem("bomTheme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          }
+          themeToggle.addEventListener("click", () => {
+            const current = document.documentElement.getAttribute("data-theme") || "light";
+            setTheme(current === "dark" ? "light" : "dark");
+          });
+          setTheme(getPreferredTheme());
       <label class="file-label" for="folderInput">Select dataset folder</label>
       <input id="folderInput" type="file" webkitdirectory directory multiple accept=".xls,.xlsx,.xlsm,.xlsb">
       <label class="file-label" for="fileInput">Select files</label>
