@@ -978,7 +978,7 @@
     }
 
     function hasHeader(row, keyOrNames) {
-      const normalized = normalizedRow(row);
+      const normalized = Array.isArray(row) && row[0] && typeof row[0] === 'string' ? row : normalizedRow(row);
       const names = aliases(keyOrNames);
       return normalized.some((cell) => names.includes(cell));
     }
@@ -995,16 +995,18 @@
     function findHeaderRows(rows) {
       const matches = [];
       rows.slice(0, 20).forEach((row, rowIndex) => {
-        const hasItem = hasHeader(row, "itemNumber");
-        const hasProduct = hasHeader(row, "productName");
-        const hasWarehouse = hasHeader(row, "warehouse");
-        const hasQty = hasHeader(row, "quantity");
-        const hasBom = hasHeader(row, "bom");
-        const hasName = hasHeader(row, "bomName");
-        const hasItemGroup = hasHeader(row, "itemGroup");
+        const normalized = normalizedRow(row);
+        const textRow = row.map(text);
+        const hasItem = hasHeader(normalized, "itemNumber");
+        const hasProduct = hasHeader(normalized, "productName");
+        const hasWarehouse = hasHeader(normalized, "warehouse");
+        const hasQty = hasHeader(normalized, "quantity");
+        const hasBom = hasHeader(normalized, "bom");
+        const hasName = hasHeader(normalized, "bomName");
+        const hasItemGroup = hasHeader(normalized, "itemGroup");
 
         if ((hasItem && hasProduct) || (hasBom && hasName) || hasWarehouse || hasQty || hasItemGroup) {
-          matches.push({ rowIndex, headers: row.map(text) });
+          matches.push({ rowIndex, headers: textRow, normalized });
         }
       });
       return matches;
@@ -1174,6 +1176,22 @@
       return unique(found);
     }
 
+    function extractItemsAndBoms(rows) {
+      const items = new Set();
+      const boms = new Set();
+      rows.forEach((row) => {
+        row.forEach((cell) => {
+          const value = text(cell);
+          if (!value) return;
+          const itemMatches = value.match(/\b\d{4,}\b/g);
+          if (itemMatches) itemMatches.forEach(m => items.add(m));
+          const bomMatches = value.match(/\bBOM\d{4,}\b/gi);
+          if (bomMatches) bomMatches.forEach(m => boms.add(m.toUpperCase()));
+        });
+      });
+      return { items: [...items], boms: [...boms] };
+    }
+
     function summarizeWorkbook(file, workbook) {
       const summary = {
         file: file.name,
@@ -1198,8 +1216,7 @@
         const rows = sheetRows(workbook.Sheets[sheetName]);
         const headerRows = findHeaderRows(rows);
         const bomVersions = extractBomVersions(summary, sheetName, rows);
-        const regexItems = extractRegexValues(rows, /\b\d{4,}\b/g);
-        const regexBoms = extractRegexValues(rows, /\bBOM\d{4,}\b/gi).map((value) => value.toUpperCase());
+        const { items: regexItems, boms: regexBoms } = extractItemsAndBoms(rows);
         const sheetSummary = {
           name: sheetName,
           rows: rows.length,
@@ -1244,7 +1261,7 @@
       summary.type = detectType(summary.sheets, summary.file);
       summary.isBomRelated = !["Non-BOM", "Unknown", "Error"].includes(summary.type) || summary.bomVersions.length > 0 || summary.records.length > 0;
       summary.activeFgVersions = summary.bomVersions.filter((version) => version.isTopLevelFg && version.isActiveApproved);
-      summary.searchText = searchText([
+      summary.searchText = summary.isBomRelated ? searchText([
         summary.file,
         summary.path,
         summary.type,
@@ -1255,7 +1272,7 @@
         ...summary.headers,
         ...summary.bomVersions.flatMap((version) => [version.parentItem, version.parentName, version.itemGroup, version.bom, version.bomName, version.active, version.approved, version.approvedBy]),
         ...(summary.isBomRelated ? BOM_TITLE_TERMS : [])
-      ]);
+      ]) : searchText([summary.file, summary.path, summary.type]);
       return summary;
     }
 
