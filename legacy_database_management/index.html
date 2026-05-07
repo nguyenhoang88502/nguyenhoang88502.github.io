@@ -1719,30 +1719,30 @@
       const visible = versions.slice(0, limit);
       const terms = activeHighlightTerms();
       return `
-        <div class="table-wrap" style="max-height: 300px;">
-          <table style="min-width: 760px;">
+        <div class="table-wrap" style="max-height: 320px;">
+          <table style="font-size: 12px; min-width: 760px;">
             <thead>
               <tr>
-                <th>Action</th>
-                <th>Parent FG</th>
-                <th>BOM version</th>
-                <th>Status</th>
-                <th>Approved by</th>
-                <th>File path</th>
+                <th style="width: 60px;">Action</th>
+                <th style="min-width: 150px;">Parent FG</th>
+                <th style="min-width: 140px;">BOM version</th>
+                <th style="width: 90px;">Status</th>
+                <th style="width: 100px;">Approved by</th>
+                <th style="min-width: 180px;">File path</th>
               </tr>
             </thead>
             <tbody>
               ${visible.map((version) => `
                 <tr>
-                  <td><button class="secondary version-action" data-version-key="${escapeHtml(versionKey(version))}">View</button></td>
-                  <td><strong>${highlightText(version.parentItem, terms)}</strong><br>${highlightText(version.parentName, terms)}</td>
-                  <td><strong>${highlightText(version.bom, terms)}</strong><br>${highlightText(version.bomName, terms)}</td>
-                  <td><span class="badge good">Active ${highlightText(version.active || "", terms)}</span><br><span class="small">Approved ${highlightText(version.approved || "", terms)}</span></td>
-                  <td>${highlightText(version.approvedBy, terms)}</td>
+                  <td><button class="secondary version-action" data-version-key="${escapeHtml(versionKey(version))}" style="padding: 2px 8px; font-size: 11px; min-height: 24px; height: 24px;">View</button></td>
+                  <td><strong>${highlightText(version.parentItem, terms)}</strong><br><span class="small">${highlightText(version.parentName, terms)}</span></td>
+                  <td><strong>${highlightText(version.bom, terms)}</strong><br><span class="small">${highlightText(version.bomName, terms)}</span></td>
+                  <td><span class="badge good">✓ ${highlightText(version.active || "", terms)}</span></td>
+                  <td><span class="small">${highlightText(version.approvedBy, terms)}</span></td>
                   <td>${sourcePathHtml(version.path)}<br><span class="small">${highlightText(version.sheet, terms)} row ${version.row}</span></td>
                 </tr>
               `).join("")}
-              ${versions.length > visible.length ? `<tr><td colspan="6" class="muted">Showing first ${visible.length} of ${versions.length} active FG versions.</td></tr>` : ""}
+              ${versions.length > visible.length ? `<tr><td colspan="6" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${visible.length} of ${versions.length} active FG versions.</td></tr>` : ""}
             </tbody>
           </table>
         </div>
@@ -1752,7 +1752,7 @@
     function renderLookup() {
       if (!state.rows.length) {
         lookupHost.className = "lookup-empty";
-        lookupHost.textContent = "Select the dataset folder first. The lookup will search indexed rows without reopening the Excel files.";
+        lookupHost.innerHTML = "📁 Select the dataset folder first. The lookup will search indexed rows without reopening the Excel files.";
         return;
       }
 
@@ -1763,7 +1763,7 @@
 
       if (!state.lookup.trim()) {
         lookupHost.className = "lookup-empty";
-        lookupHost.textContent = "Type any item number, BOM number, product name, warehouse, quantity, unit, approval user, or file name.";
+        lookupHost.innerHTML = "🔍 Type any item number, BOM number, product name, warehouse, quantity, unit, approval user, or file name. <span class=\"keyboard-hint\">Press <kbd>Esc</kbd> to clear</span>";
         return;
       }
 
@@ -1777,13 +1777,13 @@
         <div id="selectedVersionPanel"></div>
         <div class="result-grid">
           <section>
-            <h3 style="font-size: 14px; margin: 0 0 8px;">Related BOM rows (${matches.records.length})</h3>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 Related BOM rows <span style="color: var(--accent);">(${matches.records.length})</span></h3>
             ${records.length ? renderRecordTable(records, matches.records.length) : `<div class="lookup-empty">No structured BOM rows matched this lookup.</div>`}
           </section>
           <section>
-            <h3 style="font-size: 14px; margin: 0 0 8px;">Active FG BOM versions (${matches.versions.length})</h3>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Active FG BOM versions <span style="color: var(--accent);">(${matches.versions.length})</span></h3>
             ${versions.length ? renderVersionList(versions, 100) : `<div class="lookup-empty">No active, approved FG BOM version found in related files.</div>`}
-            <h3 style="font-size: 14px; margin: 14px 0 8px;">Related files (${matches.files.length})</h3>
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Related files <span style="color: var(--accent);">(${matches.files.length})</span></h3>
             ${files.length ? renderFileList(files, matches.files.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
           </section>
         </div>
@@ -1797,17 +1797,17 @@
       const terms = activeHighlightTerms();
       return `
         <div class="table-wrap" style="max-height: 420px;">
-          <table>
+          <table style="font-size: 12px;">
             <thead>
               <tr>
                 <th>Item</th>
                 <th>Product name</th>
-                <th>Whse</th>
-                <th class="num">Qty</th>
-                <th class="num">Per</th>
-                <th>Unit</th>
+                <th style="width: 80px;">Whse</th>
+                <th class="num" style="width: 60px;">Qty</th>
+                <th class="num" style="width: 50px;">Per</th>
+                <th style="width: 60px;">Unit</th>
                 <th>BOM</th>
-                <th>File path</th>
+                <th style="min-width: 200px;">File path</th>
               </tr>
             </thead>
             <tbody>
@@ -1823,7 +1823,7 @@
                   <td>${sourcePathHtml(record.path)}<br><span class="small">${highlightText(record.sheet, terms)} row ${record.row}</span></td>
                 </tr>
               `).join("")}
-              ${total > records.length ? `<tr><td colspan="8" class="muted">Showing first ${records.length} of ${total} related rows. Use a more specific lookup to narrow results.</td></tr>` : ""}
+              ${total > records.length ? `<tr><td colspan="8" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${records.length} of ${total} rows. Use a more specific lookup to narrow results.</td></tr>` : ""}
             </tbody>
           </table>
         </div>
@@ -1833,14 +1833,14 @@
     function renderFileList(files, total) {
       const terms = activeHighlightTerms();
       return `
-        <div class="table-wrap" style="max-height: 260px;">
-          <table style="min-width: 640px;">
+        <div class="table-wrap" style="max-height: 280px;">
+          <table style="font-size: 12px; min-width: 580px;">
             <thead>
               <tr>
-                <th>File</th>
-                <th>Type</th>
-                <th class="num">Rows</th>
-                <th class="num">Active FG</th>
+                <th style="min-width: 200px;">File</th>
+                <th style="width: 110px;">Type</th>
+                <th class="num" style="width: 60px;">Rows</th>
+                <th class="num" style="width: 60px;">FG</th>
               </tr>
             </thead>
             <tbody>
@@ -1852,7 +1852,7 @@
                   <td class="num">${row.activeFgVersions.length}</td>
                 </tr>
               `).join("")}
-              ${total > files.length ? `<tr><td colspan="4" class="muted">Showing first ${files.length} of ${total} related files.</td></tr>` : ""}
+              ${total > files.length ? `<tr><td colspan="4" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${files.length} of ${total} related files.</td></tr>` : ""}
             </tbody>
           </table>
         </div>
@@ -1871,17 +1871,18 @@
       const records = recordsForVersion(version);
       host.innerHTML = `
         <section class="panel" style="margin-bottom: 14px;">
-          <h2>Selected Active FG BOM Version</h2>
+          <h2>✅ Selected Active FG BOM Version</h2>
           <div class="facts">
-            <div class="fact"><span>Parent FG</span><span><strong>${escapeHtml(version.parentItem)}</strong> - ${escapeHtml(version.parentName)}</span></div>
-            <div class="fact"><span>BOM version</span><span><strong>${escapeHtml(version.bom)}</strong> - ${escapeHtml(version.bomName)}</span></div>
-            <div class="fact"><span>Status</span><span>Active: ${escapeHtml(version.active)}; Approved: ${escapeHtml(version.approved)}; Approved by: ${escapeHtml(version.approvedBy)}</span></div>
+            <div class="fact"><span>Parent FG</span><span><strong>${escapeHtml(version.parentItem)}</strong> — ${escapeHtml(version.parentName)}</span></div>
+            <div class="fact"><span>BOM version</span><span><strong>${escapeHtml(version.bom)}</strong> — ${escapeHtml(version.bomName)}</span></div>
+            <div class="fact"><span>Status</span><span>Active: <strong>${escapeHtml(version.active)}</strong>; Approved: <strong>${escapeHtml(version.approved)}</strong></span></div>
+            <div class="fact"><span>Approved by</span><span>${escapeHtml(version.approvedBy)}</span></div>
             <div class="fact"><span>Source</span><span>${sourcePathHtml(version.path)}<br>${escapeHtml(version.sheet)} row ${version.row}</span></div>
           </div>
           <div class="actions">
-            <button id="exportSelectedVersionCsv" class="secondary">Export Selected BOM CSV</button>
+            <button id="exportSelectedVersionCsv" class="secondary">📥 Export Selected BOM CSV</button>
           </div>
-          <h3 style="font-size: 14px; margin: 14px 0 8px;">BOM lines in selected file (${records.length})</h3>
+          <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 BOM lines in selected file <span style="color: var(--accent);">(${records.length})</span></h3>
           ${records.length ? renderRecordTable(records.slice(0, 300), records.length) : `<div class="lookup-empty">No structured BOM line rows were detected inside this selected workbook.</div>`}
         </section>
       `;
@@ -1916,13 +1917,13 @@
 
       lookupHost.innerHTML = `
         <div id="selectedVersionPanel"></div>
-        <div class="table-wrap" style="max-height: 260px; margin-bottom: 14px;">
-          <table style="min-width: 780px;">
+        <div class="table-wrap" style="max-height: 280px; margin-bottom: 14px;">
+          <table style="font-size: 12px; min-width: 600px;">
             <thead>
               <tr>
-                <th>Batch term</th>
+                <th style="width: 140px;">Batch term</th>
                 <th class="num">BOM rows</th>
-                <th class="num">Active FG BOMs</th>
+                <th class="num">Active FG</th>
                 <th class="num">Files</th>
               </tr>
             </thead>
@@ -1940,13 +1941,13 @@
         </div>
         <div class="result-grid">
           <section>
-            <h3 style="font-size: 14px; margin: 0 0 8px;">Batch BOM row matches (${rows.reduce((sum, row) => sum + row.records.length, 0)})</h3>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 Batch BOM row matches <span style="color: var(--accent);">(${rows.reduce((sum, row) => sum + row.records.length, 0)})</span></h3>
             ${allRecords.length ? renderRecordTable(allRecords, allRecords.length) : `<div class="lookup-empty">No structured BOM rows matched these batch terms.</div>`}
           </section>
           <section>
-            <h3 style="font-size: 14px; margin: 0 0 8px;">Batch active FG BOM versions (${allVersions.length})</h3>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Batch active FG BOM versions <span style="color: var(--accent);">(${allVersions.length})</span></h3>
             ${allVersions.length ? renderVersionList(allVersions, 150) : `<div class="lookup-empty">No active, approved FG BOM version matched these batch terms.</div>`}
-            <h3 style="font-size: 14px; margin: 14px 0 8px;">Batch related files (${allFiles.length})</h3>
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Batch related files <span style="color: var(--accent);">(${allFiles.length})</span></h3>
             ${allFiles.length ? renderFileList(allFiles, allFiles.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
           </section>
         </div>
@@ -1959,25 +1960,27 @@
     function renderDetails() {
       const row = state.selected;
       if (!row) {
-        details.innerHTML = `<p class="muted">Select a row after indexing to inspect workbook details.</p>`;
+        details.innerHTML = `<p class="muted">✨ Select a workbook row to inspect its details.</p>`;
         return;
       }
 
       details.innerHTML = `
-        <div class="fact"><span>File</span><span>${escapeHtml(row.file)}</span></div>
-        <div class="fact"><span>Path</span><span>${sourcePathHtml(row.path)}</span></div>
-        <div class="fact"><span>Type</span><span>${typeBadge(row)}</span></div>
-        <div class="fact"><span>Size</span><span>${Math.round(row.size / 1024).toLocaleString()} KB</span></div>
-        <div class="fact"><span>Sheets</span><span>${row.sheets.map((sheet) => `${escapeHtml(sheet.name)} (${sheet.rows})`).join("<br>") || "None"}</span></div>
-        <div class="fact"><span>Headers</span><span>${escapeHtml(row.headers.slice(0, 24).join(", ")) || "None detected"}</span></div>
-        <div class="fact"><span>Items</span><span>${escapeHtml(row.items.slice(0, 32).join(", ")) || "None"}</span></div>
-        <div class="fact"><span>BOMs</span><span>${escapeHtml(row.boms.join(", ")) || "None"}</span></div>
-        <div class="fact"><span>Products</span><span>${escapeHtml(row.productNames.slice(0, 16).join("; ")) || "None"}</span></div>
-        <div class="fact"><span>Active FG</span><span>${row.activeFgVersions.length ? `${row.activeFgVersions.length} active approved version(s)` : "None detected"}</span></div>
+        <div class="facts">
+          <div class="fact"><span>File</span><span><strong>${escapeHtml(row.file)}</strong></span></div>
+          <div class="fact"><span>Path</span><span>${sourcePathHtml(row.path)}</span></div>
+          <div class="fact"><span>Type</span><span>${typeBadge(row)}</span></div>
+          <div class="fact"><span>Size</span><span>${Math.round(row.size / 1024).toLocaleString()} KB</span></div>
+          <div class="fact"><span>Sheets</span><span>${row.sheets.map((sheet) => `<span class="small">${escapeHtml(sheet.name)} (${sheet.rows} rows)</span>`).join("<br>") || "None"}</span></div>
+          <div class="fact"><span>Headers</span><span class="small">${escapeHtml(row.headers.slice(0, 24).join(", ")) || "None detected"}</span></div>
+          <div class="fact"><span>Items</span><span class="small">${escapeHtml(row.items.slice(0, 32).join(", ")) || "None"}</span></div>
+          <div class="fact"><span>BOMs</span><span class="small">${escapeHtml(row.boms.join(", ")) || "None"}</span></div>
+          <div class="fact"><span>Products</span><span class="small">${escapeHtml(row.productNames.slice(0, 16).join("; ")) || "None"}</span></div>
+          <div class="fact"><span>Active FG</span><span>${row.activeFgVersions.length ? `<strong>${row.activeFgVersions.length}</strong> active approved version(s)` : "None detected"}</span></div>
+        </div>
         ${row.activeFgVersions.length ? renderVersionList(row.activeFgVersions, 8) : ""}
-        ${row.error ? `<div class="fact"><span>Error</span><span class="status bad">${escapeHtml(row.error)}</span></div>` : ""}
-        <div>
-          <h3 style="font-size: 14px; margin: 8px 0;">Sheet sample</h3>
+        ${row.error ? `<div style="margin-top: 12px; padding: 10px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;"><span class="status bad">⚠️ Error: ${escapeHtml(row.error)}</span></div>` : ""}
+        <div style="margin-top: 12px;">
+          <h3 style="font-size: 13px; margin: 0 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">Sheet sample</h3>
           <div class="sample">${escapeHtml(row.sample || "No preview available")}</div>
         </div>
       `;
