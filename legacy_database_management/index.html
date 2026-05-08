@@ -693,6 +693,7 @@
         <select id="recordFilter">
           <option value="">All records</option>
           <option value="items">Has item numbers</option>
+          <option value="fgItems">Has finished goods</option>
           <option value="boms">Has BOM numbers</option>
           <option value="bomFamilies">BOM family (4 digits)</option>
           <option value="oldBoms">Old BOM (1xxxxxx)</option>
@@ -714,7 +715,7 @@
       </label>
       <div class="progress-wrap">
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index Excel workbooks or CSV exports. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v6</strong> in ~100 MB parts.</div>
+        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index Excel workbooks or CSV exports. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v7</strong> in ~100 MB parts.</div>
       </div>
     </section>
 
@@ -730,6 +731,7 @@
           <option value="new">New BOM</option>
           <option value="versioned">Versioned BOM</option>
           <option value="mold">Mold</option>
+          <option value="fg">Finished good</option>
           <option value="item">Item number</option>
         </select>
         <select id="lookupMode">
@@ -849,6 +851,23 @@
       return bomKind(value) !== "";
     }
 
+    function fgKind(value) {
+      const code = codeValue(value);
+      if (/^(19|20)\d{2}$/.test(code)) return "";
+      if (/^\d{4,5}-[A-Z0-9]{2,5}[A-Z]?$/i.test(code)) return "fg";
+      if (/^\d{4,5}[A-Z]?$/i.test(code) && !/^1\d{4}$/.test(code)) return "fg";
+      return "";
+    }
+
+    function isFgLike(value) {
+      return fgKind(value) !== "";
+    }
+
+    function fgMatchesInText(value) {
+      const matches = String(value ?? "").match(/\b\d{4,5}(?:-[A-Z0-9]{2,5})?[A-Z]?\b/gi) || [];
+      return unique(matches.map(codeValue).filter(isFgLike));
+    }
+
     function isBomCodeInContext(value, context = "") {
       const kind = bomKind(value);
       if (!kind) return false;
@@ -925,8 +944,8 @@
 
     const CACHE_DB = "bom-dataset-index-cache";
     const CACHE_STORE = "indexes";
-    const CACHE_KEY = "latest-v6";
-    const LEGACY_CACHE_KEYS = ["latest-v5", "latest-v4", "latest-v3"];
+    const CACHE_KEY = "latest-v7";
+    const LEGACY_CACHE_KEYS = ["latest-v6", "latest-v5", "latest-v4", "latest-v3"];
     const CACHE_CHUNK_BYTES = 100 * 1024 * 1024;
     const CSV_PART_BYTES = 100 * 1024 * 1024;
     const textEncoder = new TextEncoder();
@@ -1135,7 +1154,7 @@
 
     async function saveCacheEntries() {
       const payload = {
-        version: 6,
+        version: 7,
         generatedAt: new Date().toISOString(),
         entries: [...state.cacheEntries.values()]
       };
@@ -1411,6 +1430,7 @@
 
     function extractItemsAndBoms(rows) {
       const items = new Set();
+      const fgItems = new Set();
       const boms = new Set();
       const bomFamilies = new Set();
       const oldBoms = new Set();
@@ -1436,17 +1456,21 @@
           const value = text(cell);
           if (!value) return;
           bomMatchesInText(value, rowContext).forEach(addBom);
-          const itemMatches = value.match(/\b\d{5,}\b/g);
+          fgMatchesInText(value).forEach((match) => {
+            if (!isBomCodeInContext(match, rowContext)) fgItems.add(match);
+          });
+          const itemMatches = value.match(/\b[A-Z0-9][A-Z0-9-]{2,}[A-Z0-9]\b/gi);
           if (itemMatches) {
             itemMatches.forEach((match) => {
               const code = codeValue(match);
-              if (!isBomLike(code)) items.add(match);
+              if (!isBomCodeInContext(code, rowContext)) items.add(code);
             });
           }
         });
       });
       return {
         items: [...items],
+        fgItems: [...fgItems],
         boms: [...boms],
         bomFamilies: [...bomFamilies],
         oldBoms: [...oldBoms],
@@ -1468,6 +1492,7 @@
         records: [],
         bomVersions: [],
         items: [],
+        fgItems: [],
         boms: [],
         bomFamilies: [],
         oldBoms: [],
@@ -1487,6 +1512,7 @@
         const bomVersions = extractBomVersions(summary, sheetName, rows);
         const {
           items: regexItems,
+          fgItems,
           boms: regexBoms,
           bomFamilies,
           oldBoms,
@@ -1505,6 +1531,7 @@
 
         summary.sheets.push(sheetSummary);
         summary.items.push(...regexItems);
+        summary.fgItems.push(...fgItems);
         summary.boms.push(...regexBoms);
         summary.bomFamilies.push(...bomFamilies);
         summary.oldBoms.push(...oldBoms);
@@ -1515,6 +1542,7 @@
         summary.headers.push(...headerRows.flatMap((row) => row.headers.filter(Boolean)));
         bomVersions.forEach((version) => {
           if (version.parentItem) summary.items.push(version.parentItem);
+          if (version.isFg && version.parentItem) summary.fgItems.push(version.parentItem);
           if (version.bom) summary.boms.push(version.bom);
           if (version.parentName) summary.productNames.push(version.parentName);
           if (version.bomName) summary.productNames.push(version.bomName);
@@ -1525,8 +1553,10 @@
           summary.records.push(...records);
           records.forEach((record) => {
             if (record.item) summary.items.push(record.item);
+            if (record.item && isFgLike(record.item)) summary.fgItems.push(codeValue(record.item));
             if (record.bom && isBomCodeInContext(record.bom, record.text)) summary.boms.push(record.bom.toUpperCase());
             if (record.bom && !isBomCodeInContext(record.bom, record.text)) summary.items.push(record.bom);
+            if (record.bom && !isBomCodeInContext(record.bom, record.text) && isFgLike(record.bom)) summary.fgItems.push(codeValue(record.bom));
             if (record.productName) summary.productNames.push(record.productName);
             if (record.quantity && isFractional(record.quantity)) summary.fractionalCount += 1;
           });
@@ -1538,6 +1568,7 @@
       });
 
       summary.items = unique(summary.items);
+      summary.fgItems = unique(summary.fgItems);
       summary.boms = unique(summary.boms);
       summary.bomFamilies = unique(summary.bomFamilies);
       summary.oldBoms = unique(summary.oldBoms);
@@ -1555,6 +1586,7 @@
         summary.type,
         ...summary.sheets.map((sheet) => sheet.name),
         ...summary.items,
+        ...summary.fgItems,
         ...summary.boms,
         ...summary.bomFamilies,
         ...summary.oldBoms,
@@ -1620,9 +1652,26 @@
       return summary;
     }
 
+    function applyFgCategories(summary) {
+      if (!summary) return summary;
+      const fgItems = unique([
+        ...(Array.isArray(summary.fgItems) ? summary.fgItems : []),
+        ...(Array.isArray(summary.items) ? summary.items.filter(isFgLike) : []),
+        ...(Array.isArray(summary.records) ? summary.records.flatMap((record) => {
+          const values = [record.item];
+          if (record.bom && !isBomCodeInContext(record.bom, record.text)) values.push(record.bom);
+          return values.filter(isFgLike);
+        }) : []),
+        ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => version.isFg).map((version) => version.parentItem) : [])
+      ].map(codeValue).filter(Boolean));
+      summary.fgItems = fgItems;
+      return summary;
+    }
+
     function cleanSummaryKeyValues(summary) {
       if (!summary) return summary;
       applyBomCategories(summary);
+      applyFgCategories(summary);
       const records = Array.isArray(summary.records) ? summary.records.filter((record) => hasKeyValues(record.item, record.bom)) : [];
       const bomVersions = Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => hasKeyValues(version.parentItem, version.bom)) : [];
       summary.records = records;
@@ -1684,6 +1733,9 @@
         ${codeValue.toString()}
         ${bomKind.toString()}
         ${isBomLike.toString()}
+        ${fgKind.toString()}
+        ${isFgLike.toString()}
+        ${fgMatchesInText.toString()}
         ${isBomCodeInContext.toString()}
         ${bomMatchesInText.toString()}
         ${bomValuesByTarget.toString()}
@@ -1867,6 +1919,7 @@
       return state.rows.filter((row) => {
         if (state.type && row.type !== state.type) return false;
         if (state.recordFilter === "items" && !row.items.length) return false;
+        if (state.recordFilter === "fgItems" && !(row.fgItems || []).length) return false;
         if (state.recordFilter === "boms" && !row.boms.length) return false;
         if (state.recordFilter === "bomFamilies" && !(row.bomFamilies || []).length) return false;
         if (state.recordFilter === "oldBoms" && !(row.oldBoms || []).length) return false;
@@ -1887,6 +1940,10 @@
       const sheets = rows.reduce((sum, row) => sum + row.sheetCount, 0);
       const records = state.records.length;
       const items = state.itemIndex.size;
+      const fgItems = rows.reduce((set, row) => {
+        (row.fgItems || []).forEach((item) => set.add(item));
+        return set;
+      }, new Set()).size;
       const boms = state.bomIndex.size;
       const activeFg = state.fgVersions.length;
       const errors = rows.filter((row) => row.error).length;
@@ -1900,6 +1957,7 @@
         <div class="metric"><span>Sheets</span><strong>${sheets.toLocaleString()}</strong></div>
         <div class="metric"><span>Rows</span><strong>${records.toLocaleString()}</strong></div>
         <div class="metric"><span>Unique items</span><strong>${items.toLocaleString()}</strong></div>
+        <div class="metric"><span>FG items</span><strong>${fgItems.toLocaleString()}</strong></div>
         <div class="metric"><span>Unique BOMs</span><strong>${boms.toLocaleString()}</strong></div>
         <div class="metric"><span>Active FG</span><strong>${activeFg.toLocaleString()}</strong></div>
         ${errors ? `<div class="metric"><span>Errors</span><strong class="status bad">${errors.toLocaleString()}</strong></div>` : ""}
@@ -1997,6 +2055,11 @@
         const bomAsItem = record.bom && !isBomCodeInContext(record.bom, record.text) ? [record.bom] : [];
         return [record.item, record.productName, ...bomAsItem];
       }
+      if (target === "fg") {
+        const values = [record.item];
+        if (record.bom && !isBomCodeInContext(record.bom, record.text)) values.push(record.bom);
+        return values.filter(isFgLike);
+      }
       if (target === "bom") return bomValuesByTarget([record.bom, record.bomName, record.text], "bom", record.text);
       return bomValuesByTarget([record.bom, record.bomName, record.text], target, record.text);
     }
@@ -2018,6 +2081,7 @@
         ];
       }
       if (target === "item") return [version.parentItem, version.parentName];
+      if (target === "fg") return version.isFg || isFgLike(version.parentItem) ? [version.parentItem, version.parentName] : [];
       if (target === "bom") return bomValuesByTarget([version.bom, version.bomName, version.parentItem], "bom", version.searchText);
       return bomValuesByTarget([version.bom, version.bomName, version.parentItem], target, version.searchText);
     }
@@ -2038,6 +2102,7 @@
         ];
       }
       if (target === "item") return [...(row.items || []), ...(row.productNames || [])];
+      if (target === "fg") return [...(row.fgItems || []), ...(row.productNames || [])];
       if (target === "family") return row.bomFamilies || [];
       if (target === "old") return row.oldBoms || [];
       if (target === "new") return row.newBoms || [];
