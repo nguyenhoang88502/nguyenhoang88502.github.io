@@ -701,7 +701,7 @@
       </label>
       <div class="progress-wrap">
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index all Excel workbooks. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v3</strong>.</div>
+        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index all Excel workbooks. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v4</strong> in ~100 MB parts.</div>
       </div>
     </section>
 
@@ -797,6 +797,10 @@
       return String(value ?? "").trim();
     }
 
+    function hasKeyValues(item, bom) {
+      return text(item) !== "" && text(bom) !== "";
+    }
+
     function isItem(value) {
       return /^\d{4,}$/.test(text(value));
     }
@@ -854,7 +858,11 @@
 
     const CACHE_DB = "bom-dataset-index-cache";
     const CACHE_STORE = "indexes";
-    const CACHE_KEY = "latest-v3";
+    const CACHE_KEY = "latest-v4";
+    const LEGACY_CACHE_KEY = "latest-v3";
+    const CACHE_CHUNK_BYTES = 100 * 1024 * 1024;
+    const CSV_PART_BYTES = 100 * 1024 * 1024;
+    const textEncoder = new TextEncoder();
 
     function openCacheDb() {
       return new Promise((resolve, reject) => {
@@ -865,25 +873,180 @@
       });
     }
 
-    async function readCachePayload() {
+    function cachePartKey(index) {
+      return `${CACHE_KEY}-part-${String(index).padStart(4, "0")}`;
+    }
+
+    function cacheManifestKey() {
+      return `${CACHE_KEY}-manifest`;
+    }
+
+    function encodedBytes(value) {
+      return textEncoder.encode(String(value ?? "")).length;
+    }
+
+    function cacheArrayUnits(path, kind, values) {
+      const items = Array.isArray(values) ? values : [];
+      if (!items.length) return [];
+      const units = [];
+      let current = [];
+      let currentBytes = encodedBytes(JSON.stringify({ kind, path, values: [] }));
+
+      items.forEach((item) => {
+        const itemBytes = encodedBytes(JSON.stringify(item)) + 1;
+        if (current.length && currentBytes + itemBytes > CACHE_CHUNK_BYTES) {
+          units.push({ kind, path, values: current });
+          current = [];
+          currentBytes = encodedBytes(JSON.stringify({ kind, path, values: [] }));
+        }
+        current.push(item);
+        currentBytes += itemBytes;
+      });
+
+      if (current.length) units.push({ kind, path, values: current });
+      return units;
+    }
+
+    function cacheUnitsForEntry(entry) {
+      const entryBytes = encodedBytes(JSON.stringify(entry));
+      if (entryBytes <= CACHE_CHUNK_BYTES || !entry || !entry.summary) return [entry];
+
+      const summary = entry.summary;
+      const baseSummary = {
+        ...summary,
+        records: [],
+        bomVersions: [],
+        activeFgVersions: []
+      };
+      const baseEntry = { ...entry, summary: baseSummary };
+      return [
+        { kind: "entry-base", path: entry.path, entry: baseEntry },
+        ...cacheArrayUnits(entry.path, "entry-records", summary.records),
+        ...cacheArrayUnits(entry.path, "entry-bomVersions", summary.bomVersions)
+      ];
+    }
+
+    function recomposeCacheEntries(units) {
+      const entries = [];
+      const fragments = new Map();
+
+      const ensureFragment = (path) => {
+        if (!fragments.has(path)) fragments.set(path, { entry: null, records: [], bomVersions: [] });
+        return fragments.get(path);
+      };
+
+      units.forEach((unit) => {
+        if (!unit || !unit.kind) {
+          entries.push(unit);
+          return;
+        }
+
+        if (unit.kind === "entry-base") {
+          ensureFragment(unit.path).entry = unit.entry;
+          return;
+        }
+
+        if (unit.kind === "entry-records") {
+          ensureFragment(unit.path).records.push(...(Array.isArray(unit.values) ? unit.values : []));
+          return;
+        }
+
+        if (unit.kind === "entry-bomVersions") {
+          ensureFragment(unit.path).bomVersions.push(...(Array.isArray(unit.values) ? unit.values : []));
+        }
+      });
+
+      fragments.forEach((fragment) => {
+        if (!fragment.entry) return;
+        if (fragment.entry.summary) {
+          fragment.entry.summary.records = fragment.records;
+          fragment.entry.summary.bomVersions = fragment.bomVersions;
+          fragment.entry.summary.activeFgVersions = fragment.bomVersions.filter((version) => version.isTopLevelFg && version.isActiveApproved);
+        }
+        entries.push(fragment.entry);
+      });
+
+      return entries;
+    }
+
+    async function readCacheValue(key) {
       const db = await openCacheDb();
       return new Promise((resolve, reject) => {
         const tx = db.transaction(CACHE_STORE, "readonly");
-        const request = tx.objectStore(CACHE_STORE).get(CACHE_KEY);
+        const request = tx.objectStore(CACHE_STORE).get(key);
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => reject(request.error);
         tx.oncomplete = () => db.close();
       });
     }
 
+    async function readCachePayload() {
+      const manifest = await readCacheValue(cacheManifestKey());
+      if (manifest && Array.isArray(manifest.parts)) {
+        const units = [];
+        for (const key of manifest.parts) {
+          const part = await readCacheValue(key);
+          if (part && Array.isArray(part.entries)) units.push(...part.entries);
+        }
+        const entries = manifest.fragmented ? recomposeCacheEntries(units) : units;
+        return { ...manifest, entries };
+      }
+      return readCacheValue(LEGACY_CACHE_KEY);
+    }
+
     async function writeCachePayload(payload) {
+      const entries = Array.isArray(payload.entries) ? payload.entries : [];
+      const units = entries.flatMap((entry) => cacheUnitsForEntry(entry));
+      const parts = [];
+      let current = [];
+      let currentBytes = encodedBytes('{"entries":[]}');
+
+      units.forEach((unit) => {
+        const unitBytes = encodedBytes(JSON.stringify(unit)) + 1;
+        if (current.length && currentBytes + unitBytes > CACHE_CHUNK_BYTES) {
+          parts.push(current);
+          current = [];
+          currentBytes = encodedBytes('{"entries":[]}');
+        }
+        current.push(unit);
+        currentBytes += unitBytes;
+      });
+      if (current.length || !parts.length) parts.push(current);
+
+      const manifest = {
+        version: payload.version,
+        generatedAt: payload.generatedAt,
+        chunkBytes: CACHE_CHUNK_BYTES,
+        entryCount: entries.length,
+        unitCount: units.length,
+        fragmented: true,
+        parts: parts.map((_, index) => cachePartKey(index + 1))
+      };
+
       const db = await openCacheDb();
       return new Promise((resolve, reject) => {
         const tx = db.transaction(CACHE_STORE, "readwrite");
-        tx.objectStore(CACHE_STORE).put(payload, CACHE_KEY);
+        const store = tx.objectStore(CACHE_STORE);
+        const keysRequest = store.getAllKeys();
+        keysRequest.onsuccess = () => {
+          keysRequest.result
+            .filter((key) => String(key).startsWith(CACHE_KEY) || key === LEGACY_CACHE_KEY)
+            .forEach((key) => store.delete(key));
+          store.put(manifest, cacheManifestKey());
+          parts.forEach((entriesPart, index) => {
+            store.put({
+              version: payload.version,
+              generatedAt: payload.generatedAt,
+              part: index + 1,
+              totalParts: parts.length,
+              entries: entriesPart
+            }, cachePartKey(index + 1));
+          });
+        };
+        keysRequest.onerror = () => reject(keysRequest.error);
         tx.oncomplete = () => {
           db.close();
-          resolve();
+          resolve(manifest);
         };
         tx.onerror = () => {
           db.close();
@@ -905,11 +1068,11 @@
 
     async function saveCacheEntries() {
       const payload = {
-        version: 2,
+        version: 4,
         generatedAt: new Date().toISOString(),
         entries: [...state.cacheEntries.values()]
       };
-      await writeCachePayload(payload);
+      return writeCachePayload(payload);
     }
 
     function sheetRows(sheet) {
@@ -1069,6 +1232,7 @@
 
         if (!lineText) continue;
         if (normalize(item) === "item number" || normalize(bom) === "bom") continue;
+        if (!hasKeyValues(item, bom)) continue;
         if (itemCol >= 0 && !item && !productName && !warehouse && !quantity) continue;
         if (bomCol >= 0 && !bom && !bomName) continue;
 
@@ -1135,6 +1299,7 @@
           approvedBy: valueAt(next, headerColumn(row, ["approvedBy"])),
           approved: valueAt(next, headerColumn(row, ["approved"]))
         };
+        if (!hasKeyValues(version.parentItem, version.bom)) return;
         version.isFg = normalize(version.itemGroup) === "fingoods";
         version.isTopLevelFg = version.isFg && !capturedTopBomForParent;
         version.isActiveApproved = normalize(version.active) === "yes" && normalize(version.approved) === "yes";
@@ -1310,7 +1475,20 @@
       return `<span class="small">${highlightText(explorerPath, terms)}</span> <button class="ghost copy-source" data-source="${escapeHtml(explorerPath)}">Copy</button>`;
     }
 
+    function cleanSummaryKeyValues(summary) {
+      if (!summary) return summary;
+      const records = Array.isArray(summary.records) ? summary.records.filter((record) => hasKeyValues(record.item, record.bom)) : [];
+      const bomVersions = Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => hasKeyValues(version.parentItem, version.bom)) : [];
+      summary.records = records;
+      summary.bomVersions = bomVersions;
+      summary.activeFgVersions = Array.isArray(summary.activeFgVersions)
+        ? summary.activeFgVersions.filter((version) => hasKeyValues(version.parentItem, version.bom))
+        : bomVersions.filter((version) => version.isTopLevelFg && version.isActiveApproved);
+      return summary;
+    }
+
     function addSummaryToIndex(summary) {
+      summary = cleanSummaryKeyValues(summary);
       state.rows.push(summary);
       state.records.push(...summary.records);
       state.fgVersions.push(...summary.activeFgVersions);
@@ -1355,6 +1533,7 @@
         const BOM_TITLE_TERMS = ${JSON.stringify(BOM_TITLE_TERMS)};
         ${normalize.toString()}
         ${text.toString()}
+        ${hasKeyValues.toString()}
         ${isFractional.toString()}
         ${unique.toString()}
         ${rowText.toString()}
@@ -1519,8 +1698,9 @@
 
       setProgress(files.length, files.length);
       try {
-        await saveCacheEntries();
-        setStatus(`Processed ${state.processedCount} Excel files. Indexed ${state.rows.length} BOM-related files, skipped ${state.skippedCount} unrelated files, and saved cache for next scan.`, "good");
+        const cacheManifest = await saveCacheEntries();
+        const cachePartText = cacheManifest && cacheManifest.parts ? ` in ${cacheManifest.parts.length.toLocaleString()} cache part(s)` : "";
+        setStatus(`Processed ${state.processedCount} Excel files. Indexed ${state.rows.length} BOM-related files, skipped ${state.skippedCount} unrelated files, and saved cache${cachePartText} for next scan.`, "good");
       } catch (error) {
         setStatus(`Processed ${state.processedCount} Excel files. Indexed ${state.rows.length} BOM-related files, skipped ${state.skippedCount} unrelated files. Cache save failed: ${escapeHtml(error.message || error)}`, "warn");
       }
@@ -2066,29 +2246,20 @@
       return /[",\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
     }
 
-    function rowsToCsv(rows, columns) {
-      const cleaned = cleanExportRows(rows, columns);
-      const header = columns.map((column) => csvCell(column.header)).join(",");
-      const body = cleaned.map((row) => columns.map((column) => csvCell(row[column.key])).join(",")).join("\r\n");
-      return `${header}\r\n${body}`;
+    function exportRowHasKeyValues(row) {
+      const item = row.item ?? row.item_number ?? row.parent_item ?? "";
+      const bom = row.bom ?? row.selected_bom ?? "";
+      return hasKeyValues(item, bom);
     }
 
-    function cleanExportRows(rows, columns) {
-      const seen = new Set();
-      const cleaned = [];
-      rows.forEach((row) => {
-        const next = {};
-        columns.forEach((column) => {
-          next[column.key] = String(row[column.key] ?? "").replace(/\s+/g, " ").trim();
-        });
-        const hasValue = columns.some((column) => next[column.key] !== "");
-        if (!hasValue) return;
-        const key = columns.map((column) => next[column.key]).join("|").toLowerCase();
-        if (seen.has(key)) return;
-        seen.add(key);
-        cleaned.push(next);
+    function cleanExportRow(row, columns) {
+      const next = {};
+      columns.forEach((column) => {
+        next[column.key] = String(row[column.key] ?? "").replace(/\s+/g, " ").trim();
       });
-      return cleaned;
+      const hasValue = columns.some((column) => next[column.key] !== "");
+      if (!hasValue || !exportRowHasKeyValues(next)) return null;
+      return next;
     }
 
     function downloadText(filename, textContent, mimeType = "text/csv;charset=utf-8") {
@@ -2099,6 +2270,78 @@
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
+    }
+
+    function csvPartFilename(filename, part) {
+      const suffix = `_part_${String(part).padStart(4, "0")}`;
+      const dot = filename.lastIndexOf(".");
+      return dot > 0 ? `${filename.slice(0, dot)}${suffix}${filename.slice(dot)}` : `${filename}${suffix}`;
+    }
+
+    function downloadCsvParts(filename, rows, columns) {
+      const header = columns.map((column) => csvCell(column.header)).join(",");
+      const headerBytes = encodedBytes(`\ufeff${header}\r\n`);
+      const seen = new Set();
+      let partRows = [];
+      let partBytes = headerBytes;
+      let partNumber = 1;
+      let pendingFirstPart = "";
+      let exported = 0;
+      let skipped = 0;
+      let duplicate = 0;
+      let downloadedParts = 0;
+
+      const downloadPendingFirstPart = () => {
+        if (!pendingFirstPart) return;
+        downloadText(csvPartFilename(filename, 1), pendingFirstPart);
+        pendingFirstPart = "";
+        downloadedParts += 1;
+      };
+
+      const flushPart = () => {
+        if (!partRows.length) return;
+        const content = `${header}\r\n${partRows.join("\r\n")}`;
+        if (partNumber === 1) {
+          pendingFirstPart = content;
+        } else {
+          downloadPendingFirstPart();
+          downloadText(csvPartFilename(filename, partNumber), content);
+          downloadedParts += 1;
+        }
+        partNumber += 1;
+        partRows = [];
+        partBytes = headerBytes;
+      };
+
+      rows.forEach((row) => {
+        const cleaned = cleanExportRow(row, columns);
+        if (!cleaned) {
+          skipped += 1;
+          return;
+        }
+
+        const key = columns.map((column) => cleaned[column.key]).join("|").toLowerCase();
+        if (seen.has(key)) {
+          duplicate += 1;
+          return;
+        }
+        seen.add(key);
+
+        const line = columns.map((column) => csvCell(cleaned[column.key])).join(",");
+        const lineBytes = encodedBytes(`${line}\r\n`);
+        if (partRows.length && partBytes + lineBytes > CSV_PART_BYTES) flushPart();
+        partRows.push(line);
+        partBytes += lineBytes;
+        exported += 1;
+      });
+
+      flushPart();
+      if (pendingFirstPart) {
+        downloadText(filename, pendingFirstPart);
+        downloadedParts += 1;
+      }
+
+      return { exported, skipped, duplicate, parts: downloadedParts };
     }
 
     function exportIndexCsv() {
@@ -2130,8 +2373,13 @@
         { key: "bom", header: "BOM" },
         { key: "bom_name", header: "BOM name" }
       ];
-      downloadText("bom_dataset_index_lines.csv", rowsToCsv(rows, columns));
-      setStatus("Exported bom_dataset_index_lines.csv. Check your browser Downloads folder or download prompt.", "good");
+      const result = downloadCsvParts("bom_dataset_index_lines.csv", rows, columns);
+      if (!result.exported) {
+        setStatus("No CSV rows exported after cleaning. Rows must include both item number and BOM.", "warn");
+        return;
+      }
+      const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item/BOM and ${result.duplicate.toLocaleString()} duplicate rows.` : "";
+      setStatus(`Exported ${result.exported.toLocaleString()} rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
     }
 
     function exportSelectedVersionCsv(version) {
@@ -2188,8 +2436,14 @@
       ];
       const safeParent = (version.parentItem || "FG").replace(/[^\w.-]+/g, "_");
       const safeBom = (version.bom || "BOM").replace(/[^\w.-]+/g, "_");
-      downloadText(`selected_${safeParent}_${safeBom}_bom.csv`, rowsToCsv(rows, columns));
-      setStatus(`Exported selected_${safeParent}_${safeBom}_bom.csv. Check your browser Downloads folder or download prompt.`, "good");
+      const filename = `selected_${safeParent}_${safeBom}_bom.csv`;
+      const result = downloadCsvParts(filename, rows, columns);
+      if (!result.exported) {
+        setStatus("No selected BOM rows exported after cleaning. Rows must include both item number and BOM.", "warn");
+        return;
+      }
+      const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item/BOM and ${result.duplicate.toLocaleString()} duplicate rows.` : "";
+      setStatus(`Exported ${result.exported.toLocaleString()} selected BOM rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
     }
 
     async function loadCachedIndex() {
