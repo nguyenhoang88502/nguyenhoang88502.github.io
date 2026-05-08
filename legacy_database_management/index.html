@@ -768,6 +768,7 @@
       rows: [],
       records: [],
       fgVersions: [],
+      fgBomVersions: [],
       itemIndex: new Map(),
       bomIndex: new Map(),
       itemRecordIndex: new Map(),
@@ -775,6 +776,7 @@
       cacheEntries: new Map(),
       selected: null,
       selectedVersion: null,
+      selectedFgBomVersion: null,
       search: "",
       lookup: "",
       batchTerms: [],
@@ -1634,12 +1636,14 @@
       state.rows = [];
       state.records = [];
       state.fgVersions = [];
+      state.fgBomVersions = [];
       state.itemIndex = new Map();
       state.bomIndex = new Map();
       state.itemRecordIndex = new Map();
       state.bomRecordIndex = new Map();
       state.selected = null;
       state.selectedVersion = null;
+      state.selectedFgBomVersion = null;
       state.processedCount = 0;
       state.skippedCount = 0;
       state.cacheHitCount = 0;
@@ -1721,6 +1725,7 @@
         if (record.item) putMulti(state.itemRecordIndex, normalize(record.item), record);
         if (record.bom) putMulti(state.bomRecordIndex, normalize(record.bom), record);
       });
+      buildFgBomVersions();
     }
 
     function cacheEntryForFile(file, data) {
@@ -2154,12 +2159,16 @@
 
     function lookupMatchesForTerm(term) {
       const query = normalize(term);
-      if (!query) return { records: [], versions: [], files: [] };
+      if (!query) return { records: [], versions: [], fgBomVersions: [], files: [] };
 
       const exact = state.lookupMode === "exact";
       const directRecords = state.records.filter((record) => valuesMatchLookup(recordLookupValues(record), query, exact));
       const directVersions = state.fgVersions.filter((version) => {
         return valuesMatchLookup(versionLookupValues(version), query, exact);
+      });
+      const directFgBomVersions = state.fgBomVersions.filter((version) => {
+        const searchValues = [version.fgCode, version.fgName, version.productName];
+        return valuesMatchLookup(searchValues, query, exact);
       });
       const directFiles = state.rows.filter((row) => {
         return valuesMatchLookup(rowLookupValues(row), query, exact);
@@ -2168,6 +2177,7 @@
       const relatedPaths = new Set([
         ...directRecords.map((record) => record.path),
         ...directVersions.map((version) => version.path),
+        ...directFgBomVersions.map((version) => version.path),
         ...directFiles.map((row) => row.path)
       ]);
       const relatedFgItems = new Set(directRecords.flatMap((record) => [record.fgItem, isFgLike(record.item) ? record.item : ""]).map(normalize).filter(Boolean));
@@ -2180,6 +2190,7 @@
       return {
         records: directRecords,
         versions: uniqueObjects([...directVersions, ...linkedVersions, ...relatedVersions], (version) => `${version.path}|${version.sheet}|${version.row}|${version.bom}`),
+        fgBomVersions: directFgBomVersions,
         files: uniqueObjects(directFiles, (row) => row.path)
       };
     }
@@ -2210,7 +2221,19 @@
           const version = findVersionByKey(button.dataset.versionKey);
           if (!version) return;
           state.selectedVersion = version;
+          state.selectedFgBomVersion = null;
           renderSelectedVersion();
+          document.querySelector("#selectedVersionPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+      root.querySelectorAll(".fg-bom-version-action").forEach((button) => {
+        button.addEventListener("click", () => {
+          const versionKey = button.dataset.fgBomVersionKey;
+          const version = state.fgBomVersions.find((v) => fgBomVersionKey(v) === versionKey);
+          if (!version) return;
+          state.selectedFgBomVersion = version;
+          state.selectedVersion = null;
+          renderSelectedFgBomVersion();
           document.querySelector("#selectedVersionPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       });
@@ -2247,6 +2270,48 @@
       return uniqueObjects(records, (record) => `${record.path}|${record.sheet}|${record.row}|${record.item}|${record.productName}`);
     }
 
+    function buildFgBomVersions() {
+      const versionMap = new Map();
+      state.records.forEach((record) => {
+        const fgKey = codeValue(record.fgItem || record.fgName || "");
+        if (!fgKey) return;
+        const versionKey = `${record.path}|${fgKey}`;
+        if (!versionMap.has(versionKey)) {
+          versionMap.set(versionKey, {
+            path: record.path,
+            file: record.file,
+            fgCode: fgKey,
+            fgName: record.fgName || "",
+            productName: record.productName || "",
+            itemCount: 0,
+            records: [],
+            sources: new Set(),
+            minRow: Infinity,
+            maxRow: -Infinity
+          });
+        }
+        const version = versionMap.get(versionKey);
+        version.records.push(record);
+        version.itemCount = version.records.length;
+        version.sources.add(record.sheet);
+        version.minRow = Math.min(version.minRow, record.row || Infinity);
+        version.maxRow = Math.max(version.maxRow, record.row || -Infinity);
+      });
+      state.fgBomVersions = Array.from(versionMap.values()).map((v) => ({
+        ...v,
+        sources: Array.from(v.sources)
+      }));
+    }
+
+    function recordsForFgBomVersion(fgVersion) {
+      if (!fgVersion) return [];
+      return fgVersion.records || [];
+    }
+
+    function fgBomVersionKey(version) {
+      return `${version.path}|${version.fgCode}`;
+    }
+
     function renderVersionList(versions, limit = 50) {
       const visible = versions.slice(0, limit);
       const terms = activeHighlightTerms();
@@ -2281,6 +2346,40 @@
       `;
     }
 
+    function renderFgBomVersionList(versions, limit = 50) {
+      const visible = versions.slice(0, limit);
+      const terms = activeHighlightTerms();
+      return `
+        <div class="table-wrap" style="max-height: 320px;">
+          <table style="font-size: 12px; min-width: 760px;">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Action</th>
+                <th style="min-width: 120px;">FG Code</th>
+                <th style="min-width: 140px;">FG Name</th>
+                <th class="num" style="width: 70px;">Items</th>
+                <th style="width: 100px;">Sheets</th>
+                <th style="min-width: 180px;">File path</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visible.map((version) => `
+                <tr>
+                  <td><button class="secondary fg-bom-version-action" data-fg-bom-version-key="${escapeHtml(fgBomVersionKey(version))}" style="padding: 2px 8px; font-size: 11px; min-height: 24px; height: 24px;">View</button></td>
+                  <td><strong>${highlightText(version.fgCode, terms)}</strong></td>
+                  <td><span class="small">${highlightText(version.fgName || version.productName, terms)}</span></td>
+                  <td class="num">${version.itemCount}</td>
+                  <td><span class="small">${version.sources.join(", ")}</span></td>
+                  <td>${sourcePathHtml(version.path)}</td>
+                </tr>
+              `).join("")}
+              ${versions.length > visible.length ? `<tr><td colspan="6" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${visible.length} of ${versions.length} FG BOM versions.</td></tr>` : ""}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
     function renderLookup() {
       if (!state.rows.length) {
         lookupHost.className = "lookup-empty";
@@ -2304,6 +2403,7 @@
       const records = matches.records.slice(0, 200);
       const files = matches.files.slice(0, 120);
       const versions = matches.versions.slice(0, 100);
+      const fgBomVersions = matches.fgBomVersions.slice(0, 100);
 
       lookupHost.innerHTML = `
         <div id="selectedVersionPanel"></div>
@@ -2313,7 +2413,9 @@
             ${records.length ? renderRecordTable(records, matches.records.length) : `<div class="lookup-empty">No structured BOM rows matched this lookup.</div>`}
           </section>
           <section>
-            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Active FG BOM versions <span style="color: var(--accent);">(${matches.versions.length})</span></h3>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">🎯 FG BOM Versions <span style="color: var(--accent);">(${matches.fgBomVersions.length})</span></h3>
+            ${fgBomVersions.length ? renderFgBomVersionList(fgBomVersions, 100) : `<div class="lookup-empty">No FG BOM versions matched this lookup.</div>`}
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Active FG BOM versions <span style="color: var(--accent);">(${matches.versions.length})</span></h3>
             ${versions.length ? renderVersionList(versions, 100) : `<div class="lookup-empty">No active, approved FG BOM version found in related files.</div>`}
             <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Related files <span style="color: var(--accent);">(${matches.files.length})</span></h3>
             ${files.length ? renderFileList(files, matches.files.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
@@ -2322,7 +2424,11 @@
       `;
       bindVersionActions(lookupHost);
       bindSourceCopy(lookupHost);
-      renderSelectedVersion();
+      if (state.selectedVersion) {
+        renderSelectedVersion();
+      } else if (state.selectedFgBomVersion) {
+        renderSelectedFgBomVersion();
+      }
     }
 
     function renderRecordTable(records, total) {
@@ -2426,6 +2532,36 @@
       bindSourceCopy(host);
     }
 
+    function renderSelectedFgBomVersion() {
+      const host = document.querySelector("#selectedVersionPanel");
+      if (!host) return;
+      const version = state.selectedFgBomVersion;
+      if (!version) {
+        host.innerHTML = "";
+        return;
+      }
+
+      const records = recordsForFgBomVersion(version);
+      host.innerHTML = `
+        <section class="panel" style="margin-bottom: 14px;">
+          <h2>📦 Selected FG BOM Version</h2>
+          <div class="facts">
+            <div class="fact"><span>Finished Good</span><span><strong>${escapeHtml(version.fgCode)}</strong> — ${escapeHtml(version.fgName || version.productName)}</span></div>
+            <div class="fact"><span>Items in this version</span><span><strong>${version.itemCount}</strong></span></div>
+            <div class="fact"><span>Sheets</span><span>${escapeHtml((version.sources || []).join(", "))}</span></div>
+            <div class="fact"><span>Source</span><span>${sourcePathHtml(version.path)}</span></div>
+          </div>
+          <div class="actions">
+            <button id="exportFgBomVersionCsv" class="secondary">📥 Export FG BOM Version CSV</button>
+          </div>
+          <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 Items in this version <span style="color: var(--accent);">(${records.length})</span></h3>
+          ${records.length ? renderRecordTable(records.slice(0, 300), records.length) : `<div class="lookup-empty">No items found in this FG BOM version.</div>`}
+        </section>
+      `;
+      host.querySelector("#exportFgBomVersionCsv").addEventListener("click", () => exportFgBomVersionCsv(version));
+      bindSourceCopy(host);
+    }
+
     function parseBatchTerms(value) {
       return unique(String(value || "")
         .split(/[\n\r,;\t ]+/)
@@ -2449,6 +2585,7 @@
       });
       const allRecords = uniqueObjects(rows.flatMap((row) => row.records), (record) => `${record.path}|${record.sheet}|${record.row}|${record.item}|${record.bom}`).slice(0, 250);
       const allVersions = uniqueObjects(rows.flatMap((row) => row.versions), (version) => `${version.path}|${version.sheet}|${version.row}|${version.bom}`).slice(0, 150);
+      const allFgBomVersions = uniqueObjects(rows.flatMap((row) => row.fgBomVersions), (version) => `${version.path}|${version.fgCode}`).slice(0, 150);
       const allFiles = uniqueObjects(rows.flatMap((row) => row.files), (file) => file.path).slice(0, 150);
 
       lookupHost.innerHTML = `
@@ -2459,6 +2596,7 @@
               <tr>
                 <th style="width: 140px;">Batch term</th>
                 <th class="num">BOM rows</th>
+                <th class="num">FG Versions</th>
                 <th class="num">Active FG</th>
                 <th class="num">Files</th>
               </tr>
@@ -2468,6 +2606,7 @@
                 <tr>
                   <td><strong>${highlightText(row.term, [row.term])}</strong></td>
                   <td class="num">${row.records.length}</td>
+                  <td class="num">${row.fgBomVersions.length}</td>
                   <td class="num">${row.versions.length}</td>
                   <td class="num">${row.files.length}</td>
                 </tr>
@@ -2481,7 +2620,9 @@
             ${allRecords.length ? renderRecordTable(allRecords, allRecords.length) : `<div class="lookup-empty">No structured BOM rows matched these batch terms.</div>`}
           </section>
           <section>
-            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Batch active FG BOM versions <span style="color: var(--accent);">(${allVersions.length})</span></h3>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">🎯 Batch FG BOM versions <span style="color: var(--accent);">(${allFgBomVersions.length})</span></h3>
+            ${allFgBomVersions.length ? renderFgBomVersionList(allFgBomVersions, 150) : `<div class="lookup-empty">No FG BOM versions matched these batch terms.</div>`}
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Batch active FG BOM versions <span style="color: var(--accent);">(${allVersions.length})</span></h3>
             ${allVersions.length ? renderVersionList(allVersions, 150) : `<div class="lookup-empty">No active, approved FG BOM version matched these batch terms.</div>`}
             <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Batch related files <span style="color: var(--accent);">(${allFiles.length})</span></h3>
             ${allFiles.length ? renderFileList(allFiles, allFiles.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
@@ -2490,7 +2631,11 @@
       `;
       bindVersionActions(lookupHost);
       bindSourceCopy(lookupHost);
-      renderSelectedVersion();
+      if (state.selectedVersion) {
+        renderSelectedVersion();
+      } else if (state.selectedFgBomVersion) {
+        renderSelectedFgBomVersion();
+      }
     }
 
     function renderDetails() {
@@ -2797,6 +2942,75 @@
       }
       const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item and BOM plus ${result.duplicate.toLocaleString()} duplicate rows.` : "";
       setStatus(`Exported ${result.exported.toLocaleString()} selected BOM rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
+    }
+
+    function exportFgBomVersionCsv(fgVersion) {
+      const records = recordsForFgBomVersion(fgVersion);
+      const rows = records.map((record, index) => ({
+        line: index + 1,
+        fg_code: fgVersion.fgCode,
+        fg_name: fgVersion.fgName || fgVersion.productName,
+        item_number: record.item,
+        fg: record.fgItem,
+        fg_name_detail: record.fgName,
+        product_name: record.productName,
+        warehouse: record.warehouse,
+        quantity: record.quantity,
+        per_series: record.perSeries,
+        unit: record.unit,
+        bom: record.bom,
+        bom_name: record.bomName,
+        source_file: sourcePath(record.path),
+        source_sheet: record.sheet,
+        source_row: record.row
+      }));
+      if (!rows.length) {
+        rows.push({
+          line: "",
+          fg_code: fgVersion.fgCode,
+          fg_name: fgVersion.fgName || fgVersion.productName,
+          item_number: "",
+          fg: "",
+          fg_name_detail: "",
+          product_name: "",
+          warehouse: "",
+          quantity: "",
+          per_series: "",
+          unit: "",
+          bom: "",
+          bom_name: "",
+          source_file: sourcePath(fgVersion.path),
+          source_sheet: "",
+          source_row: ""
+        });
+      }
+      const columns = [
+        { key: "line", header: "Line" },
+        { key: "fg_code", header: "FG Code" },
+        { key: "fg_name", header: "FG Name" },
+        { key: "item_number", header: "Item number" },
+        { key: "fg", header: "FG" },
+        { key: "fg_name_detail", header: "FG name detail" },
+        { key: "product_name", header: "Product name" },
+        { key: "warehouse", header: "Warehouse" },
+        { key: "quantity", header: "Quantity" },
+        { key: "per_series", header: "Per series" },
+        { key: "unit", header: "Unit" },
+        { key: "bom", header: "BOM" },
+        { key: "bom_name", header: "BOM name" },
+        { key: "source_file", header: "Source file" },
+        { key: "source_sheet", header: "Source sheet" },
+        { key: "source_row", header: "Source row" }
+      ];
+      const safeFg = (fgVersion.fgCode || "FG").replace(/[^\w.-]+/g, "_");
+      const filename = `fg_bom_version_${safeFg}_${new Date().toISOString().split("T")[0]}.csv`;
+      const result = downloadCsvParts(filename, rows, columns);
+      if (!result.exported) {
+        setStatus("No FG BOM version rows exported after cleaning. Rows must include an item number or FG.", "warn");
+        return;
+      }
+      const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item and FG plus ${result.duplicate.toLocaleString()} duplicate rows.` : "";
+      setStatus(`Exported ${result.exported.toLocaleString()} FG BOM version rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
     }
 
     async function loadCachedIndex() {
