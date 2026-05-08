@@ -270,6 +270,10 @@
       margin-bottom: 12px;
     }
 
+    .lookup-grid.lookup-controls {
+      grid-template-columns: minmax(280px, 1fr) 190px 150px 150px;
+    }
+
     .result-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
@@ -509,6 +513,10 @@
         grid-template-columns: 1fr;
       }
 
+      .lookup-grid.lookup-controls {
+        grid-template-columns: 1fr;
+      }
+
       main { padding: 14px; }
 
       .top-actions { justify-content: flex-start; }
@@ -686,6 +694,11 @@
           <option value="">All records</option>
           <option value="items">Has item numbers</option>
           <option value="boms">Has BOM numbers</option>
+          <option value="bomFamilies">BOM family (4 digits)</option>
+          <option value="oldBoms">Old BOM (1xxxxxx)</option>
+          <option value="newBoms">New BOM (3xxxxxx)</option>
+          <option value="versionedBoms">Versioned BOM (3xxxxxxV01)</option>
+          <option value="molds">Mold (TDxxxx/TDxxxxA)</option>
           <option value="fractional">Has fractional qty</option>
           <option value="errors">Has parse errors</option>
         </select>
@@ -697,21 +710,31 @@
       </div>
       <label class="checkline">
         <input id="bomOnly" type="checkbox" checked>
-        <span>Skip unrelated workbooks. Non-BOM files are classified, counted as skipped, and not added to search or export.</span>
+        <span>Skip unrelated workbooks. Turn this off before indexing if the lookup target is Everything and every Excel file should be searchable.</span>
       </label>
       <div class="progress-wrap">
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index all Excel workbooks. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v4</strong> in ~100 MB parts.</div>
+        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index all Excel workbooks. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v5</strong> in ~100 MB parts.</div>
       </div>
     </section>
 
     <section class="panel" style="margin-bottom: 14px;">
       <h2>Quick Lookup</h2>
-      <div class="lookup-grid">
+      <div class="lookup-grid lookup-controls">
         <input id="lookupBox" placeholder="Type item number, BOM number, product name, BOM title, warehouse, quantity, unit, approval user, or file name">
+        <select id="lookupTarget">
+          <option value="bom">BOM values</option>
+          <option value="everything">Everything indexed</option>
+          <option value="family">BOM family</option>
+          <option value="old">Old BOM</option>
+          <option value="new">New BOM</option>
+          <option value="versioned">Versioned BOM</option>
+          <option value="mold">Mold</option>
+          <option value="item">Item number</option>
+        </select>
         <select id="lookupMode">
           <option value="contains">Contains</option>
-          <option value="exact">Exact item/BOM</option>
+          <option value="exact">Exact code</option>
         </select>
         <button id="clearLookup" class="secondary">Clear</button>
       </div>
@@ -720,7 +743,7 @@
         <button id="runBatch" class="secondary">Batch Find</button>
         <button id="clearBatch" class="secondary">Clear Batch</button>
       </div>
-      <div id="lookupHost" class="lookup-empty">After indexing, type any value to show related BOM rows, workbook paths, and active FG BOM versions. <span class="keyboard-hint">Press <kbd>Esc</kbd> to clear</span></div>
+      <div id="lookupHost" class="lookup-empty">After indexing, choose a lookup target and type a value to show related rows, workbook paths, and active FG BOM versions. <span class="keyboard-hint">Press <kbd>Esc</kbd> to clear</span></div>
     </section>
 
     <div class="grid">
@@ -754,6 +777,7 @@
       lookup: "",
       batchTerms: [],
       lookupMode: "contains",
+      lookupTarget: "bom",
       type: "",
       recordFilter: "",
       bomOnly: true,
@@ -775,6 +799,7 @@
     const searchBox = document.querySelector("#searchBox");
     const lookupBox = document.querySelector("#lookupBox");
     const batchBox = document.querySelector("#batchBox");
+    const lookupTarget = document.querySelector("#lookupTarget");
     const lookupMode = document.querySelector("#lookupMode");
     const clearLookup = document.querySelector("#clearLookup");
     const runBatch = document.querySelector("#runBatch");
@@ -799,6 +824,36 @@
 
     function hasKeyValues(item, bom) {
       return text(item) !== "" && text(bom) !== "";
+    }
+
+    function codeValue(value) {
+      return text(value).toUpperCase();
+    }
+
+    function bomKind(value) {
+      const code = codeValue(value);
+      if (/^3\d{6}V\d{2}$/i.test(code)) return "versioned";
+      if (/^TD\d{4}A?$/i.test(code)) return "mold";
+      if (/^1\d{6}$/.test(code)) return "old";
+      if (/^3\d{6}$/.test(code)) return "new";
+      if (/^\d{4}$/.test(code)) return "family";
+      if (/^BOM\d{4,}$/i.test(code)) return "bom";
+      return "";
+    }
+
+    function isBomLike(value) {
+      return bomKind(value) !== "";
+    }
+
+    function bomMatchesInText(value) {
+      const matches = String(value ?? "").match(/\b(?:3\d{6}V\d{2}|TD\d{4}A?|BOM\d{4,}|[13]\d{6}|\d{4})\b/gi) || [];
+      return unique(matches.map(codeValue).filter(isBomLike));
+    }
+
+    function bomValuesByTarget(values, target) {
+      const codes = unique((values || []).flatMap((value) => bomMatchesInText(value)));
+      if (target === "bom") return codes;
+      return codes.filter((code) => bomKind(code) === target);
     }
 
     function isItem(value) {
@@ -858,8 +913,8 @@
 
     const CACHE_DB = "bom-dataset-index-cache";
     const CACHE_STORE = "indexes";
-    const CACHE_KEY = "latest-v4";
-    const LEGACY_CACHE_KEY = "latest-v3";
+    const CACHE_KEY = "latest-v5";
+    const LEGACY_CACHE_KEYS = ["latest-v4", "latest-v3"];
     const CACHE_CHUNK_BYTES = 100 * 1024 * 1024;
     const CSV_PART_BYTES = 100 * 1024 * 1024;
     const textEncoder = new TextEncoder();
@@ -991,7 +1046,7 @@
         const entries = manifest.fragmented ? recomposeCacheEntries(units) : units;
         return { ...manifest, entries };
       }
-      return readCacheValue(LEGACY_CACHE_KEY);
+      return null;
     }
 
     async function writeCachePayload(payload) {
@@ -1030,7 +1085,7 @@
         const keysRequest = store.getAllKeys();
         keysRequest.onsuccess = () => {
           keysRequest.result
-            .filter((key) => String(key).startsWith(CACHE_KEY) || key === LEGACY_CACHE_KEY)
+            .filter((key) => String(key).startsWith(CACHE_KEY) || LEGACY_CACHE_KEYS.some((legacyKey) => String(key).startsWith(legacyKey)))
             .forEach((key) => store.delete(key));
           store.put(manifest, cacheManifestKey());
           parts.forEach((entriesPart, index) => {
@@ -1068,7 +1123,7 @@
 
     async function saveCacheEntries() {
       const payload = {
-        version: 4,
+        version: 5,
         generatedAt: new Date().toISOString(),
         entries: [...state.cacheEntries.values()]
       };
@@ -1198,10 +1253,11 @@
       const hasBomHeaders = hasAnyHeader(allHeaderRows, "bom") && hasAnyHeader(allHeaderRows, "fromQty");
       const hasParentHeaders = hasAnyHeader(allHeaderRows, "itemGroup") && hasAnyHeader(allHeaderRows, "productName");
       const hasBomTitle = containsBomTitle(filename) || sheetSummaries.some((sheet) => containsBomTitle(sheet.name) || containsBomTitle(sheet.sampleText || ""));
+      const hasBomIdentifier = sheetSummaries.some((sheet) => sheet.bomCount > 0);
 
       if (hasLineHeaders && hasBomHeaders) return "Mixed BOM report";
       if (hasLineHeaders || (hasBomTitle && hasAnyHeader(allHeaderRows, "quantity"))) return "BOM line";
-      if (hasBomHeaders || hasParentHeaders || hasBomTitle) return "BOM header";
+      if (hasBomHeaders || hasParentHeaders || hasBomTitle || hasBomIdentifier) return "BOM header";
       if (!hasBomTitle) return "Non-BOM";
       return "Unknown";
     }
@@ -1226,7 +1282,7 @@
         const quantity = qtyCol >= 0 ? text(row[qtyCol]) : "";
         const perSeries = perCol >= 0 ? text(row[perCol]) : "";
         const unit = unitCol >= 0 ? text(row[unitCol]) : "";
-        const bom = bomCol >= 0 ? text(row[bomCol]) : "";
+        const bom = bomCol >= 0 ? codeValue(row[bomCol]) : "";
         const bomName = bomNameCol >= 0 ? text(row[bomNameCol]) : "";
         const lineText = rowText(row);
 
@@ -1344,17 +1400,47 @@
     function extractItemsAndBoms(rows) {
       const items = new Set();
       const boms = new Set();
+      const bomFamilies = new Set();
+      const oldBoms = new Set();
+      const newBoms = new Set();
+      const versionedBoms = new Set();
+      const molds = new Set();
+
+      const addBom = (code) => {
+        const kind = bomKind(code);
+        if (!kind) return false;
+        boms.add(code);
+        if (kind === "family") bomFamilies.add(code);
+        if (kind === "old") oldBoms.add(code);
+        if (kind === "new") newBoms.add(code);
+        if (kind === "versioned") versionedBoms.add(code);
+        if (kind === "mold") molds.add(code);
+        return true;
+      };
+
       rows.forEach((row) => {
         row.forEach((cell) => {
           const value = text(cell);
           if (!value) return;
-          const itemMatches = value.match(/\b\d{4,}\b/g);
-          if (itemMatches) itemMatches.forEach(m => items.add(m));
-          const bomMatches = value.match(/\bBOM\d{4,}\b/gi);
-          if (bomMatches) bomMatches.forEach(m => boms.add(m.toUpperCase()));
+          bomMatchesInText(value).forEach(addBom);
+          const itemMatches = value.match(/\b\d{5,}\b/g);
+          if (itemMatches) {
+            itemMatches.forEach((match) => {
+              const code = codeValue(match);
+              if (!isBomLike(code)) items.add(match);
+            });
+          }
         });
       });
-      return { items: [...items], boms: [...boms] };
+      return {
+        items: [...items],
+        boms: [...boms],
+        bomFamilies: [...bomFamilies],
+        oldBoms: [...oldBoms],
+        newBoms: [...newBoms],
+        versionedBoms: [...versionedBoms],
+        molds: [...molds]
+      };
     }
 
     function summarizeWorkbook(file, workbook) {
@@ -1370,6 +1456,11 @@
         bomVersions: [],
         items: [],
         boms: [],
+        bomFamilies: [],
+        oldBoms: [],
+        newBoms: [],
+        versionedBoms: [],
+        molds: [],
         productNames: [],
         headers: [],
         fractionalCount: 0,
@@ -1381,7 +1472,15 @@
         const rows = sheetRows(workbook.Sheets[sheetName]);
         const headerRows = findHeaderRows(rows);
         const bomVersions = extractBomVersions(summary, sheetName, rows);
-        const { items: regexItems, boms: regexBoms } = extractItemsAndBoms(rows);
+        const {
+          items: regexItems,
+          boms: regexBoms,
+          bomFamilies,
+          oldBoms,
+          newBoms,
+          versionedBoms,
+          molds
+        } = extractItemsAndBoms(rows);
         const sheetSummary = {
           name: sheetName,
           rows: rows.length,
@@ -1394,6 +1493,11 @@
         summary.sheets.push(sheetSummary);
         summary.items.push(...regexItems);
         summary.boms.push(...regexBoms);
+        summary.bomFamilies.push(...bomFamilies);
+        summary.oldBoms.push(...oldBoms);
+        summary.newBoms.push(...newBoms);
+        summary.versionedBoms.push(...versionedBoms);
+        summary.molds.push(...molds);
         summary.bomVersions.push(...bomVersions);
         summary.headers.push(...headerRows.flatMap((row) => row.headers.filter(Boolean)));
         bomVersions.forEach((version) => {
@@ -1421,6 +1525,11 @@
 
       summary.items = unique(summary.items);
       summary.boms = unique(summary.boms);
+      summary.bomFamilies = unique(summary.bomFamilies);
+      summary.oldBoms = unique(summary.oldBoms);
+      summary.newBoms = unique(summary.newBoms);
+      summary.versionedBoms = unique(summary.versionedBoms);
+      summary.molds = unique(summary.molds);
       summary.productNames = unique(summary.productNames);
       summary.headers = unique(summary.headers);
       summary.type = detectType(summary.sheets, summary.file);
@@ -1433,6 +1542,11 @@
         ...summary.sheets.map((sheet) => sheet.name),
         ...summary.items,
         ...summary.boms,
+        ...summary.bomFamilies,
+        ...summary.oldBoms,
+        ...summary.newBoms,
+        ...summary.versionedBoms,
+        ...summary.molds,
         ...summary.productNames,
         ...summary.headers,
         ...summary.bomVersions.flatMap((version) => [version.parentItem, version.parentName, version.itemGroup, version.bom, version.bomName, version.active, version.approved, version.approvedBy]),
@@ -1475,8 +1589,26 @@
       return `<span class="small">${highlightText(explorerPath, terms)}</span> <button class="ghost copy-source" data-source="${escapeHtml(explorerPath)}">Copy</button>`;
     }
 
+    function applyBomCategories(summary) {
+      if (!summary) return summary;
+      const boms = unique([
+        ...(Array.isArray(summary.boms) ? summary.boms : []),
+        ...(Array.isArray(summary.records) ? summary.records.map((record) => record.bom) : []),
+        ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.map((version) => version.bom) : [])
+      ].map(codeValue).filter(Boolean));
+
+      summary.boms = boms;
+      summary.bomFamilies = unique([...(summary.bomFamilies || []), ...boms.filter((code) => bomKind(code) === "family")]);
+      summary.oldBoms = unique([...(summary.oldBoms || []), ...boms.filter((code) => bomKind(code) === "old")]);
+      summary.newBoms = unique([...(summary.newBoms || []), ...boms.filter((code) => bomKind(code) === "new")]);
+      summary.versionedBoms = unique([...(summary.versionedBoms || []), ...boms.filter((code) => bomKind(code) === "versioned")]);
+      summary.molds = unique([...(summary.molds || []), ...boms.filter((code) => bomKind(code) === "mold")]);
+      return summary;
+    }
+
     function cleanSummaryKeyValues(summary) {
       if (!summary) return summary;
+      applyBomCategories(summary);
       const records = Array.isArray(summary.records) ? summary.records.filter((record) => hasKeyValues(record.item, record.bom)) : [];
       const bomVersions = Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => hasKeyValues(version.parentItem, version.bom)) : [];
       summary.records = records;
@@ -1534,6 +1666,11 @@
         ${normalize.toString()}
         ${text.toString()}
         ${hasKeyValues.toString()}
+        ${codeValue.toString()}
+        ${bomKind.toString()}
+        ${isBomLike.toString()}
+        ${bomMatchesInText.toString()}
+        ${bomValuesByTarget.toString()}
         ${isFractional.toString()}
         ${unique.toString()}
         ${rowText.toString()}
@@ -1715,6 +1852,11 @@
         if (state.type && row.type !== state.type) return false;
         if (state.recordFilter === "items" && !row.items.length) return false;
         if (state.recordFilter === "boms" && !row.boms.length) return false;
+        if (state.recordFilter === "bomFamilies" && !(row.bomFamilies || []).length) return false;
+        if (state.recordFilter === "oldBoms" && !(row.oldBoms || []).length) return false;
+        if (state.recordFilter === "newBoms" && !(row.newBoms || []).length) return false;
+        if (state.recordFilter === "versionedBoms" && !(row.versionedBoms || []).length) return false;
+        if (state.recordFilter === "molds" && !(row.molds || []).length) return false;
         if (state.recordFilter === "fractional" && !row.fractionalCount) return false;
         if (state.recordFilter === "errors" && !row.error) return false;
         if (!query) return true;
@@ -1818,21 +1960,91 @@
       return lookupMatchesForTerm(state.lookup);
     }
 
+    function recordLookupValues(record, target = state.lookupTarget) {
+      if (target === "everything") {
+        return [
+          record.file,
+          record.path,
+          record.sheet,
+          record.item,
+          record.productName,
+          record.warehouse,
+          record.quantity,
+          record.perSeries,
+          record.unit,
+          record.bom,
+          record.bomName,
+          record.text
+        ];
+      }
+      if (target === "item") return [record.item, record.productName];
+      if (target === "bom") return [record.bom, record.bomName, ...bomMatchesInText(record.text)];
+      return bomValuesByTarget([record.bom, record.bomName, record.text], target);
+    }
+
+    function versionLookupValues(version, target = state.lookupTarget) {
+      if (target === "everything") {
+        return [
+          version.file,
+          version.path,
+          version.sheet,
+          version.parentItem,
+          version.parentName,
+          version.itemGroup,
+          version.bom,
+          version.bomName,
+          version.active,
+          version.approved,
+          version.approvedBy
+        ];
+      }
+      if (target === "item") return [version.parentItem, version.parentName];
+      if (target === "bom") return [version.bom, version.bomName, ...bomMatchesInText(version.parentItem)];
+      return bomValuesByTarget([version.bom, version.bomName, version.parentItem], target);
+    }
+
+    function rowLookupValues(row, target = state.lookupTarget) {
+      if (target === "everything") {
+        return [
+          row.file,
+          row.path,
+          row.type,
+          ...(row.sheets || []).map((sheet) => sheet.name),
+          ...(row.items || []),
+          ...(row.boms || []),
+          ...(row.productNames || []),
+          ...(row.headers || []),
+          row.sample,
+          row.searchText
+        ];
+      }
+      if (target === "item") return [...(row.items || []), ...(row.productNames || [])];
+      if (target === "family") return row.bomFamilies || [];
+      if (target === "old") return row.oldBoms || [];
+      if (target === "new") return row.newBoms || [];
+      if (target === "versioned") return row.versionedBoms || [];
+      if (target === "mold") return row.molds || [];
+      return row.boms || [];
+    }
+
+    function valuesMatchLookup(values, query, exact) {
+      const normalizedValues = (values || []).map(normalize).filter(Boolean);
+      return exact
+        ? normalizedValues.includes(query)
+        : normalizedValues.some((value) => value.includes(query));
+    }
+
     function lookupMatchesForTerm(term) {
       const query = normalize(term);
       if (!query) return { records: [], versions: [], files: [] };
 
       const exact = state.lookupMode === "exact";
-      const directRecords = exact
-        ? uniqueObjects([...(state.itemRecordIndex.get(query) || []), ...(state.bomRecordIndex.get(query) || [])], (record) => `${record.path}|${record.sheet}|${record.row}|${record.item}|${record.bom}`)
-        : state.records.filter((record) => record.searchText.includes(query));
+      const directRecords = state.records.filter((record) => valuesMatchLookup(recordLookupValues(record), query, exact));
       const directVersions = state.fgVersions.filter((version) => {
-        if (exact) return normalize(version.parentItem) === query || normalize(version.bom) === query;
-        return version.searchText.includes(query);
+        return valuesMatchLookup(versionLookupValues(version), query, exact);
       });
       const directFiles = state.rows.filter((row) => {
-        if (exact) return row.items.map(normalize).includes(query) || row.boms.map(normalize).includes(query);
-        return row.searchText.includes(query);
+        return valuesMatchLookup(rowLookupValues(row), query, exact);
       });
 
       const relatedPaths = new Set([
@@ -1960,7 +2172,7 @@
 
       if (!state.lookup.trim()) {
         lookupHost.className = "lookup-empty";
-        lookupHost.innerHTML = "🔍 Type any item number, BOM number, product name, warehouse, quantity, unit, approval user, or file name. <span class=\"keyboard-hint\">Press <kbd>Esc</kbd> to clear</span>";
+        lookupHost.innerHTML = "Type a value for the selected lookup target. BOM values include 4-digit families, 1xxxxxx, 3xxxxxx, 3xxxxxxV01, and TDxxxx/TDxxxxA. <span class=\"keyboard-hint\">Press <kbd>Esc</kbd> to clear</span>";
         return;
       }
 
@@ -2512,6 +2724,14 @@
 
     lookupMode.addEventListener("change", () => {
       state.lookupMode = lookupMode.value;
+      renderLookup();
+    });
+
+    lookupTarget.addEventListener("change", () => {
+      state.lookupTarget = lookupTarget.value;
+      if (state.lookupTarget === "everything" && state.bomOnly) {
+        setStatus("Everything searches all indexed workbook content. Uncheck skip unrelated workbooks and re-select the folder if you need every Excel file included.", "warn");
+      }
       renderLookup();
     });
 
