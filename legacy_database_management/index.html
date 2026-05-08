@@ -715,7 +715,7 @@
       </label>
       <div class="progress-wrap">
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index Excel workbooks or CSV exports. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v7</strong> in ~100 MB parts.</div>
+        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index Excel workbooks or CSV exports. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v8</strong> in ~100 MB parts.</div>
       </div>
     </section>
 
@@ -724,8 +724,8 @@
       <div class="lookup-grid lookup-controls">
         <input id="lookupBox" placeholder="Type item number, BOM number, product name, BOM title, warehouse, quantity, unit, approval user, or file name">
         <select id="lookupTarget">
-          <option value="bom">BOM values</option>
           <option value="everything">Everything indexed</option>
+          <option value="bom">BOM values</option>
           <option value="family">BOM family</option>
           <option value="old">Old BOM</option>
           <option value="new">New BOM</option>
@@ -779,7 +779,7 @@
       lookup: "",
       batchTerms: [],
       lookupMode: "contains",
-      lookupTarget: "bom",
+      lookupTarget: "everything",
       type: "",
       recordFilter: "",
       bomOnly: true,
@@ -824,12 +824,12 @@
       return String(value ?? "").trim();
     }
 
-    function hasKeyValues(item, bom) {
-      return text(item) !== "" || text(bom) !== "";
+    function hasKeyValues(item, bom, fgItem = "", fgName = "") {
+      return text(item) !== "" || text(bom) !== "" || text(fgItem) !== "" || text(fgName) !== "";
     }
 
     function isRepeatedKeyHeader(value) {
-      return ["item number", "item no", "item", "bom", "bom number", "bom no"].includes(normalize(value));
+      return ["item number", "item no", "item", "fg", "fg name", "bom", "bom number", "bom no"].includes(normalize(value));
     }
 
     function codeValue(value) {
@@ -944,8 +944,8 @@
 
     const CACHE_DB = "bom-dataset-index-cache";
     const CACHE_STORE = "indexes";
-    const CACHE_KEY = "latest-v7";
-    const LEGACY_CACHE_KEYS = ["latest-v6", "latest-v5", "latest-v4", "latest-v3"];
+    const CACHE_KEY = "latest-v8";
+    const LEGACY_CACHE_KEYS = ["latest-v7", "latest-v6", "latest-v5", "latest-v4", "latest-v3"];
     const CACHE_CHUNK_BYTES = 100 * 1024 * 1024;
     const CSV_PART_BYTES = 100 * 1024 * 1024;
     const textEncoder = new TextEncoder();
@@ -1154,7 +1154,7 @@
 
     async function saveCacheEntries() {
       const payload = {
-        version: 7,
+        version: 8,
         generatedAt: new Date().toISOString(),
         entries: [...state.cacheEntries.values()]
       };
@@ -1179,6 +1179,8 @@
     }
 
     const HEADER_ALIASES = {
+      fgItem: ["fg", "fg item", "fg number", "fg no", "fg code", "finished good", "finished goods", "finished good item", "finished good number", "parent fg", "parent item"],
+      fgName: ["fg name", "fg product name", "finished good name", "finished goods name", "finished good product name", "parent fg name", "parent name"],
       itemNumber: ["item number", "item no", "item", "item code", "part number", "component", "component item", "ma hang", "ma vat tu", "ma linh kien", "mã hàng", "mã vật tư", "mã linh kiện", "物料编码", "物料编号", "物料号", "料号", "品号", "项目编号"],
       productName: ["product name", "item name", "product", "description", "name", "ten hang", "ten vat tu", "ten san pham", "tên hàng", "tên vật tư", "tên sản phẩm", "品名", "物料名称", "产品名称", "名称", "描述"],
       warehouse: ["warehouse", "site warehouse", "whse", "kho", "nha kho", "nhà kho", "仓库", "库位"],
@@ -1247,6 +1249,8 @@
         const normalized = normalizedRow(row);
         const textRow = row.map(text);
         const hasItem = hasHeader(normalized, "itemNumber");
+        const hasFg = hasHeader(normalized, "fgItem");
+        const hasFgName = hasHeader(normalized, "fgName");
         const hasProduct = hasHeader(normalized, "productName");
         const hasWarehouse = hasHeader(normalized, "warehouse");
         const hasQty = hasHeader(normalized, "quantity");
@@ -1254,7 +1258,7 @@
         const hasName = hasHeader(normalized, "bomName");
         const hasItemGroup = hasHeader(normalized, "itemGroup");
 
-        if ((hasItem && hasProduct) || (hasBom && hasName) || hasWarehouse || hasQty || hasItemGroup) {
+        if ((hasItem && hasProduct) || hasFg || hasFgName || (hasBom && hasName) || hasWarehouse || hasQty || hasItemGroup) {
           matches.push({ rowIndex, headers: textRow, normalized });
         }
       });
@@ -1263,9 +1267,14 @@
 
     function headerColumn(headers, names) {
       const normalized = headers.map(normalize);
-      for (const name of aliases(names)) {
+      const aliasNames = aliases(names);
+      for (const name of aliasNames) {
         const index = normalized.indexOf(name);
         if (index >= 0) return index;
+      }
+      if (aliasNames.includes("item number")) {
+        const looseIndex = normalized.findIndex((cell) => cell.startsWith("item nu") || cell.startsWith("item num"));
+        if (looseIndex >= 0) return looseIndex;
       }
       return -1;
     }
@@ -1282,7 +1291,7 @@
       const allHeaderRows = sheetSummaries.flatMap((sheet) => sheet.headerRows);
       const hasLineHeaders = hasAnyHeader(allHeaderRows, "warehouse") && hasAnyHeader(allHeaderRows, "quantity") && hasAnyHeader(allHeaderRows, "perSeries");
       const hasBomHeaders = hasAnyHeader(allHeaderRows, "bom") && hasAnyHeader(allHeaderRows, "fromQty");
-      const hasParentHeaders = hasAnyHeader(allHeaderRows, "itemGroup") && hasAnyHeader(allHeaderRows, "productName");
+      const hasParentHeaders = (hasAnyHeader(allHeaderRows, "itemGroup") && hasAnyHeader(allHeaderRows, "productName")) || hasAnyHeader(allHeaderRows, "fgItem") || hasAnyHeader(allHeaderRows, "fgName");
       const hasBomTitle = containsBomTitle(filename) || sheetSummaries.some((sheet) => containsBomTitle(sheet.name) || containsBomTitle(sheet.sampleText || ""));
       const hasBomIdentifier = sheetSummaries.some((sheet) => sheet.bomCount > 0);
 
@@ -1296,6 +1305,8 @@
     function extractStructuredRows(fileSummary, sheetName, rows, headerMatch) {
       const headers = headerMatch.headers;
       const itemCol = headerColumn(headers, ["itemNumber"]);
+      const fgCol = headerColumn(headers, ["fgItem"]);
+      const fgNameCol = headerColumn(headers, ["fgName"]);
       const productCol = headerColumn(headers, ["productName"]);
       const warehouseCol = headerColumn(headers, ["warehouse"]);
       const qtyCol = headerColumn(headers, ["quantity"]);
@@ -1308,6 +1319,8 @@
       for (let rowIndex = headerMatch.rowIndex + 1; rowIndex < rows.length; rowIndex++) {
         const row = rows[rowIndex];
         const item = itemCol >= 0 ? text(row[itemCol]) : "";
+        const fgItem = fgCol >= 0 ? text(row[fgCol]) : (isFgLike(item) ? item : "");
+        const fgName = fgNameCol >= 0 ? text(row[fgNameCol]) : "";
         const productName = productCol >= 0 ? text(row[productCol]) : "";
         const warehouse = warehouseCol >= 0 ? text(row[warehouseCol]) : "";
         const quantity = qtyCol >= 0 ? text(row[qtyCol]) : "";
@@ -1318,9 +1331,9 @@
         const lineText = rowText(row);
 
         if (!lineText) continue;
-        if (isRepeatedKeyHeader(item) || isRepeatedKeyHeader(bom)) continue;
-        if (!hasKeyValues(item, bom)) continue;
-        if (itemCol >= 0 && !item && !productName && !warehouse && !quantity) continue;
+        if (isRepeatedKeyHeader(item) || isRepeatedKeyHeader(fgItem) || isRepeatedKeyHeader(fgName) || isRepeatedKeyHeader(bom)) continue;
+        if (!hasKeyValues(item, bom, fgItem, fgName)) continue;
+        if (itemCol >= 0 && !item && !fgItem && !fgName && !productName && !warehouse && !quantity) continue;
         if (bomCol >= 0 && !bom && !bomName) continue;
 
         const record = {
@@ -1329,6 +1342,8 @@
           sheet: sheetName,
           row: rowIndex + 1,
           item,
+          fgItem,
+          fgName,
           productName,
           warehouse,
           quantity,
@@ -1337,7 +1352,7 @@
           bom,
           bomName,
           text: lineText,
-          searchText: searchText([fileSummary.file, fileSummary.path, sheetName, item, productName, warehouse, quantity, perSeries, unit, bom, bomName, lineText])
+          searchText: searchText([fileSummary.file, fileSummary.path, sheetName, item, fgItem, fgName, productName, warehouse, quantity, perSeries, unit, bom, bomName, lineText])
         };
         records.push(record);
       }
@@ -1352,15 +1367,16 @@
 
       rows.forEach((row, rowIndex) => {
         const itemHeader = hasHeader(row, "itemNumber") && hasHeader(row, "productName") && hasHeader(row, "itemGroup");
-        if (itemHeader && rows[rowIndex + 1]) {
-          const itemCol = headerColumn(row, ["itemNumber"]);
-          const productCol = headerColumn(row, ["productName"]);
+        const fgHeader = hasHeader(row, "fgItem") || hasHeader(row, "fgName");
+        if ((itemHeader || fgHeader) && rows[rowIndex + 1]) {
+          const itemCol = headerColumn(row, ["fgItem", "itemNumber"]);
+          const productCol = headerColumn(row, ["fgName", "productName"]);
           const groupCol = headerColumn(row, ["itemGroup"]);
           const next = rows[rowIndex + 1];
           parent = {
             item: valueAt(next, itemCol),
             name: valueAt(next, productCol),
-            group: valueAt(next, groupCol)
+            group: valueAt(next, groupCol) || (fgHeader ? "fingoods" : "")
           };
           capturedTopBomForParent = false;
         }
@@ -1387,7 +1403,7 @@
           approved: valueAt(next, headerColumn(row, ["approved"]))
         };
         if (!hasKeyValues(version.parentItem, version.bom)) return;
-        version.isFg = normalize(version.itemGroup) === "fingoods";
+        version.isFg = normalize(version.itemGroup) === "fingoods" || isFgLike(version.parentItem);
         version.isTopLevelFg = version.isFg && !capturedTopBomForParent;
         version.isActiveApproved = normalize(version.active) === "yes" && normalize(version.approved) === "yes";
         version.searchText = searchText([
@@ -1493,6 +1509,7 @@
         bomVersions: [],
         items: [],
         fgItems: [],
+        fgNames: [],
         boms: [],
         bomFamilies: [],
         oldBoms: [],
@@ -1543,6 +1560,7 @@
         bomVersions.forEach((version) => {
           if (version.parentItem) summary.items.push(version.parentItem);
           if (version.isFg && version.parentItem) summary.fgItems.push(version.parentItem);
+          if (version.isFg && version.parentName) summary.fgNames.push(version.parentName);
           if (version.bom) summary.boms.push(version.bom);
           if (version.parentName) summary.productNames.push(version.parentName);
           if (version.bomName) summary.productNames.push(version.bomName);
@@ -1554,9 +1572,12 @@
           records.forEach((record) => {
             if (record.item) summary.items.push(record.item);
             if (record.item && isFgLike(record.item)) summary.fgItems.push(codeValue(record.item));
+            if (record.fgItem) summary.fgItems.push(codeValue(record.fgItem));
+            if (record.fgName) summary.fgNames.push(record.fgName);
             if (record.bom && isBomCodeInContext(record.bom, record.text)) summary.boms.push(record.bom.toUpperCase());
             if (record.bom && !isBomCodeInContext(record.bom, record.text)) summary.items.push(record.bom);
             if (record.bom && !isBomCodeInContext(record.bom, record.text) && isFgLike(record.bom)) summary.fgItems.push(codeValue(record.bom));
+            if (record.fgName) summary.productNames.push(record.fgName);
             if (record.productName) summary.productNames.push(record.productName);
             if (record.quantity && isFractional(record.quantity)) summary.fractionalCount += 1;
           });
@@ -1569,6 +1590,7 @@
 
       summary.items = unique(summary.items);
       summary.fgItems = unique(summary.fgItems);
+      summary.fgNames = unique(summary.fgNames);
       summary.boms = unique(summary.boms);
       summary.bomFamilies = unique(summary.bomFamilies);
       summary.oldBoms = unique(summary.oldBoms);
@@ -1587,6 +1609,7 @@
         ...summary.sheets.map((sheet) => sheet.name),
         ...summary.items,
         ...summary.fgItems,
+        ...summary.fgNames,
         ...summary.boms,
         ...summary.bomFamilies,
         ...summary.oldBoms,
@@ -1665,6 +1688,11 @@
         ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => version.isFg).map((version) => version.parentItem) : [])
       ].map(codeValue).filter(Boolean));
       summary.fgItems = fgItems;
+      summary.fgNames = unique([
+        ...(Array.isArray(summary.fgNames) ? summary.fgNames : []),
+        ...(Array.isArray(summary.records) ? summary.records.map((record) => record.fgName) : []),
+        ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => version.isFg).map((version) => version.parentName) : [])
+      ].filter(Boolean));
       return summary;
     }
 
@@ -1672,7 +1700,7 @@
       if (!summary) return summary;
       applyBomCategories(summary);
       applyFgCategories(summary);
-      const records = Array.isArray(summary.records) ? summary.records.filter((record) => hasKeyValues(record.item, record.bom)) : [];
+      const records = Array.isArray(summary.records) ? summary.records.filter((record) => hasKeyValues(record.item, record.bom, record.fgItem, record.fgName)) : [];
       const bomVersions = Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => hasKeyValues(version.parentItem, version.bom)) : [];
       summary.records = records;
       summary.bomVersions = bomVersions;
@@ -1881,6 +1909,8 @@
             bomVersions: [],
             activeFgVersions: [],
             items: [],
+            fgItems: [],
+            fgNames: [],
             boms: [],
             productNames: [],
             headers: [],
@@ -2003,9 +2033,9 @@
                 <td class="num">${row.records.length}</td>
                 <td class="num">${row.items.length}</td>
                 <td class="num">${row.boms.length}</td>
-                <td class="num">${row.activeFgVersions.length}</td>
+                <td class="num">${(row.fgItems || []).length}</td>
                 <td class="num">${row.fractionalCount}</td>
-                <td><span class="small">${highlightText(row.items.slice(0, 5).join(", "), terms)}</span></td>
+                <td><span class="small">${highlightText([...(row.fgItems || []), ...(row.items || [])].slice(0, 5).join(", "), terms)}</span></td>
                 <td><span class="small">${highlightText(row.boms.slice(0, 4).join(", "), terms)}</span></td>
               </tr>
             `).join("")}
@@ -2041,6 +2071,8 @@
           record.path,
           record.sheet,
           record.item,
+          record.fgItem,
+          record.fgName,
           record.productName,
           record.warehouse,
           record.quantity,
@@ -2053,12 +2085,12 @@
       }
       if (target === "item") {
         const bomAsItem = record.bom && !isBomCodeInContext(record.bom, record.text) ? [record.bom] : [];
-        return [record.item, record.productName, ...bomAsItem];
+        return [record.item, record.fgItem, record.fgName, record.productName, ...bomAsItem];
       }
       if (target === "fg") {
         const values = [record.item];
         if (record.bom && !isBomCodeInContext(record.bom, record.text)) values.push(record.bom);
-        return values.filter(isFgLike);
+        return [...values.filter(isFgLike), record.fgItem, record.fgName, record.productName];
       }
       if (target === "bom") return bomValuesByTarget([record.bom, record.bomName, record.text], "bom", record.text);
       return bomValuesByTarget([record.bom, record.bomName, record.text], target, record.text);
@@ -2094,6 +2126,8 @@
           row.type,
           ...(row.sheets || []).map((sheet) => sheet.name),
           ...(row.items || []),
+          ...(row.fgItems || []),
+          ...(row.fgNames || []),
           ...(row.boms || []),
           ...(row.productNames || []),
           ...(row.headers || []),
@@ -2101,8 +2135,8 @@
           row.searchText
         ];
       }
-      if (target === "item") return [...(row.items || []), ...(row.productNames || [])];
-      if (target === "fg") return [...(row.fgItems || []), ...(row.productNames || [])];
+      if (target === "item") return [...(row.items || []), ...(row.fgItems || []), ...(row.fgNames || []), ...(row.productNames || [])];
+      if (target === "fg") return [...(row.fgItems || []), ...(row.fgNames || []), ...(row.productNames || [])];
       if (target === "family") return row.bomFamilies || [];
       if (target === "old") return row.oldBoms || [];
       if (target === "new") return row.newBoms || [];
@@ -2136,11 +2170,16 @@
         ...directVersions.map((version) => version.path),
         ...directFiles.map((row) => row.path)
       ]);
+      const relatedFgItems = new Set(directRecords.flatMap((record) => [record.fgItem, isFgLike(record.item) ? record.item : ""]).map(normalize).filter(Boolean));
+      const relatedFgNames = new Set(directRecords.flatMap((record) => [record.fgName, record.productName]).map(normalize).filter(Boolean));
+      const linkedVersions = state.fgVersions.filter((version) => {
+        return relatedFgItems.has(normalize(version.parentItem)) || relatedFgNames.has(normalize(version.parentName));
+      });
       const relatedVersions = state.fgVersions.filter((version) => relatedPaths.has(version.path));
 
       return {
         records: directRecords,
-        versions: uniqueObjects([...directVersions, ...relatedVersions], (version) => `${version.path}|${version.sheet}|${version.row}|${version.bom}`),
+        versions: uniqueObjects([...directVersions, ...linkedVersions, ...relatedVersions], (version) => `${version.path}|${version.sheet}|${version.row}|${version.bom}`),
         files: uniqueObjects(directFiles, (row) => row.path)
       };
     }
@@ -2256,7 +2295,7 @@
 
       if (!state.lookup.trim()) {
         lookupHost.className = "lookup-empty";
-        lookupHost.innerHTML = "Type a value for the selected lookup target. BOM values include 4-digit families, 1xxxxxx, 3xxxxxx, 3xxxxxxV01, and TDxxxx/TDxxxxA. <span class=\"keyboard-hint\">Press <kbd>Esc</kbd> to clear</span>";
+        lookupHost.innerHTML = "Type an FG name, FG item, item number, product name, or BOM value. BOM values include 4-digit families, 1xxxxxx, 3xxxxxx, 3xxxxxxV01, and TDxxxx/TDxxxxA. <span class=\"keyboard-hint\">Press <kbd>Esc</kbd> to clear</span>";
         return;
       }
 
@@ -2294,6 +2333,8 @@
             <thead>
               <tr>
                 <th>Item</th>
+                <th>FG</th>
+                <th>FG name</th>
                 <th>Product name</th>
                 <th style="width: 80px;">Whse</th>
                 <th class="num" style="width: 60px;">Qty</th>
@@ -2307,6 +2348,8 @@
               ${records.map((record) => `
                 <tr>
                   <td>${highlightText(record.item, terms)}</td>
+                  <td>${highlightText(record.fgItem, terms)}</td>
+                  <td>${highlightText(record.fgName, terms)}</td>
                   <td>${highlightText(record.productName, terms)}</td>
                   <td>${highlightText(record.warehouse, terms)}</td>
                   <td class="num">${highlightText(record.quantity, terms)}</td>
@@ -2316,7 +2359,7 @@
                   <td>${sourcePathHtml(record.path)}<br><span class="small">${highlightText(record.sheet, terms)} row ${record.row}</span></td>
                 </tr>
               `).join("")}
-              ${total > records.length ? `<tr><td colspan="8" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${records.length} of ${total} rows. Use a more specific lookup to narrow results.</td></tr>` : ""}
+              ${total > records.length ? `<tr><td colspan="10" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${records.length} of ${total} rows. Use a more specific lookup to narrow results.</td></tr>` : ""}
             </tbody>
           </table>
         </div>
@@ -2465,6 +2508,8 @@
           <div class="fact"><span>Size</span><span>${Math.round(row.size / 1024).toLocaleString()} KB</span></div>
           <div class="fact"><span>Sheets</span><span>${row.sheets.map((sheet) => `<span class="small">${escapeHtml(sheet.name)} (${sheet.rows} rows)</span>`).join("<br>") || "None"}</span></div>
           <div class="fact"><span>Headers</span><span class="small">${escapeHtml(row.headers.slice(0, 24).join(", ")) || "None detected"}</span></div>
+          <div class="fact"><span>FG items</span><span class="small">${escapeHtml((row.fgItems || []).slice(0, 32).join(", ")) || "None"}</span></div>
+          <div class="fact"><span>FG names</span><span class="small">${escapeHtml((row.fgNames || []).slice(0, 16).join("; ")) || "None"}</span></div>
           <div class="fact"><span>Items</span><span class="small">${escapeHtml(row.items.slice(0, 32).join(", ")) || "None"}</span></div>
           <div class="fact"><span>BOMs</span><span class="small">${escapeHtml(row.boms.join(", ")) || "None"}</span></div>
           <div class="fact"><span>Products</span><span class="small">${escapeHtml(row.productNames.slice(0, 16).join("; ")) || "None"}</span></div>
@@ -2545,7 +2590,9 @@
     function exportRowHasKeyValues(row) {
       const item = row.item ?? row.item_number ?? row.parent_item ?? "";
       const bom = row.bom ?? row.selected_bom ?? "";
-      return hasKeyValues(item, bom);
+      const fgItem = row.fg ?? row.fg_item ?? "";
+      const fgName = row.fg_name ?? "";
+      return hasKeyValues(item, bom, fgItem, fgName);
     }
 
     function cleanExportRow(row, columns) {
@@ -2647,6 +2694,8 @@
         sheet: record.sheet,
         row: record.row,
         item: record.item,
+        fg: record.fgItem,
+        fg_name: record.fgName,
         product_name: record.productName,
         warehouse: record.warehouse,
         quantity: record.quantity,
@@ -2661,6 +2710,8 @@
         { key: "sheet", header: "Sheet" },
         { key: "row", header: "Row" },
         { key: "item", header: "Item number" },
+        { key: "fg", header: "FG" },
+        { key: "fg_name", header: "FG name" },
         { key: "product_name", header: "Product name" },
         { key: "warehouse", header: "Warehouse" },
         { key: "quantity", header: "Quantity" },
@@ -2687,6 +2738,8 @@
         selected_bom: version.bom,
         selected_bom_name: version.bomName,
         item_number: record.item,
+        fg: record.fgItem,
+        fg_name: record.fgName,
         product_name: record.productName,
         warehouse: record.warehouse,
         quantity: record.quantity,
@@ -2704,6 +2757,8 @@
           selected_bom: version.bom,
           selected_bom_name: version.bomName,
           item_number: "",
+          fg: "",
+          fg_name: "",
           product_name: "",
           warehouse: "",
           quantity: "",
@@ -2721,6 +2776,8 @@
         { key: "selected_bom", header: "Selected BOM" },
         { key: "selected_bom_name", header: "Selected BOM name" },
         { key: "item_number", header: "Item number" },
+        { key: "fg", header: "FG" },
+        { key: "fg_name", header: "FG name" },
         { key: "product_name", header: "Product name" },
         { key: "warehouse", header: "Warehouse" },
         { key: "quantity", header: "Quantity" },
