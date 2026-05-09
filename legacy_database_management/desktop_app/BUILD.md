@@ -1,53 +1,30 @@
-# Building the BOM Dataset Indexer Executable
+# Building the BOM Dataset Indexer
 
 ## Prerequisites
-
-- Python 3.9 or higher installed on Windows
+- Python 3.9 or higher on Windows
 - pip package manager
 
-## 1. Install Dependencies
+## Build Instructions
 
-Open a command prompt in the project directory and run:
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-pip install -r requirements.txt
-```
+2. Test the application:
+   ```bash
+   python app.py
+   ```
 
-## 2. Test the Application
+3. Build the executable:
+   ```bash
+   pyinstaller --onefile --windowed --name "BOM Dataset Indexer" app.py
+   ```
 
-Run in development mode:
+The executable will be created in the `dist/` folder.
 
-```bash
-python app.py
-```
-
-The GUI window should appear. Select a folder containing Excel files to begin indexing.
-
-## 3. Build Standalone Executable
-
-Using PyInstaller (included in requirements.txt):
-
-```bash
-# One-file executable (console hidden, GUI mode)
-pyinstaller --onefile --windowed --name "BOM Dataset Indexer" app.py
-
-# If you want to see console output for debugging:
-# pyinstaller --onefile --console --name "BOM Dataset Indexer" app.py
-```
-
-The executable will be created in `dist/BOM Dataset Indexer.exe`.
-
-**Alternative:** Use the provided `build.bat` script (if included) to automate the build.
-
-## 4. Using the Spec File
-
-For advanced customization, you can use the `app.spec` file:
-
-```bash
-pyinstaller app.spec
-```
-
-This allows fine-tuning of hidden imports, data files, and application metadata.
+## Alternative Method
+Use the provided `build.bat` script to automate the build process.
 
 ## 5. Distribution
 
