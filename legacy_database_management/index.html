@@ -681,6 +681,10 @@
       <h2>Index Controls</h2>
       <div class="toolbar">
         <input id="searchBox" placeholder="Search file, sheet, item number, BOM number, product name, or header">
+        <select id="indexMode">
+          <option value="bom">BOM focused</option>
+          <option value="universal">Universal (all rows)</option>
+        </select>
         <select id="typeFilter">
           <option value="">All detected types</option>
           <option value="BOM line">BOM line</option>
@@ -777,11 +781,13 @@
       selected: null,
       selectedVersion: null,
       selectedFgBomVersion: null,
+      selectedRecord: null,
       search: "",
       lookup: "",
       batchTerms: [],
       lookupMode: "contains",
       lookupTarget: "everything",
+      indexMode: "bom",
       type: "",
       recordFilter: "",
       bomOnly: true,
@@ -801,6 +807,7 @@
     const statusEl = document.querySelector("#status");
     const progressBar = document.querySelector("#progressBar");
     const searchBox = document.querySelector("#searchBox");
+    const indexMode = document.querySelector("#indexMode");
     const lookupBox = document.querySelector("#lookupBox");
     const batchBox = document.querySelector("#batchBox");
     const lookupTarget = document.querySelector("#lookupTarget");
@@ -1626,9 +1633,88 @@
       return summary;
     }
 
-    async function parseFile(file) {
+    function summarizeWorkbookUniversal(file, workbook) {
+      const summary = {
+        file: file.name,
+        path: file.webkitRelativePath || file.name,
+        size: file.size,
+        modified: file.lastModified ? new Date(file.lastModified).toISOString() : "",
+        type: "Universal",
+        sheetCount: workbook.SheetNames.length,
+        sheets: [],
+        records: [],
+        bomVersions: [],
+        items: [],
+        fgItems: [],
+        fgNames: [],
+        boms: [],
+        bomFamilies: [],
+        oldBoms: [],
+        newBoms: [],
+        versionedBoms: [],
+        molds: [],
+        productNames: [],
+        headers: [],
+        fractionalCount: 0,
+        sample: "",
+        error: "",
+        isBomRelated: true
+      };
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const rows = sheetRows(workbook.Sheets[sheetName]);
+        let nonEmptyRows = 0;
+        rows.forEach((row, rowIndex) => {
+          const indexedCells = [];
+          const visibleValues = [];
+          row.forEach((cell, colIndex) => {
+            const value = text(cell);
+            if (!value) return;
+            visibleValues.push(value);
+            indexedCells.push(`${colIndex + 1}:${value}`);
+          });
+          const line = visibleValues.join(" | ");
+          if (!line) return;
+          nonEmptyRows += 1;
+          summary.records.push({
+            file: summary.file,
+            path: summary.path,
+            sheet: sheetName,
+            row: rowIndex + 1,
+            column: "",
+            item: "",
+            fgItem: "",
+            fgName: "",
+            productName: line.slice(0, 200),
+            warehouse: "",
+            quantity: "",
+            perSeries: "",
+            unit: "",
+            bom: "",
+            bomName: "",
+            text: line,
+            cellIndexText: indexedCells.join("\t"),
+            searchText: searchText([summary.file, summary.path, sheetName, line])
+          });
+        });
+        summary.sheets.push({
+          name: sheetName,
+          rows: rows.length,
+          headerRows: [],
+          sampleText: rows.slice(0, 20).map(rowText).join(" "),
+          itemCount: 0,
+          bomCount: 0,
+          nonEmptyRows
+        });
+      });
+      summary.sample = summary.records.slice(0, 8).map((r) => r.text).join("\n");
+      summary.searchText = searchText([summary.file, summary.path, "Universal", ...summary.sheets.map((s) => s.name), summary.sample]);
+      return summary;
+    }
+
+    async function parseFile(file, mode = state.indexMode) {
       const buffer = await file.arrayBuffer();
-      return parseBufferInWorker(file, buffer);
+      return parseBufferInWorker(file, buffer, mode);
     }
 
     function resetIndexState(files = []) {
@@ -1642,6 +1728,7 @@
       state.itemRecordIndex = new Map();
       state.bomRecordIndex = new Map();
       state.selected = null;
+      state.selectedRecord = null;
       state.selectedVersion = null;
       state.selectedFgBomVersion = null;
       state.processedCount = 0;
@@ -1732,6 +1819,7 @@
       return {
         path: filePath(file),
         signature: fileSignature(file),
+        mode: state.indexMode,
         file: file.name,
         size: file.size,
         modified: file.lastModified || 0,
@@ -1789,15 +1877,16 @@
         ${extractRegexValues.toString()}
         ${extractBomVersions.toString()}
         ${summarizeWorkbook.toString()}
+        ${summarizeWorkbookUniversal.toString()}
         function sheetRows(sheet) {
           return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", blankrows: false, raw: false });
         }
         self.onmessage = (event) => {
-          const { id, file, buffer } = event.data;
+          const { id, file, buffer, mode } = event.data;
           try {
             if (!XLSX_READY || !self.XLSX) throw new Error("SheetJS failed to load in worker");
             const workbook = XLSX.read(buffer, { type: "array", cellDates: true, cellNF: false, cellText: false });
-            const summary = summarizeWorkbook(file, workbook);
+            const summary = mode === "universal" ? summarizeWorkbookUniversal(file, workbook) : summarizeWorkbook(file, workbook);
             self.postMessage({ id, summary });
           } catch (error) {
             self.postMessage({ id, error: error && error.message ? error.message : String(error) });
@@ -1820,18 +1909,18 @@
       return worker;
     }
 
-    async function parseBufferOnMain(file, buffer) {
+    async function parseBufferOnMain(file, buffer, mode = state.indexMode) {
       const workbook = XLSX.read(buffer, {
         type: "array",
         cellDates: true,
         cellNF: false,
         cellText: false
       });
-      return summarizeWorkbook(file, workbook);
+      return mode === "universal" ? summarizeWorkbookUniversal(file, workbook) : summarizeWorkbook(file, workbook);
     }
 
-    async function parseBufferInWorker(file, buffer) {
-      if (!window.Worker) return parseBufferOnMain(file, buffer);
+    async function parseBufferInWorker(file, buffer, mode = state.indexMode) {
+      if (!window.Worker) return parseBufferOnMain(file, buffer, mode);
       try {
         if (!parserWorker) parserWorker = createParserWorker();
         const id = ++workerRequestId;
@@ -1843,11 +1932,11 @@
         };
         return await new Promise((resolve, reject) => {
           workerRequests.set(id, { resolve, reject });
-          parserWorker.postMessage({ id, file: fileMeta, buffer }, [buffer]);
+          parserWorker.postMessage({ id, file: fileMeta, buffer, mode }, [buffer]);
         });
       } catch (error) {
         const fallbackBuffer = await file.arrayBuffer();
-        return parseBufferOnMain(file, fallbackBuffer);
+        return parseBufferOnMain(file, fallbackBuffer, mode);
       }
     }
 
@@ -1880,7 +1969,7 @@
 
         try {
           const cached = state.cacheEntries.get(path);
-          if (cached && cached.signature === signature && (!cached.skipped || state.bomOnly)) {
+          if (cached && cached.signature === signature && cached.mode === state.indexMode && (!cached.skipped || state.bomOnly || state.indexMode === "universal")) {
             state.processedCount += 1;
             state.cacheHitCount += 1;
             if (cached.skipped) {
@@ -1891,9 +1980,9 @@
             continue;
           }
 
-          const summary = await parseFile(file);
+          const summary = await parseFile(file, state.indexMode);
           state.processedCount += 1;
-          if (state.bomOnly && !summary.isBomRelated) {
+          if (state.indexMode !== "universal" && state.bomOnly && !summary.isBomRelated) {
             state.skippedCount += 1;
             state.cacheEntries.set(path, cacheEntryForFile(file, { skipped: true, skipReason: "Workbook did not contain recognized BOM headers or titles" }));
             continue;
@@ -1940,9 +2029,10 @@
       try {
         const cacheManifest = await saveCacheEntries();
         const cachePartText = cacheManifest && cacheManifest.parts ? ` in ${cacheManifest.parts.length.toLocaleString()} cache part(s)` : "";
-        setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} BOM-related files, skipped ${state.skippedCount} unrelated files, and saved cache${cachePartText} for next scan.`, "good");
+        const modeLabel = state.indexMode === "universal" ? "universal files" : "BOM-related files";
+        setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} ${modeLabel}, skipped ${state.skippedCount} unrelated files, and saved cache${cachePartText} for next scan.`, "good");
       } catch (error) {
-        setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} BOM-related files, skipped ${state.skippedCount} unrelated files. Cache save failed: ${escapeHtml(error.message || error)}`, "warn");
+        setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} files, skipped ${state.skippedCount} unrelated files. Cache save failed: ${escapeHtml(error.message || error)}`, "warn");
       }
       state.busy = false;
       exportCsv.disabled = state.rows.length === 0;
@@ -1951,6 +2041,10 @@
 
     function filteredRows() {
       const query = normalize(state.search);
+      if (state.indexMode === "universal") {
+        if (!query) return state.rows;
+        return state.rows.filter((row) => row.searchText.includes(query));
+      }
       return state.rows.filter((row) => {
         if (state.type && row.type !== state.type) return false;
         if (state.recordFilter === "items" && !row.items.length) return false;
@@ -1966,6 +2060,15 @@
         if (!query) return true;
         return row.searchText.includes(query);
       });
+    }
+
+    function filteredRecordsForMainTable() {
+      const workbookRows = filteredRows();
+      const pathSet = new Set(workbookRows.map((row) => normalize(row.path)));
+      const query = normalize(state.search);
+      let records = state.records.filter((record) => pathSet.has(normalize(record.path)));
+      if (query) records = records.filter((record) => (record.searchText || "").includes(query));
+      return records;
     }
 
     function renderStats() {
@@ -2001,57 +2104,81 @@
 
     function renderTable() {
       const rows = filteredRows();
+      const records = filteredRecordsForMainTable();
       const terms = state.search ? [state.search] : [];
+      state.selectedRecord = null;
       if (!state.rows.length) {
         tableHost.innerHTML = `
           <table>
             <thead><tr><th>Status</th></tr></thead>
-            <tbody><tr><td class="muted">${state.processedCount ? "No BOM-related workbooks were indexed." : "Select the dataset folder to begin indexing..."}</td></tr></tbody>
+            <tbody><tr><td class="muted">${state.processedCount ? "No rows were indexed." : "Select the dataset folder to begin indexing..."}</td></tr></tbody>
           </table>
         `;
         return;
       }
 
-      const visible = rows.slice(0, 250);
-      tableHost.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th style="min-width: 280px;">File</th>
-              <th style="min-width: 120px;">Type</th>
-              <th class="num">Sheets</th>
-              <th class="num">Rows</th>
-              <th class="num">Items</th>
-              <th class="num">BOMs</th>
-              <th class="num">FG</th>
-              <th class="num">Qty</th>
-              <th style="min-width: 180px;">Sample Items</th>
-              <th style="min-width: 140px;">Sample BOMs</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${visible.map((row, index) => `
-              <tr data-file="${row.path}">
-                <td><strong>${highlightText(row.file, terms)}</strong><br>${sourcePathHtml(row.path, terms)}</td>
-                <td>${typeBadge(row)}</td>
-                <td class="num">${row.sheetCount}</td>
-                <td class="num">${row.records.length}</td>
-                <td class="num">${row.items.length}</td>
-                <td class="num">${row.boms.length}</td>
-                <td class="num">${(row.fgItems || []).length}</td>
-                <td class="num">${row.fractionalCount}</td>
-                <td><span class="small">${highlightText([...(row.fgItems || []), ...(row.items || [])].slice(0, 5).join(", "), terms)}</span></td>
-                <td><span class="small">${highlightText(row.boms.slice(0, 4).join(", "), terms)}</span></td>
+      const visible = records.slice(0, 500);
+      if (state.indexMode === "universal") {
+        tableHost.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width: 360px;">Path</th>
+                <th style="min-width: 120px;">Sheet</th>
+                <th class="num" style="width: 70px;">Row</th>
+                <th class="num" style="width: 80px;">Column</th>
               </tr>
-            `).join("")}
-            ${rows.length > visible.length ? `<tr><td colspan="10" class="muted" style="text-align: center; padding: 12px; font-size: 12px;">📊 Showing ${visible.length} of ${rows.length} workbooks. Refine search to view more.</td></tr>` : ""}
-          </tbody>
-        </table>
-      `;
+            </thead>
+            <tbody>
+              ${visible.map((record, index) => `
+                <tr data-rec="${index}">
+                  <td>${sourcePathHtml(record.path, terms)}</td>
+                  <td>${highlightText(record.sheet, terms)}</td>
+                  <td class="num">${record.row ?? ""}</td>
+                  <td class="num">${record.column ?? ""}</td>
+                </tr>
+              `).join("")}
+              ${records.length > visible.length ? `<tr><td colspan="4" class="muted" style="text-align: center; padding: 12px; font-size: 12px;">📊 Showing ${visible.length} of ${records.length} rows. Refine search to view more.</td></tr>` : ""}
+            </tbody>
+          </table>
+        `;
+      } else {
+        tableHost.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Item number</th>
+                <th>FG</th>
+                <th>FG name</th>
+                <th>Product name</th>
+                <th style="min-width: 260px;">File</th>
+                <th>Sheet</th>
+                <th class="num" style="width: 70px;">Row</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visible.map((record, index) => `
+                <tr data-rec="${index}">
+                  <td>${highlightText(record.item, terms)}</td>
+                  <td>${highlightText(record.fgItem, terms)}</td>
+                  <td>${highlightText(record.fgName, terms)}</td>
+                  <td>${highlightText(record.productName, terms)}</td>
+                  <td>${sourcePathHtml(record.path, terms)}</td>
+                  <td>${highlightText(record.sheet, terms)}</td>
+                  <td class="num">${record.row ?? ""}</td>
+                </tr>
+              `).join("")}
+              ${records.length > visible.length ? `<tr><td colspan="7" class="muted" style="text-align: center; padding: 12px; font-size: 12px;">📊 Showing ${visible.length} of ${records.length} rows. Refine search to view more.</td></tr>` : ""}
+            </tbody>
+          </table>
+        `;
+      }
 
-      tableHost.querySelectorAll("tr[data-file]").forEach((tr) => {
+      tableHost.querySelectorAll("tr[data-rec]").forEach((tr) => {
         tr.addEventListener("click", () => {
-          state.selected = state.rows.find((row) => row.path === tr.dataset.file);
+          const rec = visible[Number(tr.dataset.rec)];
+          state.selectedRecord = rec || null;
+          state.selected = rec ? state.rows.find((row) => row.path === rec.path) : null;
           renderDetails();
         });
       });
@@ -2405,6 +2532,23 @@
       const versions = matches.versions.slice(0, 100);
       const fgBomVersions = matches.fgBomVersions.slice(0, 100);
 
+      if (state.indexMode === "universal") {
+        lookupHost.innerHTML = `
+          <div class="result-grid" style="grid-template-columns: 1fr 1fr;">
+            <section>
+              <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📍 Matched rows <span style="color: var(--accent);">(${matches.records.length})</span></h3>
+              ${records.length ? renderRecordTable(records, matches.records.length) : `<div class="lookup-empty">No indexed rows matched this lookup.</div>`}
+            </section>
+            <section>
+              <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Related files <span style="color: var(--accent);">(${matches.files.length})</span></h3>
+              ${files.length ? renderFileList(files, matches.files.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
+            </section>
+          </div>
+        `;
+        bindSourceCopy(lookupHost);
+        return;
+      }
+
       lookupHost.innerHTML = `
         <div id="selectedVersionPanel"></div>
         <div class="result-grid">
@@ -2639,6 +2783,25 @@
     }
 
     function renderDetails() {
+      if (state.selectedRecord) {
+        const rec = state.selectedRecord;
+        const terms = activeHighlightTerms();
+        details.innerHTML = `
+          <div class="facts">
+            <div class="fact"><span>Path</span><span>${sourcePathHtml(rec.path, terms)}</span></div>
+            <div class="fact"><span>Sheet</span><span>${highlightText(rec.sheet, terms)}</span></div>
+            <div class="fact"><span>Row</span><span>${rec.row ?? ""}</span></div>
+            <div class="fact"><span>Column</span><span>${rec.column || ""}</span></div>
+          </div>
+          <div style="margin-top: 12px;">
+            <h3 style="font-size: 13px; margin: 0 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">Context</h3>
+            <div class="sample">${highlightText(rec.text || "", terms)}</div>
+          </div>
+        `;
+        bindSourceCopy(details);
+        return;
+      }
+
       const row = state.selected;
       if (!row) {
         details.innerHTML = `<p class="muted">✨ Select a workbook row to inspect its details.</p>`;
@@ -2672,10 +2835,28 @@
     }
 
     function render() {
+      applyIndexModeUi();
       renderStats();
       renderTable();
       renderLookup();
       renderDetails();
+    }
+
+    function applyIndexModeUi() {
+      const universal = state.indexMode === "universal";
+      bomOnly.disabled = universal;
+      if (universal) bomOnly.checked = false;
+      state.bomOnly = universal ? false : bomOnly.checked;
+      typeFilter.disabled = universal;
+      recordFilter.disabled = universal;
+      if (universal) {
+        typeFilter.value = "";
+        recordFilter.value = "";
+        state.type = "";
+        state.recordFilter = "";
+        lookupTarget.value = "everything";
+        state.lookupTarget = "everything";
+      }
     }
 
     function escapeHtml(value) {
@@ -3082,6 +3263,16 @@
       renderLookup();
     });
 
+    indexMode.addEventListener("change", () => {
+      state.indexMode = indexMode.value;
+      state.selected = null;
+      state.selectedRecord = null;
+      render();
+      if (state.processedCount) {
+        setStatus("Index mode changed. Re-select the dataset folder to rebuild index in this mode.", "warn");
+      }
+    });
+
     lookupTarget.addEventListener("change", () => {
       state.lookupTarget = lookupTarget.value;
       if (state.lookupTarget === "everything" && state.bomOnly) {
@@ -3136,6 +3327,7 @@
     exportCsv.addEventListener("click", exportIndexCsv);
 
     basePathBox.value = state.basePath;
+    indexMode.value = state.indexMode;
     saveBasePath.addEventListener("click", () => {
       state.basePath = basePathBox.value.trim();
       localStorage.setItem("bomDatasetBasePath", state.basePath);
