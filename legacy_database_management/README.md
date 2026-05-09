@@ -1,101 +1,84 @@
-# Hệ thống Quản lý và Truy vấn Dữ liệu BOM (BOM Dataset Indexer)
+# BOM Dataset Indexer - Web Application
 
-BOM Dataset Indexer là giải pháp tối ưu giúp tự động hóa việc phân loại, lập chỉ mục và tìm kiếm dữ liệu Bill of Materials (BOM) từ các tệp tin Excel. Công cụ hỗ trợ nhận diện đa ngôn ngữ (Anh - Việt - Trung) và tối ưu hóa hiệu suất truy vấn thông qua hệ thống lưu trữ đệm (cache) thông minh.
+BOM Dataset Indexer is an optimized solution for automating the classification, indexing, and searching of Bill of Materials (BOM) data from Excel files. The application supports multi-language recognition (English - Vietnamese - Chinese) and optimizes query performance through an intelligent caching system.
 
+## Quick Start Guide
 
-## Hướng dẫn sử dụng nhanh
+### Step 1: Load Dataset
 
-### Bước 1: Nạp dữ liệu
+1. Access the application in your browser.
+2. Click the "Select dataset folder" button. (Only load once; the system automatically loads cached data on subsequent sessions and adds new data).
+3. Select the folder containing Excel files (.xls, .xlsx, .xlsm, .xlsb).
+4. The system automatically scans, classifies, and indexes all available data.
 
-1.  Truy cập ứng dụng trên trình duyệt.
-    
-2.  Nhấn nút "Select dataset folder" (Chọn thư mục dữ liệu). (Chỉ nạp 1 lần, lần sau load cache nạp dữ liệu cũ, tự nạp thêm dữ liệu mới)
-    
-3.  Chọn thư mục chứa các tệp Excel (.xls, .xlsx, .xlsm, .xlsb).
-    
-4.  Hệ thống sẽ tự động quét, phân loại và lập chỉ mục toàn bộ dữ liệu hiện có.
-    
+### Step 2: Search for Information
 
-### Bước 2: Tìm kiếm thông tin
+Use the main search box to query by various criteria:
 
-Sử dụng hộp tìm kiếm chính để tra cứu theo các tiêu chí:
+- **Identification info**: File name, Sheet name, BOM Number.
+- **Material info**: Item Number, Product name, Column headers.
 
-*   Thông tin định danh: Tên tệp, tên Sheet, số hiệu BOM (BOM Number).
-    
-*   Thông tin vật tư: Số hiệu vật liệu (Item Number), tên sản phẩm, tiêu đề cột.
-    
+### Step 3: Quick Lookup
 
-### Bước 3: Tra cứu nhanh (Quick Lookup)
+Enter any value (item code, warehouse, approver, etc.) in the Quick Lookup field:
 
-Nhập bất kỳ giá trị nào (mã vật tư, kho, người duyệt...) vào ô Quick Lookup:
+- **Contains mode**: Relative/fuzzy search (default).
+- **Exact item/BOM mode**: Exact match search.
 
-*   Chế độ Contains: Tìm kiếm tương đối (mặc định).
-    
-*   Chế độ Exact item/BOM: Tìm kiếm chính xác tuyệt đối.
-    
+### Step 4: Batch Find
 
-### Bước 4: Tìm kiếm hàng loạt (Batch Find)
+1. Paste a list of item codes into the Batch Find field. The system supports separators: newline, comma, semicolon, tab, or space.
+2. Click "Batch Find" to simultaneously retrieve all values from the list.
 
-1.  Dán danh sách các mã vật tư vào ô Batch Find. Hệ thống hỗ trợ các dấu ngăn cách: xuống dòng, dấu phẩy, dấu chấm phẩy, tab hoặc khoảng trắng.
-    
-2.  Nhấn "Batch Find" để hệ thống truy xuất đồng thời tất cả các giá trị trong danh sách.
-    
+### Step 5: Export Reports
 
-### Bước 5: Xuất báo cáo
+Click "Export CSV" to download filtered or searched results. The CSV file is optimized for Excel, Power BI, or other data analysis tools.
 
-Nhấn "Export CSV" để tải về kết quả đã lọc hoặc tìm kiếm. Tệp CSV được tối ưu để mở bằng Excel, Power BI hoặc các công cụ phân tích dữ liệu khác.
+## Detailed Features
 
+### 1. Smart Data Classification
 
-## Các tính năng chi tiết
+The system automatically detects and classifies files based on data structure:
 
-### 1\. Phân loại dữ liệu thông minh
+- **BOM line**: File containing material line details.
+- **BOM header**: File containing header/general BOM information.
+- **Mixed BOM report**: File combining both header and detail information.
+- **Non-BOM / Unknown**: Unrelated or unidentified BOM structure file.
+- **Error**: File with format errors or access issues.
 
-Hệ thống tự động nhận diện và phân loại tệp dựa trên cấu trúc dữ liệu:
+### 2. Advanced Filtering
 
-*   BOM line: Tệp chứa chi tiết các dòng vật tư.
-    
-*   BOM header: Tệp chứa thông tin tiêu đề/tổng quát của BOM.
-    
-*   Mixed BOM report: Tệp kết hợp cả thông tin tiêu đề và chi tiết.
-    
-*   Non-BOM / Unknown: Tệp không liên quan hoặc không xác định được cấu trúc BOM.
-    
-*   Error: Tệp bị lỗi định dạng hoặc không thể truy cập.
-    
+- **Type Filter**: Narrow search scope by file label (BOM Line, Header, etc.).
+- **Record Filter**: Quickly find lines with fractional quantities, parse errors, or filter by Item Number/BOM Number.
 
-### 2\. Bộ lọc chuyên sâu
+### 3. Caching System
 
-*   Lọc theo Loại (Type Filter): Thu hẹp phạm vi tìm kiếm theo nhãn tệp (BOM Line, Header...).
-    
-*   Lọc theo Bản ghi (Record Filter): Tìm nhanh các dòng có số lượng lẻ (fractional qty), các dòng bị lỗi (parse errors) hoặc lọc riêng theo mã vật tư/số hiệu BOM.
-    
+The application uses IndexedDB to store indexed data:
 
-### 3\. Hệ thống lưu trữ đệm (Cache)
+- **Speed**: Reload cached data almost instantly via the "Load Cache" button.
+- **Performance**: Minimizes reprocessing of unchanged files and saves system resources.
 
-Ứng dụng sử dụng IndexedDB để ghi nhớ dữ liệu đã lập chỉ mục:
+## Supported Data Fields
 
-*   Tốc độ: Tải lại dữ liệu cũ gần như tức thì thông qua nút "Load Cache".
-    
-*   Hiệu suất: Giảm thiểu việc xử lý lại các tệp không thay đổi, tiết kiệm tài nguyên hệ thống.
-    
+The system automatically recognizes data columns based on headers in English, Vietnamese, and Chinese:
 
+| Field | Description |
+|-------|-------------|
+| Item Number | Material identifier code |
+| BOM Number | Bill of Materials code |
+| Product Name | Product or finished good name |
+| Quantity | Quantity of material |
+| Unit | Unit of measurement (EA, KG, M, set, etc.) |
+| Warehouse | Storage warehouse or location |
+| Approved By | Data approver name |
+| Status | Status (Active, Inactive, etc.) |
 
-## Bảng trường dữ liệu được hỗ trợ
+## Troubleshooting
 
-Hệ thống tự động nhận diện các cột dữ liệu dựa trên tiêu đề bằng tiếng Anh, Việt và Trung:
-
-<table data-path-to-node="31"><thead><tr><th><span data-path-to-node="31,0,0,0">Trường dữ liệu</span></th><th><span data-path-to-node="31,0,1,0">Mô tả</span></th></tr></thead><tbody><tr><td><span data-path-to-node="31,1,0,0">Item Number</span></td><td><span data-path-to-node="31,1,1,0">Mã số định danh vật tư</span></td></tr><tr><td><span data-path-to-node="31,2,0,0">BOM Number</span></td><td><span data-path-to-node="31,2,1,0">Mã số danh mục vật tư</span></td></tr><tr><td><span data-path-to-node="31,3,0,0">Product Name</span></td><td><span data-path-to-node="31,3,1,0">Tên sản phẩm hoặc thành phẩm</span></td></tr><tr><td><span data-path-to-node="31,4,0,0">Quantity</span></td><td><span data-path-to-node="31,4,1,0">Số lượng vật tư</span></td></tr><tr><td><span data-path-to-node="31,5,0,0">Unit</span></td><td><span data-path-to-node="31,5,1,0">Đơn vị tính (EA, KG, M, bộ...)</span></td></tr><tr><td><span data-path-to-node="31,6,0,0">Warehouse</span></td><td><span data-path-to-node="31,6,1,0">Kho lưu trữ hoặc vị trí lưu kho</span></td></tr><tr><td><span data-path-to-node="31,7,0,0">Approved By</span></td><td><span data-path-to-node="31,7,1,0">Người phê duyệt dữ liệu</span></td></tr><tr><td><span data-path-to-node="31,8,0,0">Status</span></td><td><span data-path-to-node="31,8,1,0">Trạng thái (Active, Inactive, v.v.)</span></td></tr></tbody></table>
-
-
-## Xử lý sự cố thường gặp
-
-*   Tệp không xuất hiện trong kết quả: Kiểm tra tùy chọn "Skip unrelated workbooks". Nếu tệp không chứa từ khóa tiêu chuẩn về BOM trong tên sheet hoặc tiêu đề cột, hệ thống có thể đã bỏ qua để tối ưu bộ nhớ.
-    
-*   Ứng dụng phản hồi chậm: Thực hiện xóa cache tại mục DevTools (F12) > Application > IndexedDB và tải lại dữ liệu.
-    
-*   Không xuất được tệp CSV: Đảm bảo trình duyệt đang sử dụng (Chrome/Edge) được cấp quyền tải xuống tệp tin.
-    
-*   Dữ liệu nhận diện sai cột: Kiểm tra lại tệp Excel gốc để đảm bảo dòng tiêu đề không bị gộp ô (merge cells) và nằm ở các dòng đầu tiên.
+- **File not appearing in results**: Check the "Skip unrelated workbooks" option. If the file doesn't contain standard BOM keywords in sheet names or column headers, the system may have skipped it to optimize memory.
+- **Application responding slowly**: Clear the cache via DevTools (F12) > Application > IndexedDB and reload the data.
+- **Cannot export CSV**: Ensure your browser (Chrome/Edge) has permission to download files.
+- **Data column misidentified**: Check the original Excel file to ensure headers are not merged cells and are in the first rows.
     
 
 
