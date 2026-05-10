@@ -1,0 +1,3492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BOM Dataset Indexer</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script>
+    if (!window.XLSX) document.write('<script src="xlsx.full.min.js"><\/script>');
+  </script>
+  <style>
+    :root {
+      --bg: #f8fafb;
+      --panel: #fff;
+      --text: #17202a;
+      --muted: #5d6773;
+      --line: #e4e7eb;
+      --accent: #0f766e;
+      --accent-dark: #0a5c56;
+      --accent-light: #e0f2f1;
+      --bad: #d32f2f;
+      --warn: #f57c00;
+      --good: #0d7f4f;
+      --header-start: #1a2f45;
+      --header-end: #253a50;
+      --metric-bg-start: #f9fbfc;
+      --metric-bg-end: #fff;
+      --th-bg-start: #f5f8fa;
+      --th-bg-end: #f9fafb;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --transition: all 140ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html[data-theme="dark"] {
+      --bg: #1a1a1a;
+      --panel: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #a0a0a0;
+      --line: #404040;
+      --accent: #0f766e;
+      --accent-dark: #0a5c56;
+      --accent-light: #1a4a47;
+      --bad: #ff6b6b;
+      --warn: #ffb74d;
+      --good: #4caf50;
+      --header-start: #0f1419;
+      --header-end: #1a1a1a;
+      --metric-bg-start: #2a2a2a;
+      --metric-bg-end: #3a3a3a;
+      --th-bg-start: #252525;
+      --th-bg-end: #2a2a2a;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+
+    body, header, .panel, input, select, textarea, .metric, table, th, td, .lookup-empty, .progress-track, .badge, button {
+      transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                  color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                  border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, var(--header-start) 0%, var(--header-end) 100%);
+      color: #fff;
+      box-shadow: var(--shadow-md);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    header p {
+      margin-top: 6px;
+      color: #b8c8d9;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    button, .file-label {
+      min-height: 36px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 8px 14px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+      font-size: 13px;
+    }
+
+    button:hover:not(:disabled), .file-label:hover {
+      background: var(--accent-dark);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    button:active:not(:disabled), .file-label:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    button.secondary {
+      background: var(--panel);
+      color: var(--accent);
+      border-color: var(--line);
+    }
+
+    button.secondary:hover:not(:disabled) {
+      background: var(--accent-light);
+      border-color: var(--accent);
+    }
+
+    button:disabled {
+      border-color: var(--line);
+      background: var(--line);
+      color: var(--muted);
+      cursor: not-allowed;
+      opacity: 0.6;
+      box-shadow: none;
+      transform: none;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 12px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 86px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      resize: vertical;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-width: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .panel h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .panel h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 12px 0 8px;
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      flex: 1 1 140px;
+      min-height: 76px;
+      background: linear-gradient(135deg, var(--metric-bg-start) 0%, var(--metric-bg-end) 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) 170px 170px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .lookup-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) 150px 150px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .lookup-grid.lookup-controls {
+      grid-template-columns: minmax(280px, 1fr) 190px 150px 150px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .progress-wrap {
+      margin: 14px 0 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .progress-track {
+      height: 12px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, #0d9488 100%);
+      transition: width 140ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 8px rgba(15, 118, 110, 0.4);
+      border-radius: 999px;
+    }
+
+    .checkline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .checkline input {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+      padding: 0;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .status {
+      color: var(--muted);
+      min-height: 20px;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 8px 0;
+    }
+
+    .status.bad {
+      color: var(--bad);
+      font-weight: 600;
+    }
+
+    .status.good {
+      color: var(--good);
+      font-weight: 600;
+    }
+
+    .status.warn {
+      color: var(--warn);
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-height: 640px;
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1080px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: linear-gradient(135deg, var(--th-bg-start) 0%, var(--th-bg-end) 100%);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid var(--line);
+    }
+
+    td.num, th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    tr[data-file] {
+      cursor: pointer;
+    }
+
+    tr[data-file]:hover {
+      background: var(--metric-bg-start);
+    }
+
+    tr[data-file] strong {
+      color: var(--accent);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 3px 10px;
+      background: var(--metric-bg-start);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.good {
+      border-color: #7ccf98;
+      background: rgba(13, 127, 79, 0.1);
+      color: var(--good);
+    }
+
+    .badge.warn {
+      border-color: #fbcf6f;
+      background: rgba(245, 124, 0, 0.1);
+      color: var(--warn);
+    }
+
+    .badge.bad {
+      border-color: #f87171;
+      background: rgba(211, 47, 47, 0.1);
+      color: var(--bad);
+    }
+
+    .details {
+      display: grid;
+      gap: 10px;
+      color: var(--text);
+    }
+
+    .fact {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .fact span:first-child {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .fact strong {
+      color: var(--accent);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .sample {
+      max-height: 240px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--metric-bg-start);
+      padding: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .lookup-empty {
+      border: 2px dashed var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      color: var(--muted);
+      background: var(--bg);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    mark.hit {
+      background: var(--warn);
+      color: #fff;
+      padding: 0 2px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1200px) {
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 980px) {
+      header, .grid, .stats, .toolbar, .lookup-grid, .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lookup-grid.lookup-controls {
+        grid-template-columns: 1fr;
+      }
+
+      main { padding: 14px; }
+
+      .top-actions { justify-content: flex-start; }
+
+      .metric {
+        min-height: 64px;
+      }
+
+      table {
+        min-width: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 14px 16px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      header p {
+        font-size: 12px;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .lookup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      button, .file-label {
+        min-height: 40px;
+        width: 100%;
+      }
+
+      .top-actions {
+        flex-direction: column;
+      }
+    }
+
+    .keyboard-hint {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 6px;
+      display: block;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      background: var(--metric-bg-start);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: monospace;
+      color: var(--text);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .loading {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .copy-source {
+      padding: 2px 6px;
+      font-size: 11px;
+      min-height: auto;
+      height: 24px;
+      border-radius: 4px;
+      opacity: 0.8;
+    }
+
+    .copy-source:hover {
+      opacity: 1;
+    }
+
+    .facts {
+      display: grid;
+      gap: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 300ms ease-out;
+      z-index: 999;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>BOM Dataset Indexer</h1>
+      <p>Use SheetJS to read Excel or CSV files, recognize titles and headers, focused on file quick indexing and legacy/new BOM indexing.</p>
+    </div>
+    <div class="top-actions">
+      <label class="file-label" for="folderInput">📂 Select Folder</label>
+      <input id="folderInput" type="file" webkitdirectory directory multiple accept=".xls,.xlsx,.xlsm,.xlsb,.csv">
+      
+      <label class="file-label" for="fileInput">📄 Select Files</label>
+      <input id="fileInput" type="file" multiple accept=".xls,.xlsx,.xlsm,.xlsb,.csv">
+      
+      <select id="indexMode" style="width: 150px; min-height: 36px; padding: 8px; border-radius: 6px; border: 1px solid var(--accent); background: var(--panel); color: var(--text);">
+        <option value="bom">BOM focused</option>
+        <option value="universal">Universal (all rows)</option>
+      </select>
+      
+      <button id="startIndexing" disabled>Start Indexing</button>
+      <button id="loadCache" class="secondary">Load Cache</button>
+      <button id="exportCsv" class="secondary" disabled>Export CSV</button>
+      <button id="themeToggle" class="secondary" aria-label="Toggle theme" style="min-width: 40px; padding: 8px;">🌙</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" id="stats"></section>
+
+    <section class="panel" style="margin-bottom: 14px;">
+      <h2>Indexing Configuration</h2>
+      <div class="toolbar">
+        <input id="searchBox" placeholder="Search file, sheet, item number, BOM number, product name, or header">
+        <select id="typeFilter">
+          <option value="">All detected types</option>
+          <option value="BOM line">BOM line</option>
+          <option value="BOM header">BOM header</option>
+          <option value="Mixed BOM report">Mixed BOM report</option>
+          <option value="Non-BOM">Non-BOM</option>
+          <option value="Unknown">Unknown</option>
+          <option value="Error">Error</option>
+        </select>
+        <select id="recordFilter">
+          <option value="">All records</option>
+          <option value="items">Has item numbers</option>
+          <option value="fgItems">Has finished goods</option>
+          <option value="boms">Has BOM numbers</option>
+          <option value="bomFamilies">BOM family (4 digits)</option>
+          <option value="oldBoms">Old BOM (1xxxxxx)</option>
+          <option value="newBoms">New BOM (3xxxxxx)</option>
+          <option value="versionedBoms">Versioned BOM (3xxxxxxV01)</option>
+          <option value="molds">Mold (TDxxxx/TDxxxxA)</option>
+          <option value="fractional">Has fractional qty</option>
+          <option value="errors">Has parse errors</option>
+        </select>
+      </div>
+      <div class="toolbar" style="grid-template-columns: minmax(240px, 1fr) 170px 170px;">
+        <input id="basePathBox" placeholder="Optional full parent path, e.g. C:\Users\...\D365 automation">
+        <button id="saveBasePath" class="secondary">Save Path</button>
+        <button id="clearBasePath" class="secondary">Clear Path</button>
+      </div>
+      <label class="checkline">
+        <input id="bomOnly" type="checkbox" checked>
+        <span>Skip unrelated workbooks. Turn this off before indexing if the lookup target is Everything and every Excel file should be searchable.</span>
+      </label>
+    </section>
+
+    <section class="panel" style="margin-bottom: 14px;">
+      <h2>Lookup & Status Panel</h2>
+      <div class="progress-wrap">
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <div id="status" class="status">Select the local <strong>dataset</strong> folder to index Excel workbooks or CSV exports. Cache is stored in this browser's IndexedDB as <strong>bom-dataset-index-cache / latest-v8</strong> in ~100 MB parts.</div>
+      </div>
+      <div class="lookup-grid lookup-controls">
+        <input id="lookupBox" placeholder="Type item number, BOM number, product name, BOM title, warehouse, quantity, unit, approval user, or file name">
+        <select id="lookupTarget">
+          <option value="everything">Everything</option>
+          <option value="bom">BOM</option>
+          <option value="fg">FG</option>
+          <option value="item">Item</option>
+        </select>
+        <select id="lookupMode">
+          <option value="contains">Contains</option>
+          <option value="exact">Exact</option>
+        </select>
+        <button id="clearLookup" class="secondary">Clear</button>
+      </div>
+      <div class="lookup-grid" style="grid-template-columns: minmax(280px, 1fr) 150px 150px;">
+        <textarea id="batchBox" placeholder="Batch find: paste item numbers, BOM numbers, names, or any fields. Separate by new line, comma, semicolon, tab, or space."></textarea>
+        <button id="runBatch" class="secondary">Batch Find</button>
+        <button id="clearBatch" class="secondary">Clear Batch</button>
+      </div>
+      <div id="lookupHost" class="lookup-empty">After indexing, choose a lookup target and type a value to show related rows, workbook paths, and active FG BOM versions. <span class="keyboard-hint">Press <kbd>Esc</kbd> to clear</span></div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Workbook Index</h2>
+        <div id="tableHost" class="table-wrap"></div>
+      </section>
+      <aside class="panel">
+        <h2>Selected Workbook</h2>
+        <div id="details" class="details">
+          <p class="muted">Select a row after indexing to inspect workbook details.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      files: [],
+      rows: [],
+      records: [],
+      fgVersions: [],
+      fgBomVersions: [],
+      itemIndex: new Map(),
+      bomIndex: new Map(),
+      itemRecordIndex: new Map(),
+      bomRecordIndex: new Map(),
+      cacheEntries: new Map(),
+      selected: null,
+      selectedVersion: null,
+      selectedFgBomVersion: null,
+      selectedRecord: null,
+      search: "",
+      lookup: "",
+      batchTerms: [],
+      lookupMode: "contains",
+      lookupTarget: "everything",
+      indexMode: "bom",
+      type: "",
+      recordFilter: "",
+      bomOnly: true,
+      basePath: localStorage.getItem("bomDatasetBasePath") || "",
+      processedCount: 0,
+      skippedCount: 0,
+      cacheHitCount: 0,
+      busy: false
+    };
+
+    const excelPattern = /\.(xls|xlsx|xlsm|xlsb|csv)$/i;
+    const folderInput = document.querySelector("#folderInput");
+    const fileInput = document.querySelector("#fileInput");
+    const tableHost = document.querySelector("#tableHost");
+    const details = document.querySelector("#details");
+    const stats = document.querySelector("#stats");
+    const statusEl = document.querySelector("#status");
+    const progressBar = document.querySelector("#progressBar");
+    const searchBox = document.querySelector("#searchBox");
+    const indexMode = document.querySelector("#indexMode");
+    const lookupBox = document.querySelector("#lookupBox");
+    const batchBox = document.querySelector("#batchBox");
+    const lookupTarget = document.querySelector("#lookupTarget");
+    const lookupMode = document.querySelector("#lookupMode");
+    const clearLookup = document.querySelector("#clearLookup");
+    const runBatch = document.querySelector("#runBatch");
+    const clearBatch = document.querySelector("#clearBatch");
+    const lookupHost = document.querySelector("#lookupHost");
+    const typeFilter = document.querySelector("#typeFilter");
+    const recordFilter = document.querySelector("#recordFilter");
+    const bomOnly = document.querySelector("#bomOnly");
+    const basePathBox = document.querySelector("#basePathBox");
+    const saveBasePath = document.querySelector("#saveBasePath");
+    const clearBasePath = document.querySelector("#clearBasePath");
+    const loadCache = document.querySelector("#loadCache");
+    const exportCsv = document.querySelector("#exportCsv");
+    const themeToggle = document.querySelector("#themeToggle");
+    const startIndexBtn = document.querySelector("#startIndexing");
+    let pendingFiles = null;
+
+    function normalize(value) {
+      return String(value ?? "").trim().toLowerCase();
+    }
+
+    function text(value) {
+      return String(value ?? "").trim();
+    }
+
+    function hasKeyValues(item, bom, fgItem = "", fgName = "") {
+      return text(item) !== "" || text(bom) !== "" || text(fgItem) !== "" || text(fgName) !== "";
+    }
+
+    function isRepeatedKeyHeader(value) {
+      return ["item number", "item no", "item", "fg", "fg name", "bom", "bom number", "bom no"].includes(normalize(value));
+    }
+
+    function codeValue(value) {
+      return text(value).toUpperCase();
+    }
+
+    function bomKind(value) {
+      const code = codeValue(value);
+      if (/^3\d{6}V\d{2}$/i.test(code)) return "versioned";
+      if (/^TD\d{4}A?$/i.test(code)) return "mold";
+      if (/^1\d{6}$/.test(code)) return "old";
+      if (/^3\d{6}$/.test(code)) return "new";
+      if (/^\d{4}$/.test(code)) return "family";
+      if (/^BOM\d{4,}$/i.test(code)) return "bom";
+      return "";
+    }
+
+    function isBomLike(value) {
+      return bomKind(value) !== "";
+    }
+
+    function fgKind(value) {
+      const code = codeValue(value);
+      if (/^(19|20)\d{2}$/.test(code)) return "";
+      if (/^\d{4,5}-[A-Z0-9]{2,5}[A-Z]?$/i.test(code)) return "fg";
+      if (/^\d{4,5}[A-Z]?$/i.test(code) && !/^1\d{4}$/.test(code)) return "fg";
+      return "";
+    }
+
+    function isFgLike(value) {
+      return fgKind(value) !== "";
+    }
+
+    function fgMatchesInText(value) {
+      const matches = String(value ?? "").match(/\b\d{4,5}(?:-[A-Z0-9]{2,5})?[A-Z]?\b/gi) || [];
+      return unique(matches.map(codeValue).filter(isFgLike));
+    }
+
+    function isBomCodeInContext(value, context = "") {
+      const kind = bomKind(value);
+      if (!kind) return false;
+      if (["bom", "versioned", "mold"].includes(kind)) return true;
+      return containsBomTitle(context) || /\bP?BOM\b/i.test(String(context || ""));
+    }
+
+    function bomMatchesInText(value, context = value) {
+      const matches = String(value ?? "").match(/\b(?:3\d{6}V\d{2}|TD\d{4}A?|BOM\d{4,}|[13]\d{6}|\d{4})\b/gi) || [];
+      return unique(matches.map(codeValue).filter((code) => isBomCodeInContext(code, context)));
+    }
+
+    function bomValuesByTarget(values, target, context = values) {
+      const contextText = Array.isArray(context) ? context.join(" ") : context;
+      const codes = unique((values || []).flatMap((value) => bomMatchesInText(value, contextText)));
+      if (target === "bom") return codes;
+      return codes.filter((code) => bomKind(code) === target);
+    }
+
+    function isItem(value) {
+      return /^\d{4,}$/.test(text(value));
+    }
+
+    function isFractional(value) {
+      const num = Number(value);
+      return Number.isFinite(num) && Math.abs(num % 1) > 0.000001;
+    }
+
+    function unique(values) {
+      return [...new Set(values.filter(Boolean))];
+    }
+
+    function putMulti(map, key, value) {
+      if (!key) return;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(value);
+    }
+
+    function filePath(file) {
+      return file.webkitRelativePath || file.name;
+    }
+
+    function fileSignature(file) {
+      return `${filePath(file)}|${file.size}|${file.lastModified || 0}`;
+    }
+
+    function filenameLikelyBom(file) {
+      const value = filePath(file);
+      return containsBomTitle(value) || /\bP?BOM\b/i.test(value) || /\bBOM\d+/i.test(value);
+    }
+
+    function setStatus(message, cls = "") {
+      statusEl.className = `status ${cls}`;
+      statusEl.innerHTML = message;
+      if (cls === "good" || cls === "warn") {
+        setTimeout(() => {
+          if (statusEl.innerHTML === message) {
+            statusEl.className = "status";
+            statusEl.textContent = "Ready.";
+          }
+        }, 4000);
+      }
+    }
+
+    function setProgress(done, total) {
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      progressBar.style.width = `${pct}%`;
+      if (pct === 100) {
+        progressBar.style.boxShadow = "0 0 12px rgba(13, 127, 79, 0.6)";
+      } else {
+        progressBar.style.boxShadow = "0 0 8px rgba(15, 118, 110, 0.4)";
+      }
+    }
+
+    const CACHE_DB = "bom-dataset-index-cache";
+    const CACHE_STORE = "indexes";
+    const CACHE_KEY = "latest-v8";
+    const LEGACY_CACHE_KEYS = ["latest-v7", "latest-v6", "latest-v5", "latest-v4", "latest-v3"];
+    const CACHE_CHUNK_BYTES = 100 * 1024 * 1024;
+    const CSV_PART_BYTES = 100 * 1024 * 1024;
+    const textEncoder = new TextEncoder();
+
+    function openCacheDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(CACHE_DB, 1);
+        request.onupgradeneeded = () => request.result.createObjectStore(CACHE_STORE);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function cachePartKey(index) {
+      return `${CACHE_KEY}-part-${String(index).padStart(4, "0")}`;
+    }
+
+    function cacheManifestKey() {
+      return `${CACHE_KEY}-manifest`;
+    }
+
+    function encodedBytes(value) {
+      return textEncoder.encode(String(value ?? "")).length;
+    }
+
+    function cacheArrayUnits(path, kind, values) {
+      const items = Array.isArray(values) ? values : [];
+      if (!items.length) return [];
+      const units = [];
+      let current = [];
+      let currentBytes = encodedBytes(JSON.stringify({ kind, path, values: [] }));
+
+      items.forEach((item) => {
+        const itemBytes = encodedBytes(JSON.stringify(item)) + 1;
+        if (current.length && currentBytes + itemBytes > CACHE_CHUNK_BYTES) {
+          units.push({ kind, path, values: current });
+          current = [];
+          currentBytes = encodedBytes(JSON.stringify({ kind, path, values: [] }));
+        }
+        current.push(item);
+        currentBytes += itemBytes;
+      });
+
+      if (current.length) units.push({ kind, path, values: current });
+      return units;
+    }
+
+    function cacheUnitsForEntry(entry) {
+      const entryBytes = encodedBytes(JSON.stringify(entry));
+      if (entryBytes <= CACHE_CHUNK_BYTES || !entry || !entry.summary) return [entry];
+
+      const summary = entry.summary;
+      const baseSummary = {
+        ...summary,
+        records: [],
+        bomVersions: [],
+        activeFgVersions: []
+      };
+      const baseEntry = { ...entry, summary: baseSummary };
+      return [
+        { kind: "entry-base", path: entry.path, entry: baseEntry },
+        ...cacheArrayUnits(entry.path, "entry-records", summary.records),
+        ...cacheArrayUnits(entry.path, "entry-bomVersions", summary.bomVersions)
+      ];
+    }
+
+    function recomposeCacheEntries(units) {
+      const entries = [];
+      const fragments = new Map();
+
+      const ensureFragment = (path) => {
+        if (!fragments.has(path)) fragments.set(path, { entry: null, records: [], bomVersions: [] });
+        return fragments.get(path);
+      };
+
+      units.forEach((unit) => {
+        if (!unit || !unit.kind) {
+          entries.push(unit);
+          return;
+        }
+
+        if (unit.kind === "entry-base") {
+          ensureFragment(unit.path).entry = unit.entry;
+          return;
+        }
+
+        if (unit.kind === "entry-records") {
+          ensureFragment(unit.path).records.push(...(Array.isArray(unit.values) ? unit.values : []));
+          return;
+        }
+
+        if (unit.kind === "entry-bomVersions") {
+          ensureFragment(unit.path).bomVersions.push(...(Array.isArray(unit.values) ? unit.values : []));
+        }
+      });
+
+      fragments.forEach((fragment) => {
+        if (!fragment.entry) return;
+        if (fragment.entry.summary) {
+          fragment.entry.summary.records = fragment.records;
+          fragment.entry.summary.bomVersions = fragment.bomVersions;
+          fragment.entry.summary.activeFgVersions = fragment.bomVersions.filter((version) => version.isTopLevelFg && version.isActiveApproved);
+        }
+        entries.push(fragment.entry);
+      });
+
+      return entries;
+    }
+
+    async function readCacheValue(key) {
+      const db = await openCacheDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(CACHE_STORE, "readonly");
+        const request = tx.objectStore(CACHE_STORE).get(key);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+        tx.oncomplete = () => db.close();
+      });
+    }
+
+    async function readCachePayload() {
+      const manifest = await readCacheValue(cacheManifestKey());
+      if (manifest && Array.isArray(manifest.parts)) {
+        const units = [];
+        for (const key of manifest.parts) {
+          const part = await readCacheValue(key);
+          if (part && Array.isArray(part.entries)) units.push(...part.entries);
+        }
+        const entries = manifest.fragmented ? recomposeCacheEntries(units) : units;
+        return { ...manifest, entries };
+      }
+      return null;
+    }
+
+    async function writeCachePayload(payload) {
+      const entries = Array.isArray(payload.entries) ? payload.entries : [];
+      const units = entries.flatMap((entry) => cacheUnitsForEntry(entry));
+      const parts = [];
+      let current = [];
+      let currentBytes = encodedBytes('{"entries":[]}');
+
+      units.forEach((unit) => {
+        const unitBytes = encodedBytes(JSON.stringify(unit)) + 1;
+        if (current.length && currentBytes + unitBytes > CACHE_CHUNK_BYTES) {
+          parts.push(current);
+          current = [];
+          currentBytes = encodedBytes('{"entries":[]}');
+        }
+        current.push(unit);
+        currentBytes += unitBytes;
+      });
+      if (current.length || !parts.length) parts.push(current);
+
+      const manifest = {
+        version: payload.version,
+        generatedAt: payload.generatedAt,
+        chunkBytes: CACHE_CHUNK_BYTES,
+        entryCount: entries.length,
+        unitCount: units.length,
+        fragmented: true,
+        parts: parts.map((_, index) => cachePartKey(index + 1))
+      };
+
+      const db = await openCacheDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(CACHE_STORE, "readwrite");
+        const store = tx.objectStore(CACHE_STORE);
+        const keysRequest = store.getAllKeys();
+        keysRequest.onsuccess = () => {
+          keysRequest.result
+            .filter((key) => String(key).startsWith(CACHE_KEY) || LEGACY_CACHE_KEYS.some((legacyKey) => String(key).startsWith(legacyKey)))
+            .forEach((key) => store.delete(key));
+          store.put(manifest, cacheManifestKey());
+          parts.forEach((entriesPart, index) => {
+            store.put({
+              version: payload.version,
+              generatedAt: payload.generatedAt,
+              part: index + 1,
+              totalParts: parts.length,
+              entries: entriesPart
+            }, cachePartKey(index + 1));
+          });
+        };
+        keysRequest.onerror = () => reject(keysRequest.error);
+        tx.oncomplete = () => {
+          db.close();
+          resolve(manifest);
+        };
+        tx.onerror = () => {
+          db.close();
+          reject(tx.error);
+        };
+      });
+    }
+
+    async function loadCacheEntries() {
+      try {
+        const payload = await readCachePayload();
+        const entries = payload && Array.isArray(payload.entries) ? payload.entries : [];
+        return new Map(entries.map((entry) => [entry.path, entry]));
+      } catch (error) {
+        setStatus(`Cache could not be read: ${escapeHtml(error.message || error)}`, "warn");
+        return new Map();
+      }
+    }
+
+    async function saveCacheEntries() {
+      const payload = {
+        version: 8,
+        generatedAt: new Date().toISOString(),
+        entries: [...state.cacheEntries.values()]
+      };
+      return writeCachePayload(payload);
+    }
+
+    function sheetRows(sheet) {
+      return XLSX.utils.sheet_to_json(sheet, {
+        header: 1,
+        defval: "",
+        blankrows: false,
+        raw: false
+      });
+    }
+
+    function rowText(row) {
+      return row.map(text).filter(Boolean).join(" | ");
+    }
+
+    function normalizedRow(row) {
+      return row.map((cell) => normalize(cell));
+    }
+
+    const HEADER_ALIASES = {
+      fgItem: ["fg", "fg item", "fg number", "fg no", "fg code", "finished good", "finished goods", "finished good item", "finished good number", "parent fg", "parent item"],
+      fgName: ["fg name", "fg product name", "finished good name", "finished goods name", "finished good product name", "parent fg name", "parent name"],
+      itemNumber: ["item number", "item no", "item", "item code", "part number", "component", "component item", "ma hang", "ma vat tu", "ma linh kien", "mã hàng", "mã vật tư", "mã linh kiện", "物料编码", "物料编号", "物料号", "料号", "品号", "项目编号"],
+      productName: ["product name", "item name", "product", "description", "name", "ten hang", "ten vat tu", "ten san pham", "tên hàng", "tên vật tư", "tên sản phẩm", "品名", "物料名称", "产品名称", "名称", "描述"],
+      warehouse: ["warehouse", "site warehouse", "whse", "kho", "nha kho", "nhà kho", "仓库", "库位"],
+      quantity: ["quantity", "qty", "usage", "bom qty", "so luong", "số lượng", "数量", "用量", "需求数量"],
+      perSeries: ["per series", "per", "series", "base qty", "base quantity", "dinh muc", "định mức", "基准数量", "每系列", "每"],
+      unit: ["unit", "uom", "unit of measure", "don vi", "đơn vị", "单位", "计量单位"],
+      bom: ["bom", "bom number", "bom no", "bom id", "ma bom", "mã bom", "bom编号", "bom号", "物料清单号", "清单号"],
+      bomName: ["name", "bom name", "ten bom", "tên bom", "名称", "bom名称", "清单名称"],
+      fromQty: ["from quantity", "from qty", "quantity from", "tu so luong", "từ số lượng", "起始数量", "从数量"],
+      fromDate: ["from date", "effective from", "valid from", "tu ngay", "từ ngày", "生效日期", "开始日期"],
+      toDate: ["to date", "valid to", "effective to", "den ngay", "đến ngày", "失效日期", "结束日期"],
+      active: ["active", "is active", "hoat dong", "hoạt động", "kich hoat", "kích hoạt", "有效", "启用", "激活"],
+      approvedBy: ["approved by", "approver", "nguoi duyet", "người duyệt", "批准人", "审批人"],
+      approved: ["approved", "is approved", "da duyet", "đã duyệt", "批准", "已批准", "审批"],
+      itemGroup: ["item group", "group", "nhom hang", "nhóm hàng", "nhom vat tu", "nhóm vật tư", "物料组", "产品组", "项目组"]
+    };
+
+    const BOM_TITLE_TERMS = [
+      "bom",
+      "bill of material",
+      "bill of materials",
+      "bom line",
+      "bomconsistof",
+      "pbom",
+      "dinh muc",
+      "định mức",
+      "dinh muc nguyen vat lieu",
+      "định mức nguyên vật liệu",
+      "bang dinh muc",
+      "bảng định mức",
+      "bang vat tu",
+      "bảng vật tư",
+      "cau truc san pham",
+      "cấu trúc sản phẩm",
+      "物料清单",
+      "物料表",
+      "材料清单",
+      "产品结构",
+      "bom表",
+      "配方"
+    ].map(normalize);
+
+    function aliases(keyOrNames) {
+      const keys = Array.isArray(keyOrNames) ? keyOrNames : [keyOrNames];
+      return keys.flatMap((key) => HEADER_ALIASES[key] || [key]).map(normalize);
+    }
+
+    function hasHeader(row, keyOrNames) {
+      const normalized = Array.isArray(row) && row[0] && typeof row[0] === 'string' ? row : normalizedRow(row);
+      const names = aliases(keyOrNames);
+      return normalized.some((cell) => names.includes(cell));
+    }
+
+    function hasAnyHeader(rows, keyOrNames) {
+      return rows.some((row) => hasHeader(row.headers || row, keyOrNames));
+    }
+
+    function containsBomTitle(value) {
+      const normalized = normalize(value);
+      return BOM_TITLE_TERMS.some((term) => normalized.includes(term));
+    }
+
+    function findHeaderRows(rows) {
+      const matches = [];
+      rows.slice(0, 20).forEach((row, rowIndex) => {
+        const normalized = normalizedRow(row);
+        const textRow = row.map(text);
+        const hasItem = hasHeader(normalized, "itemNumber");
+        const hasFg = hasHeader(normalized, "fgItem");
+        const hasFgName = hasHeader(normalized, "fgName");
+        const hasProduct = hasHeader(normalized, "productName");
+        const hasWarehouse = hasHeader(normalized, "warehouse");
+        const hasQty = hasHeader(normalized, "quantity");
+        const hasBom = hasHeader(normalized, "bom");
+        const hasName = hasHeader(normalized, "bomName");
+        const hasItemGroup = hasHeader(normalized, "itemGroup");
+
+        if ((hasItem && hasProduct) || hasFg || hasFgName || (hasBom && hasName) || hasWarehouse || hasQty || hasItemGroup) {
+          matches.push({ rowIndex, headers: textRow, normalized });
+        }
+      });
+      return matches;
+    }
+
+    function headerColumn(headers, names) {
+      const normalized = headers.map(normalize);
+      const aliasNames = aliases(names);
+      for (const name of aliasNames) {
+        const index = normalized.indexOf(name);
+        if (index >= 0) return index;
+      }
+      if (aliasNames.includes("item number")) {
+        const looseIndex = normalized.findIndex((cell) => cell.startsWith("item nu") || cell.startsWith("item num"));
+        if (looseIndex >= 0) return looseIndex;
+      }
+      return -1;
+    }
+
+    function valueAt(row, index) {
+      return index >= 0 ? text(row[index]) : "";
+    }
+
+    function searchText(values) {
+      return values.map((value) => normalize(value)).filter(Boolean).join(" ");
+    }
+
+    function detectType(sheetSummaries, filename) {
+      const allHeaderRows = sheetSummaries.flatMap((sheet) => sheet.headerRows);
+      const hasLineHeaders = hasAnyHeader(allHeaderRows, "warehouse") && hasAnyHeader(allHeaderRows, "quantity") && hasAnyHeader(allHeaderRows, "perSeries");
+      const hasBomHeaders = hasAnyHeader(allHeaderRows, "bom") && hasAnyHeader(allHeaderRows, "fromQty");
+      const hasParentHeaders = (hasAnyHeader(allHeaderRows, "itemGroup") && hasAnyHeader(allHeaderRows, "productName")) || hasAnyHeader(allHeaderRows, "fgItem") || hasAnyHeader(allHeaderRows, "fgName");
+      const hasBomTitle = containsBomTitle(filename) || sheetSummaries.some((sheet) => containsBomTitle(sheet.name) || containsBomTitle(sheet.sampleText || ""));
+      const hasBomIdentifier = sheetSummaries.some((sheet) => sheet.bomCount > 0);
+
+      if (hasLineHeaders && hasBomHeaders) return "Mixed BOM report";
+      if (hasLineHeaders || (hasBomTitle && hasAnyHeader(allHeaderRows, "quantity"))) return "BOM line";
+      if (hasBomHeaders || hasParentHeaders || hasBomTitle || hasBomIdentifier) return "BOM header";
+      if (!hasBomTitle) return "Non-BOM";
+      return "Unknown";
+    }
+
+    function extractStructuredRows(fileSummary, sheetName, rows, headerMatch) {
+      const headers = headerMatch.headers;
+      const itemCol = headerColumn(headers, ["itemNumber"]);
+      const fgCol = headerColumn(headers, ["fgItem"]);
+      const fgNameCol = headerColumn(headers, ["fgName"]);
+      const productCol = headerColumn(headers, ["productName"]);
+      const warehouseCol = headerColumn(headers, ["warehouse"]);
+      const qtyCol = headerColumn(headers, ["quantity"]);
+      const perCol = headerColumn(headers, ["perSeries"]);
+      const unitCol = headerColumn(headers, ["unit"]);
+      const bomCol = headerColumn(headers, ["bom"]);
+      const bomNameCol = headerColumn(headers, ["bomName"]);
+      const records = [];
+
+      for (let rowIndex = headerMatch.rowIndex + 1; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex];
+        const item = itemCol >= 0 ? text(row[itemCol]) : "";
+        const fgItem = fgCol >= 0 ? text(row[fgCol]) : (isFgLike(item) ? item : "");
+        const fgName = fgNameCol >= 0 ? text(row[fgNameCol]) : "";
+        const productName = productCol >= 0 ? text(row[productCol]) : "";
+        const warehouse = warehouseCol >= 0 ? text(row[warehouseCol]) : "";
+        const quantity = qtyCol >= 0 ? text(row[qtyCol]) : "";
+        const perSeries = perCol >= 0 ? text(row[perCol]) : "";
+        const unit = unitCol >= 0 ? text(row[unitCol]) : "";
+        const bom = bomCol >= 0 ? codeValue(row[bomCol]) : "";
+        const bomName = bomNameCol >= 0 ? text(row[bomNameCol]) : "";
+        const lineText = rowText(row);
+
+        if (!lineText) continue;
+        if (isRepeatedKeyHeader(item) || isRepeatedKeyHeader(fgItem) || isRepeatedKeyHeader(fgName) || isRepeatedKeyHeader(bom)) continue;
+        if (!hasKeyValues(item, bom, fgItem, fgName)) continue;
+        if (itemCol >= 0 && !item && !fgItem && !fgName && !productName && !warehouse && !quantity) continue;
+        if (bomCol >= 0 && !bom && !bomName) continue;
+
+        const record = {
+          file: fileSummary.file,
+          path: fileSummary.path,
+          sheet: sheetName,
+          row: rowIndex + 1,
+          item,
+          fgItem,
+          fgName,
+          productName,
+          warehouse,
+          quantity,
+          perSeries,
+          unit,
+          bom,
+          bomName,
+          text: lineText,
+          searchText: searchText([fileSummary.file, fileSummary.path, sheetName, item, fgItem, fgName, productName, warehouse, quantity, perSeries, unit, bom, bomName, lineText])
+        };
+        records.push(record);
+      }
+
+      return records;
+    }
+
+    function extractBomVersions(fileSummary, sheetName, rows) {
+      const versions = [];
+      let parent = { item: "", name: "", group: "" };
+      let capturedTopBomForParent = false;
+
+      rows.forEach((row, rowIndex) => {
+        const itemHeader = hasHeader(row, "itemNumber") && hasHeader(row, "productName") && hasHeader(row, "itemGroup");
+        const fgHeader = hasHeader(row, "fgItem") || hasHeader(row, "fgName");
+        if ((itemHeader || fgHeader) && rows[rowIndex + 1]) {
+          const itemCol = headerColumn(row, ["fgItem", "itemNumber"]);
+          const productCol = headerColumn(row, ["fgName", "productName"]);
+          const groupCol = headerColumn(row, ["itemGroup"]);
+          const next = rows[rowIndex + 1];
+          parent = {
+            item: valueAt(next, itemCol),
+            name: valueAt(next, productCol),
+            group: valueAt(next, groupCol) || (fgHeader ? "fingoods" : "")
+          };
+          capturedTopBomForParent = false;
+        }
+
+        const bomHeader = hasHeader(row, "bom") && hasHeader(row, "bomName") && hasHeader(row, "fromQty");
+        if (!bomHeader || !rows[rowIndex + 1]) return;
+
+        const next = rows[rowIndex + 1];
+        const version = {
+          file: fileSummary.file,
+          path: fileSummary.path,
+          sheet: sheetName,
+          row: rowIndex + 2,
+          parentItem: parent.item,
+          parentName: parent.name,
+          itemGroup: parent.group,
+          bom: valueAt(next, headerColumn(row, ["bom"])).toUpperCase(),
+          bomName: valueAt(next, headerColumn(row, ["bomName"])),
+          fromQty: valueAt(next, headerColumn(row, ["fromQty"])),
+          fromDate: valueAt(next, headerColumn(row, ["fromDate"])),
+          toDate: valueAt(next, headerColumn(row, ["toDate"])),
+          active: valueAt(next, headerColumn(row, ["active"])),
+          approvedBy: valueAt(next, headerColumn(row, ["approvedBy"])),
+          approved: valueAt(next, headerColumn(row, ["approved"]))
+        };
+        if (!hasKeyValues(version.parentItem, version.bom)) return;
+        version.isFg = normalize(version.itemGroup) === "fingoods" || isFgLike(version.parentItem);
+        version.isTopLevelFg = version.isFg && !capturedTopBomForParent;
+        version.isActiveApproved = normalize(version.active) === "yes" && normalize(version.approved) === "yes";
+        version.searchText = searchText([
+          version.file,
+          version.path,
+          version.sheet,
+          version.parentItem,
+          version.parentName,
+          version.itemGroup,
+          version.bom,
+          version.bomName,
+          version.fromQty,
+          version.fromDate,
+          version.toDate,
+          version.active,
+          version.approvedBy,
+          version.approved
+        ]);
+        if (version.bom || version.bomName || version.parentItem) {
+          versions.push(version);
+          if (version.isFg) capturedTopBomForParent = true;
+        }
+      });
+
+      return versions;
+    }
+
+    function extractRegexValues(rows, regex) {
+      const found = [];
+      rows.forEach((row) => {
+        row.forEach((cell) => {
+          const value = text(cell);
+          if (!value) return;
+          const matches = value.match(regex);
+          if (matches) found.push(...matches);
+        });
+      });
+      return unique(found);
+    }
+
+    function extractItemsAndBoms(rows) {
+      const items = new Set();
+      const fgItems = new Set();
+      const boms = new Set();
+      const bomFamilies = new Set();
+      const oldBoms = new Set();
+      const newBoms = new Set();
+      const versionedBoms = new Set();
+      const molds = new Set();
+
+      const addBom = (code) => {
+        const kind = bomKind(code);
+        if (!kind) return false;
+        boms.add(code);
+        if (kind === "family") bomFamilies.add(code);
+        if (kind === "old") oldBoms.add(code);
+        if (kind === "new") newBoms.add(code);
+        if (kind === "versioned") versionedBoms.add(code);
+        if (kind === "mold") molds.add(code);
+        return true;
+      };
+
+      rows.forEach((row) => {
+        const rowContext = rowText(row);
+        row.forEach((cell) => {
+          const value = text(cell);
+          if (!value) return;
+          bomMatchesInText(value, rowContext).forEach(addBom);
+          fgMatchesInText(value).forEach((match) => {
+            if (!isBomCodeInContext(match, rowContext)) fgItems.add(match);
+          });
+          const itemMatches = value.match(/\b[A-Z0-9][A-Z0-9-]{2,}[A-Z0-9]\b/gi);
+          if (itemMatches) {
+            itemMatches.forEach((match) => {
+              const code = codeValue(match);
+              if (!isBomCodeInContext(code, rowContext)) items.add(code);
+            });
+          }
+        });
+      });
+      return {
+        items: [...items],
+        fgItems: [...fgItems],
+        boms: [...boms],
+        bomFamilies: [...bomFamilies],
+        oldBoms: [...oldBoms],
+        newBoms: [...newBoms],
+        versionedBoms: [...versionedBoms],
+        molds: [...molds]
+      };
+    }
+
+    function summarizeWorkbook(file, workbook) {
+      const summary = {
+        file: file.name,
+        path: file.webkitRelativePath || file.name,
+        size: file.size,
+        modified: file.lastModified ? new Date(file.lastModified).toISOString() : "",
+        type: "Unknown",
+        sheetCount: workbook.SheetNames.length,
+        sheets: [],
+        records: [],
+        bomVersions: [],
+        items: [],
+        fgItems: [],
+        fgNames: [],
+        boms: [],
+        bomFamilies: [],
+        oldBoms: [],
+        newBoms: [],
+        versionedBoms: [],
+        molds: [],
+        productNames: [],
+        headers: [],
+        fractionalCount: 0,
+        sample: "",
+        error: ""
+      };
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const rows = sheetRows(workbook.Sheets[sheetName]);
+        const headerRows = findHeaderRows(rows);
+        const bomVersions = extractBomVersions(summary, sheetName, rows);
+        const {
+          items: regexItems,
+          fgItems,
+          boms: regexBoms,
+          bomFamilies,
+          oldBoms,
+          newBoms,
+          versionedBoms,
+          molds
+        } = extractItemsAndBoms(rows);
+        const sheetSummary = {
+          name: sheetName,
+          rows: rows.length,
+          headerRows,
+          sampleText: rows.slice(0, 20).map(rowText).join(" "),
+          itemCount: regexItems.length,
+          bomCount: regexBoms.length
+        };
+
+        summary.sheets.push(sheetSummary);
+        summary.items.push(...regexItems);
+        summary.fgItems.push(...fgItems);
+        summary.boms.push(...regexBoms);
+        summary.bomFamilies.push(...bomFamilies);
+        summary.oldBoms.push(...oldBoms);
+        summary.newBoms.push(...newBoms);
+        summary.versionedBoms.push(...versionedBoms);
+        summary.molds.push(...molds);
+        summary.bomVersions.push(...bomVersions);
+        summary.headers.push(...headerRows.flatMap((row) => row.headers.filter(Boolean)));
+        bomVersions.forEach((version) => {
+          if (version.parentItem) summary.items.push(version.parentItem);
+          if (version.isFg && version.parentItem) summary.fgItems.push(version.parentItem);
+          if (version.isFg && version.parentName) summary.fgNames.push(version.parentName);
+          if (version.bom) summary.boms.push(version.bom);
+          if (version.parentName) summary.productNames.push(version.parentName);
+          if (version.bomName) summary.productNames.push(version.bomName);
+        });
+
+        headerRows.forEach((headerRow) => {
+          const records = extractStructuredRows(summary, sheetName, rows, headerRow);
+          summary.records.push(...records);
+          records.forEach((record) => {
+            if (record.item) summary.items.push(record.item);
+            if (record.item && isFgLike(record.item)) summary.fgItems.push(codeValue(record.item));
+            if (record.fgItem) summary.fgItems.push(codeValue(record.fgItem));
+            if (record.fgName) summary.fgNames.push(record.fgName);
+            if (record.bom && isBomCodeInContext(record.bom, record.text)) summary.boms.push(record.bom.toUpperCase());
+            if (record.bom && !isBomCodeInContext(record.bom, record.text)) summary.items.push(record.bom);
+            if (record.bom && !isBomCodeInContext(record.bom, record.text) && isFgLike(record.bom)) summary.fgItems.push(codeValue(record.bom));
+            if (record.fgName) summary.productNames.push(record.fgName);
+            if (record.productName) summary.productNames.push(record.productName);
+            if (record.quantity && isFractional(record.quantity)) summary.fractionalCount += 1;
+          });
+        });
+
+        if (!summary.sample && rows.length) {
+          summary.sample = rows.slice(0, 8).map(rowText).filter(Boolean).join("\n");
+        }
+      });
+
+      summary.items = unique(summary.items);
+      summary.fgItems = unique(summary.fgItems);
+      summary.fgNames = unique(summary.fgNames);
+      summary.boms = unique(summary.boms);
+      summary.bomFamilies = unique(summary.bomFamilies);
+      summary.oldBoms = unique(summary.oldBoms);
+      summary.newBoms = unique(summary.newBoms);
+      summary.versionedBoms = unique(summary.versionedBoms);
+      summary.molds = unique(summary.molds);
+      summary.productNames = unique(summary.productNames);
+      summary.headers = unique(summary.headers);
+      summary.type = detectType(summary.sheets, summary.file);
+      summary.isBomRelated = !["Non-BOM", "Unknown", "Error"].includes(summary.type) || summary.bomVersions.length > 0 || summary.records.length > 0;
+      summary.activeFgVersions = summary.bomVersions.filter((version) => version.isTopLevelFg && version.isActiveApproved);
+      summary.searchText = summary.isBomRelated ? searchText([
+        summary.file,
+        summary.path,
+        summary.type,
+        ...summary.sheets.map((sheet) => sheet.name),
+        ...summary.items,
+        ...summary.fgItems,
+        ...summary.fgNames,
+        ...summary.boms,
+        ...summary.bomFamilies,
+        ...summary.oldBoms,
+        ...summary.newBoms,
+        ...summary.versionedBoms,
+        ...summary.molds,
+        ...summary.productNames,
+        ...summary.headers,
+        ...summary.bomVersions.flatMap((version) => [version.parentItem, version.parentName, version.itemGroup, version.bom, version.bomName, version.active, version.approved, version.approvedBy]),
+        ...(summary.isBomRelated ? BOM_TITLE_TERMS : [])
+      ]) : searchText([summary.file, summary.path, summary.type]);
+      return summary;
+    }
+
+    function summarizeWorkbookUniversal(file, workbook) {
+      const summary = {
+        file: file.name,
+        path: file.webkitRelativePath || file.name,
+        size: file.size,
+        modified: file.lastModified ? new Date(file.lastModified).toISOString() : "",
+        type: "Universal",
+        sheetCount: workbook.SheetNames.length,
+        sheets: [],
+        records: [],
+        bomVersions: [],
+        items: [],
+        fgItems: [],
+        fgNames: [],
+        boms: [],
+        bomFamilies: [],
+        oldBoms: [],
+        newBoms: [],
+        versionedBoms: [],
+        molds: [],
+        productNames: [],
+        headers: [],
+        fractionalCount: 0,
+        sample: "",
+        error: "",
+        isBomRelated: true
+      };
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const rows = sheetRows(workbook.Sheets[sheetName]);
+        let nonEmptyRows = 0;
+        rows.forEach((row, rowIndex) => {
+          const indexedCells = [];
+          const visibleValues = [];
+          row.forEach((cell, colIndex) => {
+            const value = text(cell);
+            if (!value) return;
+            visibleValues.push(value);
+            indexedCells.push(`${colIndex + 1}:${value}`);
+          });
+          const line = visibleValues.join(" | ");
+          if (!line) return;
+          nonEmptyRows += 1;
+          summary.records.push({
+            file: summary.file,
+            path: summary.path,
+            sheet: sheetName,
+            row: rowIndex + 1,
+            column: "",
+            item: "",
+            fgItem: "",
+            fgName: "",
+            productName: line.slice(0, 200),
+            warehouse: "",
+            quantity: "",
+            perSeries: "",
+            unit: "",
+            bom: "",
+            bomName: "",
+            text: line,
+            cellIndexText: indexedCells.join("\t"),
+            searchText: searchText([summary.file, summary.path, sheetName, line])
+          });
+        });
+        summary.sheets.push({
+          name: sheetName,
+          rows: rows.length,
+          headerRows: [],
+          sampleText: rows.slice(0, 20).map(rowText).join(" "),
+          itemCount: 0,
+          bomCount: 0,
+          nonEmptyRows
+        });
+      });
+      summary.sample = summary.records.slice(0, 8).map((r) => r.text).join("\n");
+      summary.searchText = searchText([summary.file, summary.path, "Universal", ...summary.sheets.map((s) => s.name), summary.sample]);
+      return summary;
+    }
+
+    async function parseFile(file, mode = state.indexMode) {
+      const buffer = await file.arrayBuffer();
+      return parseBufferInWorker(file, buffer, mode);
+    }
+
+    function resetIndexState(files = []) {
+      state.files = files;
+      state.rows = [];
+      state.records = [];
+      state.fgVersions = [];
+      state.fgBomVersions = [];
+      state.itemIndex = new Map();
+      state.bomIndex = new Map();
+      state.itemRecordIndex = new Map();
+      state.bomRecordIndex = new Map();
+      state.selected = null;
+      state.selectedRecord = null;
+      state.selectedVersion = null;
+      state.selectedFgBomVersion = null;
+      state.processedCount = 0;
+      state.skippedCount = 0;
+      state.cacheHitCount = 0;
+    }
+
+    function sourcePath(path) {
+      const cleanPath = String(path || "").replace(/\//g, "\\");
+      const base = String(state.basePath || "").trim().replace(/\//g, "\\").replace(/\\+$/, "");
+      if (!base) return cleanPath;
+      if (/^[a-z]:\\/i.test(cleanPath) || cleanPath.startsWith("\\\\")) return cleanPath;
+      return `${base}\\${cleanPath.replace(/^\\+/, "")}`;
+    }
+
+    function sourcePathHtml(path, terms = activeHighlightTerms()) {
+      const explorerPath = sourcePath(path);
+      return `<span class="small">${highlightText(explorerPath, terms)}</span> <button class="ghost copy-source" data-source="${escapeHtml(explorerPath)}">Copy</button>`;
+    }
+
+    function applyBomCategories(summary) {
+      if (!summary) return summary;
+      const boms = unique([
+        ...(Array.isArray(summary.boms) ? summary.boms : []),
+        ...(Array.isArray(summary.records) ? summary.records.flatMap((record) => bomValuesByTarget([record.bom, record.bomName, record.text], "bom", record.text)) : []),
+        ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.map((version) => version.bom) : [])
+      ].map(codeValue).filter(Boolean));
+
+      summary.boms = boms;
+      summary.bomFamilies = unique([...(summary.bomFamilies || []), ...boms.filter((code) => bomKind(code) === "family")]);
+      summary.oldBoms = unique([...(summary.oldBoms || []), ...boms.filter((code) => bomKind(code) === "old")]);
+      summary.newBoms = unique([...(summary.newBoms || []), ...boms.filter((code) => bomKind(code) === "new")]);
+      summary.versionedBoms = unique([...(summary.versionedBoms || []), ...boms.filter((code) => bomKind(code) === "versioned")]);
+      summary.molds = unique([...(summary.molds || []), ...boms.filter((code) => bomKind(code) === "mold")]);
+      return summary;
+    }
+
+    function applyFgCategories(summary) {
+      if (!summary) return summary;
+      const fgItems = unique([
+        ...(Array.isArray(summary.fgItems) ? summary.fgItems : []),
+        ...(Array.isArray(summary.items) ? summary.items.filter(isFgLike) : []),
+        ...(Array.isArray(summary.records) ? summary.records.flatMap((record) => {
+          const values = [record.item];
+          if (record.bom && !isBomCodeInContext(record.bom, record.text)) values.push(record.bom);
+          return values.filter(isFgLike);
+        }) : []),
+        ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => version.isFg).map((version) => version.parentItem) : [])
+      ].map(codeValue).filter(Boolean));
+      summary.fgItems = fgItems;
+      summary.fgNames = unique([
+        ...(Array.isArray(summary.fgNames) ? summary.fgNames : []),
+        ...(Array.isArray(summary.records) ? summary.records.map((record) => record.fgName) : []),
+        ...(Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => version.isFg).map((version) => version.parentName) : [])
+      ].filter(Boolean));
+      return summary;
+    }
+
+    function cleanSummaryKeyValues(summary) {
+      if (!summary) return summary;
+      
+      // FIX: Bypasses data cleaning for Universal Mode
+      if (summary.type === "Universal") {
+        return summary;
+      }
+
+      applyBomCategories(summary);
+      applyFgCategories(summary);
+      const records = Array.isArray(summary.records) ? summary.records.filter((record) => hasKeyValues(record.item, record.bom, record.fgItem, record.fgName)) : [];
+      const bomVersions = Array.isArray(summary.bomVersions) ? summary.bomVersions.filter((version) => hasKeyValues(version.parentItem, version.bom)) : [];
+      summary.records = records;
+      summary.bomVersions = bomVersions;
+      summary.activeFgVersions = Array.isArray(summary.activeFgVersions)
+        ? summary.activeFgVersions.filter((version) => hasKeyValues(version.parentItem, version.bom))
+        : bomVersions.filter((version) => version.isTopLevelFg && version.isActiveApproved);
+      return summary;
+    }
+
+    function addSummaryToIndex(summary) {
+      summary = cleanSummaryKeyValues(summary);
+      state.rows.push(summary);
+      state.records.push(...summary.records);
+      state.fgVersions.push(...summary.activeFgVersions);
+      summary.items.forEach((item) => putMulti(state.itemIndex, item, summary.file));
+      summary.boms.forEach((bom) => putMulti(state.bomIndex, bom, summary.file));
+      summary.records.forEach((record) => {
+        if (record.item) putMulti(state.itemRecordIndex, normalize(record.item), record);
+        if (record.bom) putMulti(state.bomRecordIndex, normalize(record.bom), record);
+      });
+      buildFgBomVersions();
+    }
+
+    function cacheEntryForFile(file, data) {
+      return {
+        path: filePath(file),
+        signature: fileSignature(file),
+        mode: state.indexMode,
+        file: file.name,
+        size: file.size,
+        modified: file.lastModified || 0,
+        ...data
+      };
+    }
+
+    let parserWorker = null;
+    let workerRequestId = 0;
+    const workerRequests = new Map();
+
+    function createParserWorker() {
+      const workerSource = `
+        let XLSX_READY = false;
+        try {
+          importScripts("https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js");
+          XLSX_READY = true;
+        } catch (remoteError) {
+          try {
+            importScripts("xlsx.full.min.js");
+            XLSX_READY = true;
+          } catch (localError) {
+            XLSX_READY = false;
+          }
+        }
+        const HEADER_ALIASES = ${JSON.stringify(HEADER_ALIASES)};
+        const BOM_TITLE_TERMS = ${JSON.stringify(BOM_TITLE_TERMS)};
+        ${normalize.toString()}
+        ${text.toString()}
+        ${hasKeyValues.toString()}
+        ${isRepeatedKeyHeader.toString()}
+        ${codeValue.toString()}
+        ${bomKind.toString()}
+        ${isBomLike.toString()}
+        ${fgKind.toString()}
+        ${isFgLike.toString()}
+        ${fgMatchesInText.toString()}
+        ${isBomCodeInContext.toString()}
+        ${bomMatchesInText.toString()}
+        ${bomValuesByTarget.toString()}
+        ${isFractional.toString()}
+        ${unique.toString()}
+        ${rowText.toString()}
+        ${normalizedRow.toString()}
+        ${aliases.toString()}
+        ${hasHeader.toString()}
+        ${hasAnyHeader.toString()}
+        ${containsBomTitle.toString()}
+        ${findHeaderRows.toString()}
+        ${headerColumn.toString()}
+        ${valueAt.toString()}
+        ${searchText.toString()}
+        ${detectType.toString()}
+        ${extractStructuredRows.toString()}
+        ${extractRegexValues.toString()}
+        ${extractBomVersions.toString()}
+        ${summarizeWorkbook.toString()}
+        ${summarizeWorkbookUniversal.toString()}
+        function sheetRows(sheet) {
+          return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", blankrows: false, raw: false });
+        }
+        self.onmessage = (event) => {
+          const { id, file, buffer, mode } = event.data;
+          try {
+            if (!XLSX_READY || !self.XLSX) throw new Error("SheetJS failed to load in worker");
+            const workbook = XLSX.read(buffer, { type: "array", cellDates: true, cellNF: false, cellText: false });
+            const summary = mode === "universal" ? summarizeWorkbookUniversal(file, workbook) : summarizeWorkbook(file, workbook);
+            self.postMessage({ id, summary });
+          } catch (error) {
+            self.postMessage({ id, error: error && error.message ? error.message : String(error) });
+          }
+        };
+      `;
+      const blob = new Blob([workerSource], { type: "text/javascript" });
+      const worker = new Worker(URL.createObjectURL(blob));
+      worker.onmessage = (event) => {
+        const request = workerRequests.get(event.data.id);
+        if (!request) return;
+        workerRequests.delete(event.data.id);
+        if (event.data.error) request.reject(new Error(event.data.error));
+        else request.resolve(event.data.summary);
+      };
+      worker.onerror = (error) => {
+        workerRequests.forEach((request) => request.reject(new Error(error.message || "Worker parse failed")));
+        workerRequests.clear();
+      };
+      return worker;
+    }
+
+    async function parseBufferOnMain(file, buffer, mode = state.indexMode) {
+      const workbook = XLSX.read(buffer, {
+        type: "array",
+        cellDates: true,
+        cellNF: false,
+        cellText: false
+      });
+      return mode === "universal" ? summarizeWorkbookUniversal(file, workbook) : summarizeWorkbook(file, workbook);
+    }
+
+    async function parseBufferInWorker(file, buffer, mode = state.indexMode) {
+      if (!window.Worker) return parseBufferOnMain(file, buffer, mode);
+      try {
+        if (!parserWorker) parserWorker = createParserWorker();
+        const id = ++workerRequestId;
+        const fileMeta = {
+          name: file.name,
+          webkitRelativePath: filePath(file),
+          size: file.size,
+          lastModified: file.lastModified
+        };
+        return await new Promise((resolve, reject) => {
+          workerRequests.set(id, { resolve, reject });
+          parserWorker.postMessage({ id, file: fileMeta, buffer, mode }, [buffer]);
+        });
+      } catch (error) {
+        const fallbackBuffer = await file.arrayBuffer();
+        return parseBufferOnMain(file, fallbackBuffer, mode);
+      }
+    }
+
+    async function indexFiles(fileList) {
+      if (!window.XLSX) {
+        setStatus("SheetJS did not load. Connect to the internet or place xlsx.full.min.js next to this HTML file.", "bad");
+        return;
+      }
+      if (state.busy) return;
+
+      const files = [...fileList].filter((file) => excelPattern.test(file.name));
+      if (!files.length) {
+        setStatus("No Excel or CSV files found. Select the dataset folder or choose .xls/.xlsx/.csv files.", "warn");
+        return;
+      }
+
+      state.busy = true;
+      resetIndexState(files);
+      exportCsv.disabled = true;
+      state.cacheEntries = await loadCacheEntries();
+      render();
+
+      for (let index = 0; index < files.length; index++) {
+        const file = files[index];
+        setProgress(index, files.length);
+        const path = filePath(file);
+        const signature = fileSignature(file);
+        setStatus(`Indexing ${index + 1} of ${files.length}: ${path}`);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        try {
+          const cached = state.cacheEntries.get(path);
+          if (cached && cached.signature === signature && cached.mode === state.indexMode && (!cached.skipped || state.bomOnly || state.indexMode === "universal")) {
+            state.processedCount += 1;
+            state.cacheHitCount += 1;
+            if (cached.skipped) {
+              state.skippedCount += 1;
+              continue;
+            }
+            if (cached.summary) addSummaryToIndex(cached.summary);
+            continue;
+          }
+
+          const summary = await parseFile(file, state.indexMode);
+          state.processedCount += 1;
+          if (state.indexMode !== "universal" && state.bomOnly && !summary.isBomRelated) {
+            state.skippedCount += 1;
+            state.cacheEntries.set(path, cacheEntryForFile(file, { skipped: true, skipReason: "Workbook did not contain recognized BOM headers or titles" }));
+            continue;
+          }
+          addSummaryToIndex(summary);
+          state.cacheEntries.set(path, cacheEntryForFile(file, { skipped: false, summary }));
+        } catch (error) {
+          state.processedCount += 1;
+          const errorSummary = {
+            file: file.name,
+            path,
+            size: file.size,
+            modified: file.lastModified ? new Date(file.lastModified).toISOString() : "",
+            type: "Error",
+            sheetCount: 0,
+            sheets: [],
+            records: [],
+            bomVersions: [],
+            activeFgVersions: [],
+            items: [],
+            fgItems: [],
+            fgNames: [],
+            boms: [],
+            productNames: [],
+            headers: [],
+            fractionalCount: 0,
+            sample: "",
+            error: error && error.message ? error.message : String(error),
+            isBomRelated: false,
+            searchText: searchText([file.name, file.webkitRelativePath || file.name, "Error", error && error.message ? error.message : String(error)])
+          };
+          addSummaryToIndex(errorSummary);
+          state.cacheEntries.set(path, cacheEntryForFile(file, { skipped: false, summary: errorSummary }));
+        }
+
+        if (index % 25 === 0) {
+          renderStats();
+          renderTable();
+          renderLookup();
+        }
+      }
+
+      setProgress(files.length, files.length);
+      try {
+        const cacheManifest = await saveCacheEntries();
+        const cachePartText = cacheManifest && cacheManifest.parts ? ` in ${cacheManifest.parts.length.toLocaleString()} cache part(s)` : "";
+        const modeLabel = state.indexMode === "universal" ? "universal files" : "BOM-related files";
+        setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} ${modeLabel}, skipped ${state.skippedCount} unrelated files, and saved cache${cachePartText} for next scan.`, "good");
+      } catch (error) {
+        setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} files, skipped ${state.skippedCount} unrelated files. Cache save failed: ${escapeHtml(error.message || error)}`, "warn");
+      }
+      state.busy = false;
+      exportCsv.disabled = state.rows.length === 0;
+      render();
+    }
+
+    function filteredRows() {
+      const query = normalize(state.search);
+      if (state.indexMode === "universal") {
+        if (!query) return state.rows;
+        return state.rows.filter((row) => row.searchText.includes(query));
+      }
+      return state.rows.filter((row) => {
+        if (state.type && row.type !== state.type) return false;
+        if (state.recordFilter === "items" && !row.items.length) return false;
+        if (state.recordFilter === "fgItems" && !(row.fgItems || []).length) return false;
+        if (state.recordFilter === "boms" && !row.boms.length) return false;
+        if (state.recordFilter === "bomFamilies" && !(row.bomFamilies || []).length) return false;
+        if (state.recordFilter === "oldBoms" && !(row.oldBoms || []).length) return false;
+        if (state.recordFilter === "newBoms" && !(row.newBoms || []).length) return false;
+        if (state.recordFilter === "versionedBoms" && !(row.versionedBoms || []).length) return false;
+        if (state.recordFilter === "molds" && !(row.molds || []).length) return false;
+        if (state.recordFilter === "fractional" && !row.fractionalCount) return false;
+        if (state.recordFilter === "errors" && !row.error) return false;
+        if (!query) return true;
+        return row.searchText.includes(query);
+      });
+    }
+
+    function filteredRecordsForMainTable() {
+      const workbookRows = filteredRows();
+      const pathSet = new Set(workbookRows.map((row) => normalize(row.path)));
+      const query = normalize(state.search);
+      let records = state.records.filter((record) => pathSet.has(normalize(record.path)));
+      if (query) records = records.filter((record) => (record.searchText || "").includes(query));
+      return records;
+    }
+
+    function renderStats() {
+      const rows = state.rows;
+      const parsed = rows.filter((row) => !row.error).length;
+      const bomRelated = rows.filter((row) => row.isBomRelated).length;
+      const sheets = rows.reduce((sum, row) => sum + row.sheetCount, 0);
+      const records = state.records.length;
+      const items = state.itemIndex.size;
+      const fgItems = rows.reduce((set, row) => {
+        (row.fgItems || []).forEach((item) => set.add(item));
+        return set;
+      }, new Set()).size;
+      const boms = state.bomIndex.size;
+      const activeFg = state.fgVersions.length;
+      const errors = rows.filter((row) => row.error).length;
+
+      stats.innerHTML = `
+        <div class="metric"><span>Processed files</span><strong>${state.processedCount.toLocaleString()}</strong></div>
+        <div class="metric"><span>Indexed BOMs</span><strong>${bomRelated.toLocaleString()}</strong></div>
+        <div class="metric"><span>Cache hits</span><strong>${state.cacheHitCount.toLocaleString()}</strong></div>
+        <div class="metric"><span>Parsed rows</span><strong>${records.toLocaleString()}</strong></div>
+        <div class="metric"><span>Unique items</span><strong>${items.toLocaleString()}</strong></div>
+        <div class="metric"><span>Errors</span><strong>${errors.toLocaleString()}</strong></div>
+      `;
+    }
+
+    function renderTable() {
+      const rows = filteredRows();
+      const records = filteredRecordsForMainTable();
+      const terms = state.search ? [state.search] : [];
+      state.selectedRecord = null;
+      if (!state.rows.length) {
+        tableHost.innerHTML = `
+          <table>
+            <thead><tr><th>Status</th></tr></thead>
+            <tbody><tr><td class="muted">${state.processedCount ? "No rows were indexed." : "Select the dataset folder to begin indexing..."}</td></tr></tbody>
+          </table>
+        `;
+        return;
+      }
+
+      const visible = records.slice(0, 500);
+      if (state.indexMode === "universal") {
+        tableHost.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width: 360px;">Path</th>
+                <th style="min-width: 120px;">Sheet</th>
+                <th class="num" style="width: 70px;">Row</th>
+                <th class="num" style="width: 80px;">Column</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visible.map((record, index) => `
+                <tr data-rec="${index}">
+                  <td>${sourcePathHtml(record.path, terms)}</td>
+                  <td>${highlightText(record.sheet, terms)}</td>
+                  <td class="num">${record.row ?? ""}</td>
+                  <td class="num">${record.column ?? ""}</td>
+                </tr>
+              `).join("")}
+              ${records.length > visible.length ? `<tr><td colspan="4" class="muted" style="text-align: center; padding: 12px; font-size: 12px;">📊 Showing ${visible.length} of ${records.length} rows. Refine search to view more.</td></tr>` : ""}
+            </tbody>
+          </table>
+        `;
+      } else {
+        tableHost.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Item number</th>
+                <th>FG</th>
+                <th>FG name</th>
+                <th>Product name</th>
+                <th style="min-width: 260px;">File</th>
+                <th>Sheet</th>
+                <th class="num" style="width: 70px;">Row</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visible.map((record, index) => `
+                <tr data-rec="${index}">
+                  <td>${highlightText(record.item, terms)}</td>
+                  <td>${highlightText(record.fgItem, terms)}</td>
+                  <td>${highlightText(record.fgName, terms)}</td>
+                  <td>${highlightText(record.productName, terms)}</td>
+                  <td>${sourcePathHtml(record.path, terms)}</td>
+                  <td>${highlightText(record.sheet, terms)}</td>
+                  <td class="num">${record.row ?? ""}</td>
+                </tr>
+              `).join("")}
+              ${records.length > visible.length ? `<tr><td colspan="7" class="muted" style="text-align: center; padding: 12px; font-size: 12px;">📊 Showing ${visible.length} of ${records.length} rows. Refine search to view more.</td></tr>` : ""}
+            </tbody>
+          </table>
+        `;
+      }
+
+      tableHost.querySelectorAll("tr[data-rec]").forEach((tr) => {
+        tr.addEventListener("click", () => {
+          const rec = visible[Number(tr.dataset.rec)];
+          state.selectedRecord = rec || null;
+          state.selected = rec ? state.rows.find((row) => row.path === rec.path) : null;
+          renderDetails();
+        });
+      });
+      bindSourceCopy(tableHost);
+    }
+
+    function typeBadge(row) {
+      if (row.error) return `<span class="badge bad">Error</span>`;
+      if (row.type === "BOM line") return `<span class="badge good">BOM line</span>`;
+      if (row.type === "Mixed BOM report") return `<span class="badge warn">Mixed BOM report</span>`;
+      return `<span class="badge">${escapeHtml(row.type)}</span>`;
+    }
+
+    function lookupMatches() {
+      return lookupMatchesForTerm(state.lookup);
+    }
+
+    function recordLookupValues(record, target = state.lookupTarget) {
+      if (target === "everything") {
+        return [
+          record.file,
+          record.path,
+          record.sheet,
+          record.item,
+          record.fgItem,
+          record.fgName,
+          record.productName,
+          record.warehouse,
+          record.quantity,
+          record.perSeries,
+          record.unit,
+          record.bom,
+          record.bomName,
+          record.text
+        ];
+      }
+      if (target === "item") {
+        const bomAsItem = record.bom && !isBomCodeInContext(record.bom, record.text) ? [record.bom] : [];
+        return [record.item, record.fgItem, record.fgName, record.productName, ...bomAsItem];
+      }
+      if (target === "fg") {
+        const values = [record.item];
+        if (record.bom && !isBomCodeInContext(record.bom, record.text)) values.push(record.bom);
+        return [...values.filter(isFgLike), record.fgItem, record.fgName, record.productName];
+      }
+      if (target === "bom") return bomValuesByTarget([record.bom, record.bomName, record.text], "bom", record.text);
+      return bomValuesByTarget([record.bom, record.bomName, record.text], target, record.text);
+    }
+
+    function versionLookupValues(version, target = state.lookupTarget) {
+      if (target === "everything") {
+        return [
+          version.file,
+          version.path,
+          version.sheet,
+          version.parentItem,
+          version.parentName,
+          version.itemGroup,
+          version.bom,
+          version.bomName,
+          version.active,
+          version.approved,
+          version.approvedBy
+        ];
+      }
+      if (target === "item") return [version.parentItem, version.parentName];
+      if (target === "fg") return version.isFg || isFgLike(version.parentItem) ? [version.parentItem, version.parentName] : [];
+      if (target === "bom") return bomValuesByTarget([version.bom, version.bomName, version.parentItem], "bom", version.searchText);
+      return bomValuesByTarget([version.bom, version.bomName, version.parentItem], target, version.searchText);
+    }
+
+    function rowLookupValues(row, target = state.lookupTarget) {
+      if (target === "everything") {
+        return [
+          row.file,
+          row.path,
+          row.type,
+          ...(row.sheets || []).map((sheet) => sheet.name),
+          ...(row.items || []),
+          ...(row.fgItems || []),
+          ...(row.fgNames || []),
+          ...(row.boms || []),
+          ...(row.productNames || []),
+          ...(row.headers || []),
+          row.sample,
+          row.searchText
+        ];
+      }
+      if (target === "item") return [...(row.items || []), ...(row.fgItems || []), ...(row.fgNames || []), ...(row.productNames || [])];
+      if (target === "fg") return [...(row.fgItems || []), ...(row.fgNames || []), ...(row.productNames || [])];
+      if (target === "family") return row.bomFamilies || [];
+      if (target === "old") return row.oldBoms || [];
+      if (target === "new") return row.newBoms || [];
+      if (target === "versioned") return row.versionedBoms || [];
+      if (target === "mold") return row.molds || [];
+      return row.boms || [];
+    }
+
+    function valuesMatchLookup(values, query, exact) {
+      const normalizedValues = (values || []).map(normalize).filter(Boolean);
+      return exact
+        ? normalizedValues.includes(query)
+        : normalizedValues.some((value) => value.includes(query));
+    }
+
+    function lookupMatchesForTerm(term) {
+      const query = normalize(term);
+      if (!query) return { records: [], versions: [], fgBomVersions: [], files: [] };
+
+      const exact = state.lookupMode === "exact";
+      const directRecords = state.records.filter((record) => valuesMatchLookup(recordLookupValues(record), query, exact));
+      const directVersions = state.fgVersions.filter((version) => {
+        return valuesMatchLookup(versionLookupValues(version), query, exact);
+      });
+      const directFgBomVersions = state.fgBomVersions.filter((version) => {
+        const searchValues = [version.fgCode, version.fgName, version.productName];
+        return valuesMatchLookup(searchValues, query, exact);
+      });
+      const directFiles = state.rows.filter((row) => {
+        return valuesMatchLookup(rowLookupValues(row), query, exact);
+      });
+
+      const relatedPaths = new Set([
+        ...directRecords.map((record) => record.path),
+        ...directVersions.map((version) => version.path),
+        ...directFgBomVersions.map((version) => version.path),
+        ...directFiles.map((row) => row.path)
+      ]);
+      const relatedFgItems = new Set(directRecords.flatMap((record) => [record.fgItem, isFgLike(record.item) ? record.item : ""]).map(normalize).filter(Boolean));
+      const relatedFgNames = new Set(directRecords.flatMap((record) => [record.fgName, record.productName]).map(normalize).filter(Boolean));
+      const linkedVersions = state.fgVersions.filter((version) => {
+        return relatedFgItems.has(normalize(version.parentItem)) || relatedFgNames.has(normalize(version.parentName));
+      });
+      const relatedVersions = state.fgVersions.filter((version) => relatedPaths.has(version.path));
+
+      return {
+        records: directRecords,
+        versions: uniqueObjects([...directVersions, ...linkedVersions, ...relatedVersions], (version) => `${version.path}|${version.sheet}|${version.row}|${version.bom}`),
+        fgBomVersions: directFgBomVersions,
+        files: uniqueObjects(directFiles, (row) => row.path)
+      };
+    }
+
+    function uniqueObjects(values, keyFn) {
+      const seen = new Set();
+      const out = [];
+      values.forEach((value) => {
+        const key = keyFn(value);
+        if (seen.has(key)) return;
+        seen.add(key);
+        out.push(value);
+      });
+      return out;
+    }
+
+    function versionKey(version) {
+      return `${version.path}|${version.sheet}|${version.row}|${version.parentItem}|${version.bom}`;
+    }
+
+    function findVersionByKey(key) {
+      return state.fgVersions.find((version) => versionKey(version) === key) || null;
+    }
+
+    function bindVersionActions(root = document) {
+      root.querySelectorAll(".version-action").forEach((button) => {
+        button.addEventListener("click", () => {
+          const version = findVersionByKey(button.dataset.versionKey);
+          if (!version) return;
+          state.selectedVersion = version;
+          state.selectedFgBomVersion = null;
+          renderSelectedVersion();
+          document.querySelector("#selectedVersionPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+      root.querySelectorAll(".fg-bom-version-action").forEach((button) => {
+        button.addEventListener("click", () => {
+          const versionKey = button.dataset.fgBomVersionKey;
+          const version = state.fgBomVersions.find((v) => fgBomVersionKey(v) === versionKey);
+          if (!version) return;
+          state.selectedFgBomVersion = version;
+          state.selectedVersion = null;
+          renderSelectedFgBomVersion();
+          document.querySelector("#selectedVersionPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function bindSourceCopy(root = document) {
+      root.querySelectorAll(".copy-source").forEach((button) => {
+        button.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          const value = button.dataset.source || "";
+          const originalText = button.textContent;
+          try {
+            await navigator.clipboard.writeText(value);
+            button.textContent = "✓ Copied";
+            button.style.opacity = "1";
+            setTimeout(() => {
+              button.textContent = originalText;
+            }, 1500);
+            setStatus(`Copied: ${escapeHtml(value.slice(0, 60))}${value.length > 60 ? "..." : ""}`, "good");
+          } catch {
+            button.textContent = "Copy";
+            setStatus(`Ready to copy: ${escapeHtml(value.slice(0, 60))}${value.length > 60 ? "..." : ""}`, "warn");
+          }
+        });
+      });
+    }
+
+    function recordsForVersion(version) {
+      if (!version) return [];
+      const versionPath = normalize(version.path);
+      const versionFile = normalize(version.file);
+      const records = state.records.filter((record) => normalize(record.path) === versionPath || normalize(record.file) === versionFile);
+
+      return uniqueObjects(records, (record) => `${record.path}|${record.sheet}|${record.row}|${record.item}|${record.productName}`);
+    }
+
+    function buildFgBomVersions() {
+      const versionMap = new Map();
+      state.records.forEach((record) => {
+        const fgKey = codeValue(record.fgItem || record.fgName || "");
+        if (!fgKey) return;
+        const versionKey = `${record.path}|${fgKey}`;
+        if (!versionMap.has(versionKey)) {
+          versionMap.set(versionKey, {
+            path: record.path,
+            file: record.file,
+            fgCode: fgKey,
+            fgName: record.fgName || "",
+            productName: record.productName || "",
+            itemCount: 0,
+            records: [],
+            sources: new Set(),
+            minRow: Infinity,
+            maxRow: -Infinity
+          });
+        }
+        const version = versionMap.get(versionKey);
+        version.records.push(record);
+        version.itemCount = version.records.length;
+        version.sources.add(record.sheet);
+        version.minRow = Math.min(version.minRow, record.row || Infinity);
+        version.maxRow = Math.max(version.maxRow, record.row || -Infinity);
+      });
+      state.fgBomVersions = Array.from(versionMap.values()).map((v) => ({
+        ...v,
+        sources: Array.from(v.sources)
+      }));
+    }
+
+    function recordsForFgBomVersion(fgVersion) {
+      if (!fgVersion) return [];
+      return fgVersion.records || [];
+    }
+
+    function fgBomVersionKey(version) {
+      return `${version.path}|${version.fgCode}`;
+    }
+
+    function renderVersionList(versions, limit = 50) {
+      const visible = versions.slice(0, limit);
+      const terms = activeHighlightTerms();
+      return `
+        <div class="table-wrap" style="max-height: 320px;">
+          <table style="font-size: 12px; min-width: 760px;">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Action</th>
+                <th style="min-width: 150px;">Parent FG</th>
+                <th style="min-width: 140px;">BOM version</th>
+                <th style="width: 90px;">Status</th>
+                <th style="width: 100px;">Approved by</th>
+                <th style="min-width: 180px;">File path</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visible.map((version) => `
+                <tr>
+                  <td><button class="secondary version-action" data-version-key="${escapeHtml(versionKey(version))}" style="padding: 2px 8px; font-size: 11px; min-height: 24px; height: 24px;">View</button></td>
+                  <td><strong>${highlightText(version.parentItem, terms)}</strong><br><span class="small">${highlightText(version.parentName, terms)}</span></td>
+                  <td><strong>${highlightText(version.bom, terms)}</strong><br><span class="small">${highlightText(version.bomName, terms)}</span></td>
+                  <td><span class="badge good">✓ ${highlightText(version.active || "", terms)}</span></td>
+                  <td><span class="small">${highlightText(version.approvedBy, terms)}</span></td>
+                  <td>${sourcePathHtml(version.path)}<br><span class="small">${highlightText(version.sheet, terms)} row ${version.row}</span></td>
+                </tr>
+              `).join("")}
+              ${versions.length > visible.length ? `<tr><td colspan="6" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${visible.length} of ${versions.length} active FG versions.</td></tr>` : ""}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderFgBomVersionList(versions, limit = 50) {
+      const visible = versions.slice(0, limit);
+      const terms = activeHighlightTerms();
+      return `
+        <div class="table-wrap" style="max-height: 320px;">
+          <table style="font-size: 12px; min-width: 760px;">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Action</th>
+                <th style="min-width: 120px;">FG Code</th>
+                <th style="min-width: 140px;">FG Name</th>
+                <th class="num" style="width: 70px;">Items</th>
+                <th style="width: 100px;">Sheets</th>
+                <th style="min-width: 180px;">File path</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visible.map((version) => `
+                <tr>
+                  <td><button class="secondary fg-bom-version-action" data-fg-bom-version-key="${escapeHtml(fgBomVersionKey(version))}" style="padding: 2px 8px; font-size: 11px; min-height: 24px; height: 24px;">View</button></td>
+                  <td><strong>${highlightText(version.fgCode, terms)}</strong></td>
+                  <td><span class="small">${highlightText(version.fgName || version.productName, terms)}</span></td>
+                  <td class="num">${version.itemCount}</td>
+                  <td><span class="small">${version.sources.join(", ")}</span></td>
+                  <td>${sourcePathHtml(version.path)}</td>
+                </tr>
+              `).join("")}
+              ${versions.length > visible.length ? `<tr><td colspan="6" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${visible.length} of ${versions.length} FG BOM versions.</td></tr>` : ""}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderLookup() {
+      if (!state.rows.length) {
+        lookupHost.className = "lookup-empty";
+        lookupHost.innerHTML = "Select the dataset folder first. The lookup will search indexed rows without reopening the source files.";
+        return;
+      }
+
+      if (state.batchTerms.length) {
+        renderBatchLookup();
+        return;
+      }
+
+      if (!state.lookup.trim()) {
+        lookupHost.className = "lookup-empty";
+        lookupHost.innerHTML = "Type an FG name, FG item, item number, product name, or BOM value. BOM values include 4-digit families, 1xxxxxx, 3xxxxxx, 3xxxxxxV01, and TDxxxx/TDxxxxA. <span class=\"keyboard-hint\">Press <kbd>Esc</kbd> to clear</span>";
+        return;
+      }
+
+      const matches = lookupMatches();
+      lookupHost.className = "";
+      const records = matches.records.slice(0, 200);
+      const files = matches.files.slice(0, 120);
+      const versions = matches.versions.slice(0, 100);
+      const fgBomVersions = matches.fgBomVersions.slice(0, 100);
+
+      if (state.indexMode === "universal") {
+        lookupHost.innerHTML = `
+          <div class="result-grid" style="grid-template-columns: 1fr 1fr;">
+            <section>
+              <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📍 Matched rows <span style="color: var(--accent);">(${matches.records.length})</span></h3>
+              ${records.length ? renderRecordTable(records, matches.records.length) : `<div class="lookup-empty">No indexed rows matched this lookup.</div>`}
+            </section>
+            <section>
+              <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Related files <span style="color: var(--accent);">(${matches.files.length})</span></h3>
+              ${files.length ? renderFileList(files, matches.files.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
+            </section>
+          </div>
+        `;
+        bindSourceCopy(lookupHost);
+        return;
+      }
+
+      lookupHost.innerHTML = `
+        <div id="selectedVersionPanel"></div>
+        <div class="result-grid">
+          <section>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 Related BOM rows <span style="color: var(--accent);">(${matches.records.length})</span></h3>
+            ${records.length ? renderRecordTable(records, matches.records.length) : `<div class="lookup-empty">No structured BOM rows matched this lookup.</div>`}
+          </section>
+          <section>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">🎯 FG BOM Versions <span style="color: var(--accent);">(${matches.fgBomVersions.length})</span></h3>
+            ${fgBomVersions.length ? renderFgBomVersionList(fgBomVersions, 100) : `<div class="lookup-empty">No FG BOM versions matched this lookup.</div>`}
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Active FG BOM versions <span style="color: var(--accent);">(${matches.versions.length})</span></h3>
+            ${versions.length ? renderVersionList(versions, 100) : `<div class="lookup-empty">No active, approved FG BOM version found in related files.</div>`}
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Related files <span style="color: var(--accent);">(${matches.files.length})</span></h3>
+            ${files.length ? renderFileList(files, matches.files.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
+          </section>
+        </div>
+      `;
+      bindVersionActions(lookupHost);
+      bindSourceCopy(lookupHost);
+      if (state.selectedVersion) {
+        renderSelectedVersion();
+      } else if (state.selectedFgBomVersion) {
+        renderSelectedFgBomVersion();
+      }
+    }
+
+    function renderRecordTable(records, total) {
+      const terms = activeHighlightTerms();
+      return `
+        <div class="table-wrap" style="max-height: 420px;">
+          <table style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>FG</th>
+                <th>FG name</th>
+                <th>Product name</th>
+                <th style="width: 80px;">Whse</th>
+                <th class="num" style="width: 60px;">Qty</th>
+                <th class="num" style="width: 50px;">Per</th>
+                <th style="width: 60px;">Unit</th>
+                <th>BOM</th>
+                <th style="min-width: 200px;">File path</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map((record) => `
+                <tr>
+                  <td>${highlightText(record.item, terms)}</td>
+                  <td>${highlightText(record.fgItem, terms)}</td>
+                  <td>${highlightText(record.fgName, terms)}</td>
+                  <td>${highlightText(record.productName, terms)}</td>
+                  <td>${highlightText(record.warehouse, terms)}</td>
+                  <td class="num">${highlightText(record.quantity, terms)}</td>
+                  <td class="num">${highlightText(record.perSeries, terms)}</td>
+                  <td>${highlightText(record.unit, terms)}</td>
+                  <td>${highlightText(record.bom || record.bomName, terms)}</td>
+                  <td>${sourcePathHtml(record.path)}<br><span class="small">${highlightText(record.sheet, terms)} row ${record.row}</span></td>
+                </tr>
+              `).join("")}
+              ${total > records.length ? `<tr><td colspan="10" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${records.length} of ${total} rows. Use a more specific lookup to narrow results.</td></tr>` : ""}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderFileList(files, total) {
+      const terms = activeHighlightTerms();
+      return `
+        <div class="table-wrap" style="max-height: 280px;">
+          <table style="font-size: 12px; min-width: 580px;">
+            <thead>
+              <tr>
+                <th style="min-width: 200px;">File</th>
+                <th style="width: 110px;">Type</th>
+                <th class="num" style="width: 60px;">Rows</th>
+                <th class="num" style="width: 60px;">FG</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${files.map((row) => `
+                <tr>
+                  <td><strong>${highlightText(row.file, terms)}</strong><br>${sourcePathHtml(row.path)}</td>
+                  <td>${typeBadge(row)}</td>
+                  <td class="num">${row.records.length}</td>
+                  <td class="num">${row.activeFgVersions.length}</td>
+                </tr>
+              `).join("")}
+              ${total > files.length ? `<tr><td colspan="4" class="muted" style="text-align: center; padding: 10px; font-size: 11px;">📊 Showing ${files.length} of ${total} related files.</td></tr>` : ""}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderSelectedVersion() {
+      const host = document.querySelector("#selectedVersionPanel");
+      if (!host) return;
+      const version = state.selectedVersion;
+      if (!version) {
+        host.innerHTML = "";
+        return;
+      }
+
+      const records = recordsForVersion(version);
+      host.innerHTML = `
+        <section class="panel" style="margin-bottom: 14px;">
+          <h2>✅ Selected Active FG BOM Version</h2>
+          <div class="facts">
+            <div class="fact"><span>Parent FG</span><span><strong>${escapeHtml(version.parentItem)}</strong> — ${escapeHtml(version.parentName)}</span></div>
+            <div class="fact"><span>BOM version</span><span><strong>${escapeHtml(version.bom)}</strong> — ${escapeHtml(version.bomName)}</span></div>
+            <div class="fact"><span>Status</span><span>Active: <strong>${escapeHtml(version.active)}</strong>; Approved: <strong>${escapeHtml(version.approved)}</strong></span></div>
+            <div class="fact"><span>Approved by</span><span>${escapeHtml(version.approvedBy)}</span></div>
+            <div class="fact"><span>Source</span><span>${sourcePathHtml(version.path)}<br>${escapeHtml(version.sheet)} row ${version.row}</span></div>
+          </div>
+          <div class="actions">
+            <button id="exportSelectedVersionCsv" class="secondary">📥 Export Selected BOM CSV</button>
+          </div>
+          <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 BOM lines in selected file <span style="color: var(--accent);">(${records.length})</span></h3>
+          ${records.length ? renderRecordTable(records.slice(0, 300), records.length) : `<div class="lookup-empty">No structured BOM line rows were detected inside this selected workbook.</div>`}
+        </section>
+      `;
+      host.querySelector("#exportSelectedVersionCsv").addEventListener("click", () => exportSelectedVersionCsv(version));
+      bindSourceCopy(host);
+    }
+
+    function renderSelectedFgBomVersion() {
+      const host = document.querySelector("#selectedVersionPanel");
+      if (!host) return;
+      const version = state.selectedFgBomVersion;
+      if (!version) {
+        host.innerHTML = "";
+        return;
+      }
+
+      const records = recordsForFgBomVersion(version);
+      host.innerHTML = `
+        <section class="panel" style="margin-bottom: 14px;">
+          <h2>📦 Selected FG BOM Version</h2>
+          <div class="facts">
+            <div class="fact"><span>Finished Good</span><span><strong>${escapeHtml(version.fgCode)}</strong> — ${escapeHtml(version.fgName || version.productName)}</span></div>
+            <div class="fact"><span>Items in this version</span><span><strong>${version.itemCount}</strong></span></div>
+            <div class="fact"><span>Sheets</span><span>${escapeHtml((version.sources || []).join(", "))}</span></div>
+            <div class="fact"><span>Source</span><span>${sourcePathHtml(version.path)}</span></div>
+          </div>
+          <div class="actions">
+            <button id="exportFgBomVersionCsv" class="secondary">📥 Export FG BOM Version CSV</button>
+          </div>
+          <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 Items in this version <span style="color: var(--accent);">(${records.length})</span></h3>
+          ${records.length ? renderRecordTable(records.slice(0, 300), records.length) : `<div class="lookup-empty">No items found in this FG BOM version.</div>`}
+        </section>
+      `;
+      host.querySelector("#exportFgBomVersionCsv").addEventListener("click", () => exportFgBomVersionCsv(version));
+      bindSourceCopy(host);
+    }
+
+    function parseBatchTerms(value) {
+      return unique(String(value || "")
+        .split(/[\n\r,;\t ]+/)
+        .map((term) => term.trim())
+        .filter(Boolean))
+        .slice(0, 200);
+    }
+
+    function runBatchLookup() {
+      state.batchTerms = parseBatchTerms(batchBox.value);
+      state.lookup = "";
+      lookupBox.value = "";
+      renderLookup();
+    }
+
+    function renderBatchLookup() {
+      lookupHost.className = "";
+      const rows = state.batchTerms.map((term) => {
+        const matches = lookupMatchesForTerm(term);
+        return { term, ...matches };
+      });
+      const allRecords = uniqueObjects(rows.flatMap((row) => row.records), (record) => `${record.path}|${record.sheet}|${record.row}|${record.item}|${record.bom}`).slice(0, 250);
+      const allVersions = uniqueObjects(rows.flatMap((row) => row.versions), (version) => `${version.path}|${version.sheet}|${version.row}|${version.bom}`).slice(0, 150);
+      const allFgBomVersions = uniqueObjects(rows.flatMap((row) => row.fgBomVersions), (version) => `${version.path}|${version.fgCode}`).slice(0, 150);
+      const allFiles = uniqueObjects(rows.flatMap((row) => row.files), (file) => file.path).slice(0, 150);
+
+      lookupHost.innerHTML = `
+        <div id="selectedVersionPanel"></div>
+        <div class="table-wrap" style="max-height: 280px; margin-bottom: 14px;">
+          <table style="font-size: 12px; min-width: 600px;">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Batch term</th>
+                <th class="num">BOM rows</th>
+                <th class="num">FG Versions</th>
+                <th class="num">Active FG</th>
+                <th class="num">Files</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td><strong>${highlightText(row.term, [row.term])}</strong></td>
+                  <td class="num">${row.records.length}</td>
+                  <td class="num">${row.fgBomVersions.length}</td>
+                  <td class="num">${row.versions.length}</td>
+                  <td class="num">${row.files.length}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="result-grid">
+          <section>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📊 Batch BOM row matches <span style="color: var(--accent);">(${rows.reduce((sum, row) => sum + row.records.length, 0)})</span></h3>
+            ${allRecords.length ? renderRecordTable(allRecords, allRecords.length) : `<div class="lookup-empty">No structured BOM rows matched these batch terms.</div>`}
+          </section>
+          <section>
+            <h3 style="font-size: 13px; margin: 0 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">🎯 Batch FG BOM versions <span style="color: var(--accent);">(${allFgBomVersions.length})</span></h3>
+            ${allFgBomVersions.length ? renderFgBomVersionList(allFgBomVersions, 150) : `<div class="lookup-empty">No FG BOM versions matched these batch terms.</div>`}
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📋 Batch active FG BOM versions <span style="color: var(--accent);">(${allVersions.length})</span></h3>
+            ${allVersions.length ? renderVersionList(allVersions, 150) : `<div class="lookup-empty">No active, approved FG BOM version matched these batch terms.</div>`}
+            <h3 style="font-size: 13px; margin: 14px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">📂 Batch related files <span style="color: var(--accent);">(${allFiles.length})</span></h3>
+            ${allFiles.length ? renderFileList(allFiles, allFiles.length) : `<div class="lookup-empty">No workbook-level match found.</div>`}
+          </section>
+        </div>
+      `;
+      bindVersionActions(lookupHost);
+      bindSourceCopy(lookupHost);
+      if (state.selectedVersion) {
+        renderSelectedVersion();
+      } else if (state.selectedFgBomVersion) {
+        renderSelectedFgBomVersion();
+      }
+    }
+
+    function renderDetails() {
+      if (state.selectedRecord) {
+        const rec = state.selectedRecord;
+        const terms = activeHighlightTerms();
+        details.innerHTML = `
+          <div class="facts">
+            <div class="fact"><span>Path</span><span>${sourcePathHtml(rec.path, terms)}</span></div>
+            <div class="fact"><span>Sheet</span><span>${highlightText(rec.sheet, terms)}</span></div>
+            <div class="fact"><span>Row</span><span>${rec.row ?? ""}</span></div>
+            <div class="fact"><span>Column</span><span>${rec.column || ""}</span></div>
+          </div>
+          <div style="margin-top: 12px;">
+            <h3 style="font-size: 13px; margin: 0 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">Context</h3>
+            <div class="sample">${highlightText(rec.text || "", terms)}</div>
+          </div>
+        `;
+        bindSourceCopy(details);
+        return;
+      }
+
+      const row = state.selected;
+      if (!row) {
+        details.innerHTML = `          <p class="muted">Select a workbook row to inspect its details.</p>`;
+        return;
+      }
+
+      details.innerHTML = `
+        <div class="facts">
+          <div class="fact"><span>File</span><span><strong>${escapeHtml(row.file)}</strong></span></div>
+          <div class="fact"><span>Path</span><span>${sourcePathHtml(row.path)}</span></div>
+          <div class="fact"><span>Type</span><span>${typeBadge(row)}</span></div>
+          <div class="fact"><span>Size</span><span>${Math.round(row.size / 1024).toLocaleString()} KB</span></div>
+          <div class="fact"><span>Sheets</span><span>${row.sheets.map((sheet) => `<span class="small">${escapeHtml(sheet.name)} (${sheet.rows} rows)</span>`).join("<br>") || "None"}</span></div>
+          <div class="fact"><span>Headers</span><span class="small">${escapeHtml(row.headers.slice(0, 24).join(", ")) || "None detected"}</span></div>
+          <div class="fact"><span>FG items</span><span class="small">${escapeHtml((row.fgItems || []).slice(0, 32).join(", ")) || "None"}</span></div>
+          <div class="fact"><span>FG names</span><span class="small">${escapeHtml((row.fgNames || []).slice(0, 16).join("; ")) || "None"}</span></div>
+          <div class="fact"><span>Items</span><span class="small">${escapeHtml(row.items.slice(0, 32).join(", ")) || "None"}</span></div>
+          <div class="fact"><span>BOMs</span><span class="small">${escapeHtml(row.boms.join(", ")) || "None"}</span></div>
+          <div class="fact"><span>Products</span><span class="small">${escapeHtml(row.productNames.slice(0, 16).join("; ")) || "None"}</span></div>
+          <div class="fact"><span>Active FG</span><span>${row.activeFgVersions.length ? `<strong>${row.activeFgVersions.length}</strong> active approved version(s)` : "None detected"}</span></div>
+        </div>
+        ${row.activeFgVersions.length ? renderVersionList(row.activeFgVersions, 8) : ""}
+        ${row.error ? `<div style="margin-top: 12px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px;"><span class="status bad">Error: ${escapeHtml(row.error)}</span></div>` : ""}
+        <div style="margin-top: 12px;">
+          <h3 style="font-size: 13px; margin: 0 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--muted);">Sheet sample</h3>
+          <div class="sample">${escapeHtml(row.sample || "No preview available")}</div>
+        </div>
+      `;
+      bindVersionActions(details);
+      bindSourceCopy(details);
+    }
+
+    function render() {
+      applyIndexModeUi();
+      renderStats();
+      renderTable();
+      renderLookup();
+      renderDetails();
+    }
+
+    function applyIndexModeUi() {
+      const universal = state.indexMode === "universal";
+      if (bomOnly) {
+        bomOnly.disabled = universal;
+        if (universal) bomOnly.checked = false;
+        state.bomOnly = universal ? false : bomOnly.checked;
+      }
+      if (typeFilter) typeFilter.disabled = universal;
+      if (recordFilter) recordFilter.disabled = universal;
+      
+      // Auto-reset filters when switching to universal mode
+      if (universal) {
+        if (typeFilter) typeFilter.value = "";
+        if (recordFilter) recordFilter.value = "";
+        state.type = "";
+        state.recordFilter = "";
+        if (lookupTarget) lookupTarget.value = "everything";
+        state.lookupTarget = "everything";
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function activeHighlightTerms() {
+      return state.batchTerms.length ? state.batchTerms : state.lookup ? [state.lookup] : [];
+    }
+
+    function highlightText(value, terms) {
+      const source = String(value ?? "");
+      const normalizedTerms = unique((terms || []).map((term) => String(term).trim()).filter(Boolean))
+        .sort((a, b) => b.length - a.length);
+      if (!source || !normalizedTerms.length) return escapeHtml(source);
+
+      const lower = source.toLowerCase();
+      const ranges = [];
+      normalizedTerms.forEach((term) => {
+        const needle = term.toLowerCase();
+        if (!needle) return;
+        let start = 0;
+        while (start < lower.length) {
+          const index = lower.indexOf(needle, start);
+          if (index === -1) break;
+          const end = index + needle.length;
+          const overlaps = ranges.some((range) => index < range.end && end > range.start);
+          if (!overlaps) ranges.push({ start: index, end });
+          start = index + Math.max(needle.length, 1);
+        }
+      });
+
+      if (!ranges.length) return escapeHtml(source);
+      ranges.sort((a, b) => a.start - b.start);
+      let html = "";
+      let cursor = 0;
+      ranges.forEach((range) => {
+        html += escapeHtml(source.slice(cursor, range.start));
+        html += `<mark class="hit">${escapeHtml(source.slice(range.start, range.end))}</mark>`;
+        cursor = range.end;
+      });
+      html += escapeHtml(source.slice(cursor));
+      return html;
+    }
+
+    function csvCell(value) {
+      const textValue = String(value ?? "");
+      const escaped = textValue.replace(/"/g, '""');
+      return /[",\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
+    }
+
+    function exportRowHasKeyValues(row) {
+      const item = row.item ?? row.item_number ?? row.parent_item ?? "";
+      const bom = row.bom ?? row.selected_bom ?? "";
+      const fgItem = row.fg ?? row.fg_item ?? "";
+      const fgName = row.fg_name ?? "";
+      return hasKeyValues(item, bom, fgItem, fgName);
+    }
+
+    function cleanExportRow(row, columns) {
+      const next = {};
+      columns.forEach((column) => {
+        next[column.key] = String(row[column.key] ?? "").replace(/\s+/g, " ").trim();
+      });
+      const hasValue = columns.some((column) => next[column.key] !== "");
+      if (!hasValue || !exportRowHasKeyValues(next)) return null;
+      return next;
+    }
+
+    function downloadText(filename, textContent, mimeType = "text/csv;charset=utf-8") {
+      const blob = new Blob(["\ufeff", textContent], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvPartFilename(filename, part) {
+      const suffix = `_part_${String(part).padStart(4, "0")}`;
+      const dot = filename.lastIndexOf(".");
+      return dot > 0 ? `${filename.slice(0, dot)}${suffix}${filename.slice(dot)}` : `${filename}${suffix}`;
+    }
+
+    function downloadCsvParts(filename, rows, columns) {
+      const header = columns.map((column) => csvCell(column.header)).join(",");
+      const headerBytes = encodedBytes(`\ufeff${header}\r\n`);
+      const seen = new Set();
+      let partRows = [];
+      let partBytes = headerBytes;
+      let partNumber = 1;
+      let pendingFirstPart = "";
+      let exported = 0;
+      let skipped = 0;
+      let duplicate = 0;
+      let downloadedParts = 0;
+
+      const downloadPendingFirstPart = () => {
+        if (!pendingFirstPart) return;
+        downloadText(csvPartFilename(filename, 1), pendingFirstPart);
+        pendingFirstPart = "";
+        downloadedParts += 1;
+      };
+
+      const flushPart = () => {
+        if (!partRows.length) return;
+        const content = `${header}\r\n${partRows.join("\r\n")}`;
+        if (partNumber === 1) {
+          pendingFirstPart = content;
+        } else {
+          downloadPendingFirstPart();
+          downloadText(csvPartFilename(filename, partNumber), content);
+          downloadedParts += 1;
+        }
+        partNumber += 1;
+        partRows = [];
+        partBytes = headerBytes;
+      };
+
+      rows.forEach((row) => {
+        const cleaned = cleanExportRow(row, columns);
+        if (!cleaned) {
+          skipped += 1;
+          return;
+        }
+
+        const key = columns.map((column) => cleaned[column.key]).join("|").toLowerCase();
+        if (seen.has(key)) {
+          duplicate += 1;
+          return;
+        }
+        seen.add(key);
+
+        const line = columns.map((column) => csvCell(cleaned[column.key])).join(",");
+        const lineBytes = encodedBytes(`${line}\r\n`);
+        if (partRows.length && partBytes + lineBytes > CSV_PART_BYTES) flushPart();
+        partRows.push(line);
+        partBytes += lineBytes;
+        exported += 1;
+      });
+
+      flushPart();
+      if (pendingFirstPart) {
+        downloadText(filename, pendingFirstPart);
+        downloadedParts += 1;
+      }
+
+      return { exported, skipped, duplicate, parts: downloadedParts };
+    }
+
+    function exportIndexCsv() {
+      const rows = state.records.map((record) => ({
+        file: record.file,
+        path: sourcePath(record.path),
+        sheet: record.sheet,
+        row: record.row,
+        item: record.item,
+        fg: record.fgItem,
+        fg_name: record.fgName,
+        product_name: record.productName,
+        warehouse: record.warehouse,
+        quantity: record.quantity,
+        per_series: record.perSeries,
+        unit: record.unit,
+        bom: record.bom,
+        bom_name: record.bomName
+      }));
+      const columns = [
+        { key: "file", header: "File" },
+        { key: "path", header: "Path" },
+        { key: "sheet", header: "Sheet" },
+        { key: "row", header: "Row" },
+        { key: "item", header: "Item number" },
+        { key: "fg", header: "FG" },
+        { key: "fg_name", header: "FG name" },
+        { key: "product_name", header: "Product name" },
+        { key: "warehouse", header: "Warehouse" },
+        { key: "quantity", header: "Quantity" },
+        { key: "per_series", header: "Per series" },
+        { key: "unit", header: "Unit" },
+        { key: "bom", header: "BOM" },
+        { key: "bom_name", header: "BOM name" }
+      ];
+      const result = downloadCsvParts("bom_dataset_index_lines.csv", rows, columns);
+      if (!result.exported) {
+        setStatus("No CSV rows exported after cleaning. Rows must include an item number or BOM.", "warn");
+        return;
+      }
+      const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item and BOM plus ${result.duplicate.toLocaleString()} duplicate rows.` : "";
+      setStatus(`Exported ${result.exported.toLocaleString()} rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
+    }
+
+    function exportSelectedVersionCsv(version) {
+      const records = recordsForVersion(version);
+      const rows = records.map((record, index) => ({
+        line: index + 1,
+        parent_item: version.parentItem,
+        parent_name: version.parentName,
+        selected_bom: version.bom,
+        selected_bom_name: version.bomName,
+        item_number: record.item,
+        fg: record.fgItem,
+        fg_name: record.fgName,
+        product_name: record.productName,
+        warehouse: record.warehouse,
+        quantity: record.quantity,
+        per_series: record.perSeries,
+        unit: record.unit,
+        source_file: sourcePath(record.path),
+        source_sheet: record.sheet,
+        source_row: record.row
+      }));
+      if (!rows.length) {
+        rows.push({
+          line: "",
+          parent_item: version.parentItem,
+          parent_name: version.parentName,
+          selected_bom: version.bom,
+          selected_bom_name: version.bomName,
+          item_number: "",
+          fg: "",
+          fg_name: "",
+          product_name: "",
+          warehouse: "",
+          quantity: "",
+          per_series: "",
+          unit: "",
+          source_file: sourcePath(version.path),
+          source_sheet: version.sheet,
+          source_row: version.row
+        });
+      }
+      const columns = [
+        { key: "line", header: "Line" },
+        { key: "parent_item", header: "Parent item" },
+        { key: "parent_name", header: "Parent name" },
+        { key: "selected_bom", header: "Selected BOM" },
+        { key: "selected_bom_name", header: "Selected BOM name" },
+        { key: "item_number", header: "Item number" },
+        { key: "fg", header: "FG" },
+        { key: "fg_name", header: "FG name" },
+        { key: "product_name", header: "Product name" },
+        { key: "warehouse", header: "Warehouse" },
+        { key: "quantity", header: "Quantity" },
+        { key: "per_series", header: "Per series" },
+        { key: "unit", header: "Unit" },
+        { key: "source_file", header: "Source file" },
+        { key: "source_sheet", header: "Source sheet" },
+        { key: "source_row", header: "Source row" }
+      ];
+      const safeParent = (version.parentItem || "FG").replace(/[^\w.-]+/g, "_");
+      const safeBom = (version.bom || "BOM").replace(/[^\w.-]+/g, "_");
+      const filename = `selected_${safeParent}_${safeBom}_bom.csv`;
+      const result = downloadCsvParts(filename, rows, columns);
+      if (!result.exported) {
+        setStatus("No selected BOM rows exported after cleaning. Rows must include an item number or BOM.", "warn");
+        return;
+      }
+      const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item and BOM plus ${result.duplicate.toLocaleString()} duplicate rows.` : "";
+      setStatus(`Exported ${result.exported.toLocaleString()} selected BOM rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
+    }
+
+    function exportFgBomVersionCsv(fgVersion) {
+      const records = recordsForFgBomVersion(fgVersion);
+      const rows = records.map((record, index) => ({
+        line: index + 1,
+        fg_code: fgVersion.fgCode,
+        fg_name: fgVersion.fgName || fgVersion.productName,
+        item_number: record.item,
+        fg: record.fgItem,
+        fg_name_detail: record.fgName,
+        product_name: record.productName,
+        warehouse: record.warehouse,
+        quantity: record.quantity,
+        per_series: record.perSeries,
+        unit: record.unit,
+        bom: record.bom,
+        bom_name: record.bomName,
+        source_file: sourcePath(record.path),
+        source_sheet: record.sheet,
+        source_row: record.row
+      }));
+      if (!rows.length) {
+        rows.push({
+          line: "",
+          fg_code: fgVersion.fgCode,
+          fg_name: fgVersion.fgName || fgVersion.productName,
+          item_number: "",
+          fg: "",
+          fg_name_detail: "",
+          product_name: "",
+          warehouse: "",
+          quantity: "",
+          per_series: "",
+          unit: "",
+          bom: "",
+          bom_name: "",
+          source_file: sourcePath(fgVersion.path),
+          source_sheet: "",
+          source_row: ""
+        });
+      }
+      const columns = [
+        { key: "line", header: "Line" },
+        { key: "fg_code", header: "FG Code" },
+        { key: "fg_name", header: "FG Name" },
+        { key: "item_number", header: "Item number" },
+        { key: "fg", header: "FG" },
+        { key: "fg_name_detail", header: "FG name detail" },
+        { key: "product_name", header: "Product name" },
+        { key: "warehouse", header: "Warehouse" },
+        { key: "quantity", header: "Quantity" },
+        { key: "per_series", header: "Per series" },
+        { key: "unit", header: "Unit" },
+        { key: "bom", header: "BOM" },
+        { key: "bom_name", header: "BOM name" },
+        { key: "source_file", header: "Source file" },
+        { key: "source_sheet", header: "Source sheet" },
+        { key: "source_row", header: "Source row" }
+      ];
+      const safeFg = (fgVersion.fgCode || "FG").replace(/[^\w.-]+/g, "_");
+      const filename = `fg_bom_version_${safeFg}_${new Date().toISOString().split("T")[0]}.csv`;
+      const result = downloadCsvParts(filename, rows, columns);
+      if (!result.exported) {
+        setStatus("No FG BOM version rows exported after cleaning. Rows must include an item number or FG.", "warn");
+        return;
+      }
+      const skippedText = result.skipped || result.duplicate ? ` Cleaned out ${result.skipped.toLocaleString()} rows with blank item and FG plus ${result.duplicate.toLocaleString()} duplicate rows.` : "";
+      setStatus(`Exported ${result.exported.toLocaleString()} FG BOM version rows to ${result.parts.toLocaleString()} CSV file(s), capped at about 100 MB each.${skippedText}`, "good");
+    }
+
+    async function loadCachedIndex() {
+      state.busy = true;
+      resetIndexState([]);
+      render();
+      state.cacheEntries = await loadCacheEntries();
+      const entries = [...state.cacheEntries.values()];
+      entries.forEach((entry) => {
+        state.processedCount += 1;
+        state.cacheHitCount += 1;
+        if (entry.skipped) {
+          state.skippedCount += 1;
+          return;
+        }
+        if (entry.summary) addSummaryToIndex(entry.summary);
+      });
+      state.busy = false;
+      const hasRows = state.rows.length > 0;
+      exportCsv.disabled = !hasRows;
+      setProgress(entries.length, entries.length);
+      setStatus(entries.length ? `Loaded ${state.rows.length} indexed BOM files from browser cache. Skipped entries in cache: ${state.skippedCount}.` : "No browser cache found. Select the dataset folder to build one.", entries.length ? "good" : "warn");
+      render();
+    }
+
+    function debounce(fn, delay = 100) {
+      let timer = 0;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+      };
+    }
+
+    // 1. Store files when selected and enable the Start button
+    function handleFileSelection(files) {
+      if (!files || !files.length) return;
+      pendingFiles = files;
+      if (startIndexBtn) {
+        startIndexBtn.disabled = false;
+        startIndexBtn.style.boxShadow = "0 0 12px rgba(15, 118, 110, 0.6)";
+      }
+      setStatus(`Ready! ${files.length} files selected. Choose your mode and click "Start Indexing".`, "good");
+    }
+
+    if (folderInput) folderInput.addEventListener("change", () => handleFileSelection(folderInput.files));
+    if (fileInput) fileInput.addEventListener("change", () => handleFileSelection(fileInput.files));
+    if (loadCache) loadCache.addEventListener("click", loadCachedIndex);
+
+    // Fast search and lookup with optimized debouncing
+    if (searchBox) {
+      searchBox.addEventListener("input", debounce(() => {
+        state.search = searchBox.value;
+        renderTable();
+      }, 100));
+    }
+
+    if (lookupBox) {
+      lookupBox.addEventListener("input", debounce(() => {
+        state.lookup = lookupBox.value;
+        state.batchTerms = [];
+        renderLookup();
+      }, 100));
+    }
+
+    // Global keyboard shortcuts
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (state.lookup) {
+          state.lookup = "";
+          state.batchTerms = [];
+          if (lookupBox) lookupBox.value = "";
+          renderLookup();
+        }
+        if (state.search) {
+          state.search = "";
+          if (searchBox) searchBox.value = "";
+          renderTable();
+        }
+      }
+    });
+
+    if (lookupMode) {
+      lookupMode.addEventListener("change", () => {
+        state.lookupMode = lookupMode.value;
+        renderLookup();
+      });
+    }
+
+    if (lookupTarget) {
+      lookupTarget.addEventListener("change", () => {
+        state.lookupTarget = lookupTarget.value;
+        if (state.lookupTarget === "everything" && state.bomOnly) {
+          setStatus("Everything searches all indexed workbook content. Uncheck skip unrelated workbooks and re-select the folder if you need every Excel file included.", "warn");
+        }
+        renderLookup();
+      });
+    }
+
+    if (clearLookup) {
+      clearLookup.addEventListener("click", () => {
+        state.lookup = "";
+        state.batchTerms = [];
+        if (lookupBox) {
+          lookupBox.value = "";
+          lookupBox.focus();
+        }
+        renderLookup();
+      });
+    }
+
+    if (runBatch) runBatch.addEventListener("click", runBatchLookup);
+
+    if (batchBox) {
+      batchBox.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          runBatchLookup();
+        }
+      });
+    }
+
+    if (clearBatch) {
+      clearBatch.addEventListener("click", () => {
+        state.batchTerms = [];
+        if (batchBox) {
+          batchBox.value = "";
+          batchBox.focus();
+        }
+        renderLookup();
+      });
+    }
+
+    if (typeFilter) {
+      typeFilter.addEventListener("change", () => {
+        state.type = typeFilter.value;
+        renderTable();
+      });
+    }
+
+    if (recordFilter) {
+      recordFilter.addEventListener("change", () => {
+        state.recordFilter = recordFilter.value;
+        renderTable();
+      });
+    }
+
+    if (bomOnly) {
+      bomOnly.addEventListener("change", () => {
+        state.bomOnly = bomOnly.checked;
+        renderStats();
+        renderTable();
+        renderLookup();
+        if (state.processedCount) {
+          setStatus("Changed skip setting. Re-select the dataset folder to rebuild the index with the new behavior.", "warn");
+        }
+      });
+    }
+
+    if (exportCsv) exportCsv.addEventListener("click", exportIndexCsv);
+
+    if (basePathBox) basePathBox.value = state.basePath;
+
+    // Theme toggle
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    html.setAttribute('data-theme', initialTheme);
+    updateThemeToggle(initialTheme);
+
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeToggle(newTheme);
+      });
+    }
+
+    function updateThemeToggle(theme) {
+      if (themeToggle) {
+        themeToggle.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+      }
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        const newTheme = e.matches ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+        updateThemeToggle(newTheme);
+      }
+    });
+
+    if (indexMode) {
+      indexMode.value = state.indexMode;
+      indexMode.addEventListener("change", () => {
+        state.indexMode = indexMode.value;
+        applyIndexModeUi();
+      });
+    }
+
+    // 2. Bulletproof Start Button
+    if (startIndexBtn) {
+      startIndexBtn.addEventListener("click", async () => {
+        // FORCE UNLOCK: If a previous crash left the app stuck on "busy", this resets it.
+        state.busy = false;
+
+        if (!pendingFiles || !pendingFiles.length) {
+          setStatus("No files found in the queue. Please select a folder again.", "warn");
+          return;
+        }
+
+        // Read the chosen mode
+        if (indexMode) {
+          state.indexMode = indexMode.value;
+          state.bomOnly = state.indexMode === "bom";
+        }
+
+        // Lock UI while processing
+        startIndexBtn.disabled = true;
+        startIndexBtn.style.boxShadow = "none";
+        setStatus("Indexing started, please wait...", "warn");
+
+        if (state.indexMode === "universal" && lookupTarget) {
+          lookupTarget.value = "everything";
+          state.lookupTarget = "everything";
+        }
+
+        // Attempt to run the indexer, and catch any fatal errors
+        try {
+          await indexFiles(pendingFiles);
+        } catch (error) {
+          setStatus(`Critical error during indexing: ${error.message}`, "bad");
+          console.error("INDEXING CRASH:", error);
+        } finally {
+          // Always clear the queue at the very end, even if it crashes
+          pendingFiles = null;
+          if (folderInput) folderInput.value = "";
+          if (fileInput) fileInput.value = "";
+        }
+      });
+    }
+
+    if (saveBasePath) {
+      saveBasePath.addEventListener("click", () => {
+        if (basePathBox) {
+          state.basePath = basePathBox.value.trim();
+          localStorage.setItem("bomDatasetBasePath", state.basePath);
+          setStatus(state.basePath ? `Saved base path: ${escapeHtml(state.basePath)}` : "Base path cleared.", state.basePath ? "good" : "warn");
+          render();
+        }
+      });
+    }
+
+    if (clearBasePath) {
+      clearBasePath.addEventListener("click", () => {
+        state.basePath = "";
+        if (basePathBox) basePathBox.value = "";
+        localStorage.removeItem("bomDatasetBasePath");
+        setStatus("Base path cleared. Source paths will show the browser-provided relative path.", "warn");
+        render();
+        if (basePathBox) basePathBox.focus();
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

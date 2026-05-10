@@ -17,6 +17,7 @@ import PySimpleGUI as sg
 from logic.excel_parser import scan_directory, get_file_info
 from logic.processor import summarize_workbook, summarize_workbook_universal
 from logic.cache_manager import CacheManager
+from logic.partitioned_cache import PartitionedCacheManager, WebAssetCache
 from logic.bom_classifier import (
     detectType, containsBomTitle, bomKind, isFgLike, isBomCodeInContext,
     codeValue, normalize, isFractional
@@ -54,6 +55,8 @@ class AppState:
         self.base_path = ""
         self.busy = False
         self.cache_manager: Optional[CacheManager] = None
+        self.partitioned_cache_manager: Optional[PartitionedCacheManager] = None
+        self.web_asset_cache: Optional[WebAssetCache] = None
         self.result_queue: queue.Queue = queue.Queue()
         self.progress_callback: Optional[callable] = None
         self.search_dirty = False
@@ -105,11 +108,19 @@ class BOMIndexerGUI:
         self._setup_cache()
 
     def _setup_cache(self):
-        """Initialize cache manager"""
+        """Initialize cache managers"""
         cache_dir = Path("data")
         cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Initialize legacy cache manager for backward compatibility
         self.state.cache_manager = CacheManager(str(cache_dir / "cache.db"))
         self.state.cache_manager.connect()
+        
+        # Initialize new partitioned cache manager
+        self.state.partitioned_cache_manager = PartitionedCacheManager(str(cache_dir / "partitioned_cache"))
+        
+        # Initialize web asset cache
+        self.state.web_asset_cache = WebAssetCache(str(cache_dir / "web_cache"))
 
     def _build_layout(self):
         """Construct the PySimpleGUI window layout with scrollable areas"""
@@ -283,7 +294,18 @@ class BOMIndexerGUI:
         self.window["-STAT_FILES-"].update(f"Files: {total_files}")
         self.window["-STAT_RECORDS-"].update(f"Records: {total_records:,}")
         self.window["-STAT_TYPES-"].update(f"Types: {', '.join(sorted(unique_types))}")
-        self.window["-STAT_CACHE-"].update(f"Cache: {self.state.cache_manager.count() if self.state.cache_manager else 0}")
+        
+        # Show cache information based on which cache is being used
+        if self.state.partitioned_cache_manager:
+            cache_info = f"P-Cache: {self.state.partitioned_cache_manager.count()} files"
+            manifest = self.state.partitioned_cache_manager.get_manifest()
+            if manifest.get('partition_count', 0) > 1:
+                cache_info += f" ({manifest['partition_count']} partitions)"
+            self.window["-STAT_CACHE-"].update(cache_info)
+        elif self.state.cache_manager:
+            self.window["-STAT_CACHE-"].update(f"Cache: {self.state.cache_manager.count() if self.state.cache_manager else 0}")
+        else:
+            self.window["-STAT_CACHE-"].update("Cache: 0")
 
     def _populate_type_filter(self):
         types = sorted({e.get('type', 'Unknown') for e in self.state.entries.values()})
@@ -411,6 +433,22 @@ class BOMIndexerGUI:
     def _handle_load_cache(self):
         try:
             self._update_status("Loading cache...", "#0066cc")
+            
+            # Try to load from partitioned cache first
+            if self.state.partitioned_cache_manager:
+                entries = self.state.partitioned_cache_manager.load_entries()
+                if entries:
+                    self.state.entries = entries
+                    self._rebuild_state_from_entries()
+                    self._update_stats()
+                    self._populate_type_filter()
+                    self._apply_filters()
+                    self._refresh_version_table()
+                    self.window["-EXPORT_CSV-"].update(disabled=False)
+                    self._update_status(f"Partitioned cache loaded: {len(entries)} files.", "#0a7f4f")
+                    return
+            
+            # Fallback to legacy cache
             entries = self.state.cache_manager.load_entries()
             if entries and self.state.cache_manager.count_records() == 0:
                 self.state.cache_manager.rebuild_records_index(list(entries.values()))
@@ -421,7 +459,7 @@ class BOMIndexerGUI:
             self._apply_filters()
             self._refresh_version_table()
             self.window["-EXPORT_CSV-"].update(disabled=False)
-            self._update_status(f"Cache loaded: {len(entries)} files.", "#0a7f4f")
+            self._update_status(f"Legacy cache loaded: {len(entries)} files.", "#0a7f4f")
         except Exception as e:
             self._update_status(f"Cache load failed: {e}", "#d32f2f")
 
@@ -599,7 +637,9 @@ class BOMIndexerGUI:
 
         # Universal mode: keep query path lightweight for very large datasets.
         if self.state.index_mode == "universal":
-            if self.state.cache_manager:
+            if self.state.partitioned_cache_manager:
+                record_matches = self.state.partitioned_cache_manager.search_records_fts(term_norm, exact=exact, limit=50000)
+            elif self.state.cache_manager:
                 record_matches = self.state.cache_manager.search_records_fts(term_norm, exact=exact, limit=50000)
             else:
                 source_matches = [r for r in self.state.all_records if term_norm in r.get('searchText', '')]
@@ -795,59 +835,119 @@ class BOMIndexerGUI:
             total_files = len(files)
             self.state.result_queue.put(('status', f"Found {total_files} Excel files. Processing...", "#0066cc"))
             
-            cached_entries = self.state.cache_manager.load_entries()
-            
-            new_entries = []
-            processed = 0
-            skipped = 0
+            # Use partitioned cache for incremental updates if available
+            if self.state.partitioned_cache_manager:
+                # Load existing entries for comparison
+                cached_entries = self.state.partitioned_cache_manager.load_entries()
+                
+                new_entries = []
+                processed = 0
+                skipped = 0
 
-            for filepath in files:
-                file_meta = get_file_info(filepath)
-                signature = self.state.cache_manager.file_signature(
-                    filepath,
-                    file_meta['size'],
-                    int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
-                )
+                for filepath in files:
+                    file_meta = get_file_info(filepath)
+                    signature = self.state.partitioned_cache_manager.file_signature(
+                        filepath,
+                        file_meta['size'],
+                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                    )
 
-                if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
-                    entry = cached_entries[filepath]
-                else:
-                    try:
-                        if self.state.index_mode == "universal":
-                            entry = summarize_workbook_universal(filepath)
+                    # Check if file has changed
+                    if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
+                        entry = cached_entries[filepath]
+                    else:
+                        try:
+                            if self.state.index_mode == "universal":
+                                entry = summarize_workbook_universal(filepath)
+                            else:
+                                entry = summarize_workbook(filepath)
+                            entry['path'] = filepath
+                            entry['signature'] = signature
+                        except Exception as e:
+                            entry = {
+                                'file': Path(filepath).name,
+                                'path': filepath,
+                                'type': 'Error',
+                                'error': str(e),
+                                'records': [],
+                                'bomVersions': [],
+                                'signature': signature
+                            }
+
+                    if self.state.index_mode == "universal":
+                        new_entries.append(entry)
+                    elif self.state.bom_only:
+                        allowed = ('BOM line', 'BOM header', 'Mixed BOM report')
+                        if entry.get('type') not in allowed:
+                            skipped += 1
                         else:
-                            entry = summarize_workbook(filepath)
-                        entry['path'] = filepath
-                        entry['signature'] = signature
-                    except Exception as e:
-                        entry = {
-                            'file': Path(filepath).name,
-                            'path': filepath,
-                            'type': 'Error',
-                            'error': str(e),
-                            'records': [],
-                            'bomVersions': [],
-                            'signature': signature
-                        }
-
-                if self.state.index_mode == "universal":
-                    new_entries.append(entry)
-                elif self.state.bom_only:
-                    allowed = ('BOM line', 'BOM header', 'Mixed BOM report')
-                    if entry.get('type') not in allowed:
-                        skipped += 1
+                            new_entries.append(entry)
                     else:
                         new_entries.append(entry)
-                else:
-                    new_entries.append(entry)
-                
-                processed += 1
-                pct = int((processed / total_files) * 100) if total_files else 0
-                self.state.result_queue.put(('progress', pct))
+                    
+                    processed += 1
+                    pct = int((processed / total_files) * 100) if total_files else 0
+                    self.state.result_queue.put(('progress', pct))
 
-            self.state.result_queue.put(('status', "Saving cache...", "#0066cc"))
-            self.state.cache_manager.save_entries(new_entries)
-            self.state.result_queue.put(('result', new_entries, skipped))
+                self.state.result_queue.put(('status', "Saving cache...", "#0066cc"))
+                # Save only changed entries incrementally
+                self.state.partitioned_cache_manager.save_entries_incremental(new_entries)
+                self.state.result_queue.put(('result', new_entries, skipped))
+            else:
+                # Fallback to legacy cache
+                cached_entries = self.state.cache_manager.load_entries()
+                
+                new_entries = []
+                processed = 0
+                skipped = 0
+
+                for filepath in files:
+                    file_meta = get_file_info(filepath)
+                    signature = self.state.cache_manager.file_signature(
+                        filepath,
+                        file_meta['size'],
+                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                    )
+
+                    if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
+                        entry = cached_entries[filepath]
+                    else:
+                        try:
+                            if self.state.index_mode == "universal":
+                                entry = summarize_workbook_universal(filepath)
+                            else:
+                                entry = summarize_workbook(filepath)
+                            entry['path'] = filepath
+                            entry['signature'] = signature
+                        except Exception as e:
+                            entry = {
+                                'file': Path(filepath).name,
+                                'path': filepath,
+                                'type': 'Error',
+                                'error': str(e),
+                                'records': [],
+                                'bomVersions': [],
+                                'signature': signature
+                            }
+
+                    if self.state.index_mode == "universal":
+                        new_entries.append(entry)
+                    elif self.state.bom_only:
+                        allowed = ('BOM line', 'BOM header', 'Mixed BOM report')
+                        if entry.get('type') not in allowed:
+                            skipped += 1
+                        else:
+                            new_entries.append(entry)
+                    else:
+                        new_entries.append(entry)
+                    
+                    processed += 1
+                    pct = int((processed / total_files) * 100) if total_files else 0
+                    self.state.result_queue.put(('progress', pct))
+
+                self.state.result_queue.put(('status', "Saving cache...", "#0066cc"))
+                self.state.cache_manager.save_entries(new_entries)
+                self.state.result_queue.put(('result', new_entries, skipped))
 
         except Exception as e:
             self.state.result_queue.put(('error', str(e)))
@@ -857,43 +957,85 @@ class BOMIndexerGUI:
         try:
             total = len(file_paths)
             new_entries = []
-            cached_entries = self.state.cache_manager.load_entries()
+            
+            # Use partitioned cache if available
+            if self.state.partitioned_cache_manager:
+                cached_entries = self.state.partitioned_cache_manager.load_entries()
 
-            for i, fp in enumerate(file_paths):
-                file_meta = get_file_info(fp)
-                signature = self.state.cache_manager.file_signature(
-                    fp,
-                    file_meta['size'],
-                    int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
-                )
+                for i, fp in enumerate(file_paths):
+                    file_meta = get_file_info(fp)
+                    signature = self.state.partitioned_cache_manager.file_signature(
+                        fp,
+                        file_meta['size'],
+                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                    )
 
-                if fp in cached_entries and cached_entries[fp].get('signature') == signature:
-                    entry = cached_entries[fp]
-                else:
-                    try:
-                        if self.state.index_mode == "universal":
-                            entry = summarize_workbook_universal(fp)
-                        else:
-                            entry = summarize_workbook(fp)
-                        entry['path'] = fp
-                        entry['signature'] = signature
-                    except Exception as e:
-                        entry = {
-                            'file': Path(fp).name, 'path': fp, 'type': 'Error',
-                            'error': str(e), 'records': [], 'bomVersions': [], 'signature': signature
-                        }
+                    if fp in cached_entries and cached_entries[fp].get('signature') == signature:
+                        entry = cached_entries[fp]
+                    else:
+                        try:
+                            if self.state.index_mode == "universal":
+                                entry = summarize_workbook_universal(fp)
+                            else:
+                                entry = summarize_workbook(fp)
+                            entry['path'] = fp
+                            entry['signature'] = signature
+                        except Exception as e:
+                            entry = {
+                                'file': Path(fp).name, 'path': fp, 'type': 'Error',
+                                'error': str(e), 'records': [], 'bomVersions': [], 'signature': signature
+                            }
 
-                if self.state.index_mode == "universal":
-                    new_entries.append(entry)
-                elif (not self.state.bom_only or entry.get('type') in ('BOM line', 'BOM header', 'Mixed BOM report')):
-                    new_entries.append(entry)
+                    if self.state.index_mode == "universal":
+                        new_entries.append(entry)
+                    elif (not self.state.bom_only or entry.get('type') in ('BOM line', 'BOM header', 'Mixed BOM report')):
+                        new_entries.append(entry)
 
-                pct = int(((i + 1) / total) * 100)
-                self.state.result_queue.put(('progress', pct))
+                    pct = int(((i + 1) / total) * 100)
+                    self.state.result_queue.put(('progress', pct))
 
-            all_entries = {**self.state.entries, **{e['path']: e for e in new_entries}}
-            self.state.cache_manager.save_entries(list(all_entries.values()))
-            self.state.result_queue.put(('result_files', new_entries))
+                # Save incrementally using partitioned cache
+                self.state.partitioned_cache_manager.save_entries_incremental(new_entries)
+                self.state.result_queue.put(('result_files', new_entries))
+            else:
+                # Fallback to legacy cache
+                cached_entries = self.state.cache_manager.load_entries()
+
+                for i, fp in enumerate(file_paths):
+                    file_meta = get_file_info(fp)
+                    signature = self.state.cache_manager.file_signature(
+                        fp,
+                        file_meta['size'],
+                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                    )
+
+                    if fp in cached_entries and cached_entries[fp].get('signature') == signature:
+                        entry = cached_entries[fp]
+                    else:
+                        try:
+                            if self.state.index_mode == "universal":
+                                entry = summarize_workbook_universal(fp)
+                            else:
+                                entry = summarize_workbook(fp)
+                            entry['path'] = fp
+                            entry['signature'] = signature
+                        except Exception as e:
+                            entry = {
+                                'file': Path(fp).name, 'path': fp, 'type': 'Error',
+                                'error': str(e), 'records': [], 'bomVersions': [], 'signature': signature
+                            }
+
+                    if self.state.index_mode == "universal":
+                        new_entries.append(entry)
+                    elif (not self.state.bom_only or entry.get('type') in ('BOM line', 'BOM header', 'Mixed BOM report')):
+                        new_entries.append(entry)
+
+                    pct = int(((i + 1) / total) * 100)
+                    self.state.result_queue.put(('progress', pct))
+
+                all_entries = {**self.state.entries, **{e['path']: e for e in new_entries}}
+                self.state.cache_manager.save_entries(list(all_entries.values()))
+                self.state.result_queue.put(('result_files', new_entries))
 
         except Exception as e:
             self.state.result_queue.put(('error', str(e)))
@@ -925,7 +1067,8 @@ class BOMIndexerGUI:
                     self.state.busy = False
                 elif msg[0] == 'result_files':
                     _, entries = msg
-                    self.state.entries = self.state.cache_manager.load_entries()
+                    self.state.entries = self.state.entries.copy()
+                    self.state.entries.update({e['path']: e for e in entries})
                     self._rebuild_state_from_entries()
                     self.window["-STATUS-"].update(f"Indexed {len(entries)} files.", text_color="#0a7f4f")
                     self._update_stats()

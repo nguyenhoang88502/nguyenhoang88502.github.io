@@ -110,15 +110,20 @@ class CacheManager:
         return f"{filepath}|{size}|{mtime or 0}"
 
     def load_entries(self) -> Dict[str, Dict[str, Any]]:
-        """Load all cache entries from database into a dict keyed by file path"""
+        """Load all cache entries from database into a dict keyed by file path.
+        
+        Each entry dict includes a 'signature' key sourced from the file_signature column.
+        """
         if not self.conn:
             raise RuntimeError("Database not connected. Call connect() first.")
 
-        cursor = self.conn.execute("SELECT path, entry_data FROM cache_entries")
+        cursor = self.conn.execute("SELECT path, file_signature, entry_data FROM cache_entries")
         entries = {}
         for row in cursor:
             try:
-                entries[row['path']] = json.loads(row['entry_data'])
+                entry = json.loads(row['entry_data'])
+                entry['signature'] = row['file_signature'] or ''
+                entries[row['path']] = entry
             except json.JSONDecodeError:
                 continue
         return entries

@@ -1,77 +1,88 @@
-# BOM Dataset Indexer - Desktop Application
+# BOM Dataset Indexer - Desktop Application (Python)
 
-A standalone Windows desktop application for managing and searching Bill of Materials (BOM) data from Excel files. Built with Python and featuring a native GUI for enhanced performance.
+This is a standalone Windows desktop version of the original web-based BOM Dataset Indexer, migrated to Python with a native GUI.
 
 ## Features
 
-- **Local Processing**: All data processing happens on your computer
-- **Multi-Language Support**: Recognizes headers in English, Vietnamese, and Chinese
-- **Smart Classification**: Automatically categorizes files (BOM line, header, mixed, etc.)
-- **Full-Text Search**: Search across all data fields
-- **Advanced Filters**: Filter by file type and record properties
-- **Quick Lookup**: Find items with fuzzy or exact matching
-- **Batch Processing**: Search multiple codes at once
-- **Fast Caching**: SQLite-based cache for instant reloads
-- **CSV Export**: Export results for Excel or Power BI
-- **Offline Operation**: Works without internet connection
+- **Dataset Indexing**: Scan folders (recursively) for Excel/CSV files and build a searchable index.
+- **Multi-language Support**: Recognizes Excel headers in English, Vietnamese, and Chinese.
+- **Smart Classification**: Automatically detects file types (BOM line, BOM header, Mixed BOM report, Non-BOM, Errors).
+- **Full-Text Search**: Search across items, BOM numbers, product names, warehouses, etc.
+- **Advanced Filters**: Filter by BOM type, record properties (e.g., fractional quantities, errors).
+- **Quick Lookup**: Find specific items or BOMs with "contains" or "exact" matching.
+- **Batch Find**: Look up multiple codes at once (newline or comma separated).
+- **SQLite Caching**: Near-instant reload of previously indexed datasets.
+- **Export**: Filtered results can be exported to CSV for Excel/Power BI analysis.
 
-## System Requirements
+## Requirements
 
 - Windows 10/11
-- 2GB RAM minimum (4GB recommended)
-- 100MB free disk space
+- Python 3.9+ (only needed for building/running from source)
 
-## Getting Started
+## Installation (From Source)
 
-### Installation
-1. [Download BOM Dataset Indexer v3](./BOM%20Dataset%20Indexer%20v3/BOM%20Dataset%20Indexer.exe) (Recommended)
-2. Run the executable (no installation required)
-3. The app creates a `data/` folder for caching on first launch
+1. Clone or download the repository.
+2. Open a command prompt in the project folder and install dependencies:
 
-### Usage
-1. Click the folder button and select your Excel/CSV files directory
-2. Wait for indexing to complete (progress bar shows status)
-3. Use the search bar to find items, BOMs, products, etc.
-4. Apply filters to narrow down results
-5. Export results as CSV when needed
+```bash
+pip install -r requirements.txt
+```
 
-## Supported File Formats
-- Excel: .xls, .xlsx, .xlsm
-- CSV: .csv
+3. Run the application:
 
-Note: .xlsb files are not currently supported.
+```bash
+python app.py
+```
 
-## Privacy & Security
-- All processing occurs locally on your machine
-- No data is uploaded to external servers
-- Original files remain unchanged
-- Cache stored locally in `data/cache.db`
+## Building a Standalone Executable
 
-## Troubleshooting
-- **No results**: Ensure indexing completed successfully
-- **Slow performance**: First indexing of large datasets may take several minutes
-- **Parse errors**: Check if files are corrupted or have unsupported formats
-- **Export issues**: Verify write permissions in the application directory
-- **Cache problems**: Delete `data/cache.db` to force re-indexing
+To create a `.exe` that does **not** require Python to be installed:
 
-## Building from Source
-If you want to build the application yourself:
+### Option 1: Using build.bat (Windows)
+Simply run `build.bat` in the project folder. This will:
+1. Install dependencies
+2. Build the executable using PyInstaller
+3. Place the result in `dist/BOM Dataset Indexer.exe`
 
-Requirements:
-- Python 3.9+
-- pip package manager
+### Option 2: Manual command
+```bash
+pyinstaller --onefile --windowed --name "BOM Dataset Indexer" app.py
+```
 
-Steps:
-1. Install dependencies: `pip install -r requirements.txt`
-2. Build executable: `pyinstaller --onefile --windowed --name "BOM Dataset Indexer" app.py`
-3. Find the executable in the `dist/` folder
+The executable will be placed in the `dist/` folder.
 
-## Technologies Used
-- Python (core logic)
-- PySimpleGUI (interface)
-- openpyxl/xlrd (Excel parsing)
-- SQLite (caching)
-- PyInstaller (executable packaging)
+### Distribution
+- The built `.exe` is **standalone** - it includes all dependencies and runs on any Windows machine without Python
+- The first run creates a `data/` folder for cache (SQLite) and config files
+- File size is typically 20-40MB depending on included dependencies
 
----
-**Latest Version**: v3 - Enhanced performance and improved user interface
+## Usage
+
+1. **Select Dataset Folder**: Choose the root folder containing your Excel/CSV files. The app scans recursively.
+2. **Wait for Indexing**: Progress bar shows status. Cache is saved automatically.
+3. **Search**: Use the main search bar and type/record filters to narrow results.
+4. **Quick Lookup**: Type a value and choose a target (e.g., BOM, Item, FG) to find related rows.
+5. **Batch Find**: Paste multiple codes into the batch box and click "Batch Find".
+6. **Export**: Click "Export CSV" to save the current filtered records.
+7. **Load Cache**: Previously cached datasets can be loaded instantly via "Load Cache" (no need to rescan).
+
+## Configuration
+
+- **Base Path**: If your files are on a network drive or changing location, you can set a base path prefix to prepend to file paths (saved between sessions).
+- **Skip Unrelated Workbooks**: Enabled by default to exclude non-BOM files from the index. Uncheck to include all Excel files in searches.
+
+## File Cache
+
+The SQLite cache (`data/cache.db`) stores parsed data for fast loading. Delete this file to force a full re-index.
+
+## Notes
+
+- The application processes data locally; nothing is sent to the cloud.
+- Large datasets (thousands of files) may take a few minutes to index initially.
+- Only `.xls`, `.xlsx`, `.xlsm`, `.xlsb`, and `.csv` files are processed.
+- `.xlsb` (Excel Binary) is not supported by `openpyxl`; such files will be reported as errors.
+
+## Credits
+
+Original web version: SheetJS (xlsx) for Excel parsing, IndexedDB for caching.
+Python version: PySimpleGUI, openpyxl, xlrd, sqlite3.
