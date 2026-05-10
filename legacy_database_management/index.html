@@ -5,32 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BOM Dataset Indexer</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --bg: #0a0a0a;
+      --panel: rgba(20, 20, 20, 0.7);
+      --text: #e0e0e0;
+      --muted: #909090;
+      --line: #333;
+      --accent: #0f766e;
+      --accent-hover: #0d9488;
+      --badge-bg: #1a1a1a;
     }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'JetBrains Mono', 'Courier New', monospace;
       line-height: 1.6;
-      color: #e0e0e0;
-      background-color: #0a0a0a;
-      background-image: 
-        linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent);
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(0deg, transparent 24%, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,0.05) 75%, rgba(255,255,255,0.05) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,0.05) 75%, rgba(255,255,255,0.05) 76%, transparent 77%, transparent);
       background-size: 50px 50px;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
     header {
-      background-color: rgba(0, 0, 0, 0.7);
-      border-bottom: 1px solid #333;
+      background-color: rgba(0,0,0,0.7);
+      border-bottom: 1px solid var(--line);
       padding: 1.5rem 0;
       margin-bottom: 2rem;
       backdrop-filter: blur(10px);
@@ -43,6 +46,7 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 20px;
+      gap: 10px;
     }
 
     h1 {
@@ -55,10 +59,11 @@
       letter-spacing: 0.05em;
     }
 
+    nav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
     nav a {
       text-decoration: none;
       color: #b0b0b0;
-      margin-left: 30px;
       font-weight: 500;
       font-size: 0.95rem;
       position: relative;
@@ -68,46 +73,54 @@
     nav a::after {
       content: '';
       position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 0;
-      height: 1px;
+      bottom: -5px; left: 0;
+      width: 0; height: 1px;
       background: #ffffff;
       transition: width 0.3s ease;
     }
 
-    nav a:hover {
-      color: #ffffff;
+    nav a:hover { color: #ffffff; }
+    nav a:hover::after { width: 100%; }
+
+    .lang-toggle {
+      background: transparent;
+      border: 1px solid #555;
+      color: #b0b0b0;
+      padding: 0.45rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
-    nav a:hover::after {
-      width: 100%;
+    .lang-toggle:hover {
+      border-color: #999;
+      color: #ffffff;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lang-toggle.active {
+      border-color: var(--accent);
+      color: #ffffff;
+      background: rgba(15,118,110,0.15);
     }
 
     .hero {
       text-align: center;
       padding: 3rem 2rem;
-      background-color: rgba(20, 20, 20, 0.8);
-      border: 1px solid #333;
+      background-color: rgba(20,20,20,0.8);
+      border: 1px solid var(--line);
       border-radius: 5px;
       margin-bottom: 2rem;
     }
 
-    .hero h2 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: #ffffff;
-      letter-spacing: -0.02em;
-    }
+    .hero h2 { font-size: 2.5rem; margin-bottom: 1rem; color: #ffffff; letter-spacing: -0.02em; }
+    .hero p { font-size: 1rem; max-width: 700px; margin: 0 auto; color: #a0a0a0; }
 
-    .hero p {
-      font-size: 1rem;
-      max-width: 700px;
-      margin: 0 auto;
-      color: #a0a0a0;
-    }
-
-    .versions {
+    .grid-2col {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
@@ -115,41 +128,26 @@
     }
 
     .card {
-      background-color: rgba(20, 20, 20, 0.6);
-      border: 1px solid #333;
+      background-color: rgba(20,20,20,0.6);
+      border: 1px solid var(--line);
       border-radius: 5px;
       padding: 2rem;
       transition: all 0.3s ease;
-      position: relative;
     }
 
     .card:hover {
       transform: translateY(-4px);
       border-color: #555;
-      background-color: rgba(30, 30, 30, 0.8);
-      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+      background-color: rgba(30,30,30,0.8);
+      box-shadow: 0 10px 30px rgba(255,255,255,0.05);
     }
 
-    .card-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .card-icon {
-      font-size: 2rem;
-      margin-right: 1rem;
-    }
-
-    .card-title {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: #ffffff;
-      letter-spacing: 0.02em;
-    }
+    .card-header { display: flex; align-items: center; margin-bottom: 1rem; }
+    .card-icon { font-size: 2rem; margin-right: 1rem; }
+    .card-title { font-size: 1.4rem; font-weight: 600; color: #ffffff; letter-spacing: 0.02em; }
 
     .badge {
-      background-color: #1a1a1a;
+      background-color: var(--badge-bg);
       color: #ffffff;
       padding: 0.3rem 0.8rem;
       border-radius: 3px;
@@ -159,32 +157,22 @@
       border: 1px solid #444;
     }
 
-    .card-description {
-      color: #909090;
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
+    .badge.accent {
+      border-color: var(--accent);
+      color: var(--accent-hover);
+      background: rgba(15,118,110,0.1);
     }
 
-    .features {
-      margin: 1rem 0;
-      list-style: none;
-      text-align: left;
-    }
+    .card-description { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
 
+    .features { margin: 1rem 0; list-style: none; text-align: left; }
     .features li {
       padding: 0.4rem 0;
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
       color: #a0a0a0;
       font-size: 0.9rem;
     }
-
-    .features li::before {
-      content: "»";
-      color: #666;
-      font-weight: bold;
-      margin-right: 0.8rem;
-    }
+    .features li::before { content: "»"; color: #666; font-weight: bold; margin-right: 0.8rem; }
 
     .btn {
       display: inline-block;
@@ -200,72 +188,138 @@
       border: 1px solid #ffffff;
       font-size: 0.9rem;
       letter-spacing: 0.05em;
+      cursor: pointer;
+      font-family: inherit;
     }
 
-    .btn:hover {
-      background: #000000;
-      color: #ffffff;
-      border-color: #ffffff;
-    }
+    .btn:hover { background: #000000; color: #ffffff; border-color: #ffffff; }
 
     .btn.secondary {
       background: transparent;
       color: #b0b0b0;
       border: 1px solid #666;
     }
+    .btn.secondary:hover { background: rgba(255,255,255,0.05); border-color: #999; color: #ffffff; }
 
-    .btn.secondary:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: #999;
-      color: #ffffff;
+    .version-panel {
+      background-color: rgba(15,118,110,0.08);
+      border: 1px solid rgba(15,118,110,0.3);
+      border-radius: 5px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: center;
+      justify-content: center;
     }
+
+    .version-item {
+      text-align: center;
+      min-width: 150px;
+    }
+
+    .version-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.3rem;
+    }
+
+    .version-value {
+      display: block;
+      color: var(--accent-hover);
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .schema-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 1rem 0;
+    }
+
+    .schema-table th, .schema-table td {
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid #2a2a2a;
+      text-align: left;
+    }
+
+    .schema-table th {
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      border-bottom: 2px solid #333;
+    }
+
+    .schema-table td { color: #c0c0c0; }
+    .schema-table code {
+      background: rgba(255,255,255,0.06);
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--accent-hover);
+    }
+
+    .arch-section { margin-bottom: 2rem; }
+    .arch-section h4 {
+      color: #ffffff;
+      margin: 1.5rem 0 0.8rem;
+      font-size: 1.1rem;
+      border-left: 2px solid var(--accent);
+      padding-left: 0.8rem;
+    }
+    .arch-section p { color: #c0c0c0; font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.8rem; }
+    .arch-section ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+    .arch-section ul li { color: #a0a0a0; padding: 0.2rem 0; font-size: 0.9rem; }
+    .arch-section strong { color: #e0e0e0; }
 
     footer {
       text-align: center;
       padding: 2rem 0;
       color: #707070;
-      border-top: 1px solid #333;
+      border-top: 1px solid var(--line);
       margin-top: 3rem;
       font-size: 0.9rem;
     }
 
-    footer a {
-      color: #a0a0a0;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    footer a:hover {
-      color: #ffffff;
-    }
+    footer a { color: #a0a0a0; text-decoration: none; transition: color 0.2s ease; }
+    footer a:hover { color: #ffffff; }
 
     @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        gap: 1rem;
-      }
+      .header-content { flex-direction: column; gap: 1rem; }
+      nav { display: flex; flex-wrap: wrap; justify-content: center; }
+      nav a { margin: 0.5rem 10px; }
+      .grid-2col { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 1.8rem; }
+      h1 { font-size: 1.3rem; }
+      .version-panel { flex-direction: column; gap: 0.8rem; }
+    }
 
-      nav {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      animation: slideUp 300ms ease-out;
+      z-index: 999;
+      font-size: 13px;
+      background: #1a1a1a;
+      border: 1px solid var(--accent);
+      color: #e0e0e0;
+    }
 
-      nav a {
-        margin: 0.5rem 10px;
-      }
-
-      .versions {
-        grid-template-columns: 1fr;
-      }
-
-      .hero h2 {
-        font-size: 1.8rem;
-      }
-
-      h1 {
-        font-size: 1.3rem;
-      }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
@@ -274,133 +328,390 @@
     <div class="header-content">
       <h1>📦 BOM Indexer</h1>
       <nav>
-        <a href="#web-version">Web Version</a>
-        <a href="#desktop-version">Desktop App</a>
-        <a href="README.md">Documentation</a>
+        <a href="#web-version" data-i18n="nav_web">Web Version</a>
+        <a href="#desktop-version" data-i18n="nav_desktop">Desktop App</a>
+        <a href="#architecture" data-i18n="nav_arch">Architecture</a>
+        <a href="README.md" data-i18n="nav_docs">Documentation</a>
+        <button id="langToggle" class="lang-toggle" aria-label="Toggle language">VI</button>
       </nav>
     </div>
   </header>
 
   <div class="container">
     <div class="hero">
-      <h2>BOM Dataset Indexer</h2>
-      <p>Powerful tools for managing and indexing Bill of Materials datasets. Choose between our web-based application or desktop application.</p>
+      <h2 data-i18n="hero_title">BOM Dataset Indexer</h2>
+      <p data-i18n="hero_desc">A modern, version-controlled system for managing and indexing Bill of Materials datasets. Available as a browser-based application or native desktop executable.</p>
     </div>
 
-     <div class="versions">
+    <!-- Version Control Status Panel -->
+    <div class="version-panel" id="versionPanel">
+      <div class="version-item">
+        <span class="version-label" data-i18n="vc_schema">Schema Version</span>
+        <span class="version-value" id="schemaVersion">v3.2.0</span>
+      </div>
+      <div class="version-item">
+        <span class="version-label" data-i18n="vc_data">Data Index Version</span>
+        <span class="version-value" id="dataVersion">latest-v8</span>
+      </div>
+      <div class="version-item">
+        <span class="version-label" data-i18n="vc_updated">Last Indexed</span>
+        <span class="version-value" id="lastUpdated" style="font-size: 1rem;">--</span>
+      </div>
+      <div class="version-item">
+        <span class="version-label" data-i18n="vc_compat">Min. Compatibility</span>
+        <span class="version-value" style="font-size: 1rem;">v2.0.0+</span>
+      </div>
+    </div>
+
+    <div class="grid-2col">
       <div class="card" id="web-version">
         <div class="card-header">
           <div class="card-icon">🌐</div>
-          <h3 class="card-title">Web Version</h3>
+          <h3 class="card-title" data-i18n="web_title">Web Version</h3>
         </div>
-        <p class="card-description">Browser-based application. No installation required.</p>
+        <p class="card-description" data-i18n="web_desc">Browser-based progressive web application with local processing and offline capability.</p>
         <ul class="features">
-          <li>No installation needed</li>
-          <li>Works in any modern browser</li>
-          <li>Cross-platform compatibility</li>
-          <li>Processes data locally in your browser</li>
-          <li>Batch operations support</li>
-          <li>CSV export functionality</li>
-          <li>Multi-language support</li>
+          <li data-i18n="web_f1">No installation required</li>
+          <li data-i18n="web_f2">Works in any modern browser</li>
+          <li data-i18n="web_f3">Client-side data processing (zero upload)</li>
+          <li data-i18n="web_f4">Progressive Web App (PWA) support</li>
+          <li data-i18n="web_f5">IndexedDB caching with ~100 MB partitions</li>
+          <li data-i18n="web_f6">CSV & Excel export functionality</li>
+          <li data-i18n="web_f7">Multi-language support (EN/VI/ZH)</li>
+          <li data-i18n="web_f8">Dark/light theme toggle</li>
         </ul>
         <div style="margin-top: 1rem;">
-          <a href="Indexing_web.html" class="btn">Launch Web App</a>
-          <a href="README.md" class="btn secondary">Documentation</a>
+          <a href="Indexing_web.html" class="btn" data-i18n="web_launch">Launch Web App</a>
+          <a href="README.md" class="btn secondary" data-i18n="web_docs">Documentation</a>
         </div>
       </div>
 
       <div class="card" id="desktop-version">
         <div class="card-header">
           <div class="card-icon">💻</div>
-          <h3 class="card-title">Desktop v3 <span class="badge">LATEST</span></h3>
+          <h3 class="card-title" data-i18n="desktop_title">Desktop v4 <span class="badge accent">LATEST</span></h3>
         </div>
-        <p class="card-description">Native Windows application with enhanced features.</p>
+        <p class="card-description" data-i18n="desktop_desc">Native Windows desktop application with advanced caching and full offline support.</p>
         <ul class="features">
-          <li>Native graphical interface</li>
-          <li>Works offline</li>
-          <li>Advanced caching system</li>
-          <li>Full-text search capabilities</li>
-          <li>Smart data classification</li>
-          <li>Multi-language support</li>
-          <li>CSV export functionality</li>
-          <li>All latest features included</li>
+          <li data-i18n="desktop_f1">Native Windows GUI (Tkinter-based)</li>
+          <li data-i18n="desktop_f2">Full offline functionality</li>
+          <li data-i18n="desktop_f3">Multi-threaded file processing</li>
+          <li data-i18n="desktop_f4">Advanced partitioned caching system</li>
+          <li data-i18n="desktop_f5">Web sync & cache migration</li>
+          <li data-i18n="desktop_f6">Full-text search across all content</li>
+          <li data-i18n="desktop_f7">Smart data classification engine</li>
+          <li data-i18n="desktop_f8">Multi-language header recognition</li>
         </ul>
         <div style="margin-top: 1rem;">
-          <a href="desktop_app/BOM%20Dataset%20Indexer%20v3/BOM%20Dataset%20Indexer.exe" class="btn">Download v3</a>
-          <a href="desktop_app/README_DESKTOP.md" class="btn secondary">Setup Guide</a>
+          <a href="desktop_app/BOM%20Dataset%20Indexer%20v4/BOM%20Dataset%20Indexer.exe" class="btn" data-i18n="desktop_download">Download v4</a>
+          <a href="desktop_app/README_DESKTOP.md" class="btn secondary" data-i18n="desktop_guide">Setup Guide</a>
         </div>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom: 2rem;">
+    <!-- Modern Architecture Documentation -->
+    <div class="card" style="margin-bottom: 2rem;" id="architecture">
       <div class="card-header">
-        <div class="card-icon">📋</div>
-        <h3 class="card-title">Technical Overview</h3>
+        <div class="card-icon">🏗️</div>
+        <h3 class="card-title" data-i18n="arch_title">System Architecture &amp; Technical Specifications</h3>
       </div>
-      <div class="card-description" style="margin-bottom: 1rem;">
-        The BOM Dataset Indexer is a comprehensive multi-sheet Excel-based indexing tool designed specifically for legacy database management in manufacturing environments. This universal file and content indexer performs deep directory crawls to catalog all files, extracting rich metadata including filenames, sheet names, and specific cell content across multiple workbooks.
+      <div class="card-description" style="margin-bottom: 1rem;" data-i18n="arch_overview">
+        The BOM Dataset Indexer is a modular, version-controlled data indexing platform engineered for legacy database management in manufacturing environments. It provides a universal file and content indexing engine with specialized Bill of Materials (BOM) intelligence.
       </div>
-      <div style="color: #c0c0c0; font-size: 0.95rem; line-height: 1.7;">
-        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Core Functionality</h4>
-        <p>Upon directory selection, the system executes a comprehensive crawl algorithm that:</p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-          <li>Recursively traverses all subdirectories</li>
-          <li>Identifies Excel workbooks (.xlsx, .xlsm, .xls) and related data files</li>
-          <li>Extracts structural metadata: file paths, creation dates, modification timestamps</li>
-          <li>Parses workbook contents: sheet names, cell ranges, data types</li>
-          <li>Implements content indexing for text, numbers, and formulas across all cells</li>
-        </ul>
 
-        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Dual-Capability Architecture</h4>
-        <p>The indexer serves as a <strong>general-purpose data retrieval engine</strong> for any organizational information stored in Excel format, providing:</p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-          <li>Full-text search across all indexed content</li>
-          <li>Metadata-based filtering and sorting</li>
-          <li>Cross-workbook relationship mapping</li>
-          <li>Export capabilities for analysis and reporting</li>
-        </ul>
+      <div class="arch-section">
+        <h4 data-i18n="arch_core">Core Architecture</h4>
+        <p data-i18n="arch_core_desc">The system follows a layered, modular architecture with clear separation of concerns:</p>
+        <table class="schema-table">
+          <thead>
+            <tr>
+              <th data-i18n="arch_layer">Layer</th>
+              <th data-i18n="arch_component">Component</th>
+              <th data-i18n="arch_tech">Technology</th>
+              <th data-i18n="arch_desc_col">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Presentation</strong></td>
+              <td><code>index.html</code> / <code>gui.py</code></td>
+              <td>HTML5 / CSS3 / Tkinter</td>
+              <td>User interfaces for web and desktop deployment</td>
+            </tr>
+            <tr>
+              <td><strong>Application Logic</strong></td>
+              <td><code>parser engine</code></td>
+              <td>JavaScript / Python</td>
+              <td>File parsing, BOM classification, header recognition</td>
+            </tr>
+            <tr>
+              <td><strong>Data Access</strong></td>
+              <td><code>cache_manager</code></td>
+              <td>IndexedDB / SQLite</td>
+              <td>Partitioned caching with incremental updates</td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure</strong></td>
+              <td><code>web_sync</code> / <code>migrate_cache</code></td>
+              <td>REST / File I/O</td>
+              <td>Cross-platform cache synchronization and migration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        <p>Simultaneously, it features a <strong>specialized optimization layer</strong> engineered for rapid identification and extraction of Bills of Materials (BOM) related to Wahl Clipper Vietnam operations:</p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-          <li>Pattern recognition for BOM-specific structures (part numbers, quantities, suppliers)</li>
-          <li>Hierarchical BOM relationship analysis</li>
-          <li>Version comparison across product iterations</li>
-          <li>Supplier configuration tracking</li>
-          <li>Automated data validation against engineering specifications</li>
+      <div class="arch-section">
+        <h4 data-i18n="arch_index">Indexing Engine</h4>
+        <p data-i18n="arch_index_desc">The indexing pipeline is designed for high-throughput processing of structured and semi-structured Excel data:</p>
+        <ul>
+          <li><strong>Directory Crawler</strong> &mdash; Recursive file-system traversal with configurable include/exclude filters</li>
+          <li><strong>Multi-format Parser</strong> &mdash; Native support for <code>.xlsx</code>, <code>.xlsm</code>, <code>.xls</code>, <code>.xlsb</code>, and <code>.csv</code> via SheetJS</li>
+          <li><strong>Header Detection</strong> &mdash; Multi-lingual column header recognition (English, Vietnamese, Chinese) with alias mapping</li>
+          <li><strong>Structured Extraction</strong> &mdash; Column-aware row parsing mapped to canonical fields (Item, FG, BOM, Qty, Unit, etc.)</li>
+          <li><strong>BOM Classification</strong> &mdash; Pattern-based categorization: BOM line, BOM header, Mixed BOM report, Non-BOM</li>
+          <li><strong>Inverted Indexing</strong> &mdash; Full-text search index with metadata enrichment for sub-second queries</li>
         </ul>
+      </div>
 
-        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Technical Implementation</h4>
-        <p>Built on a modular architecture with:</p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-          <li><strong>Indexing Engine:</strong> Multi-threaded file processing with memory-efficient streaming</li>
-          <li><strong>Search Backend:</strong> Inverted index structure for sub-second query responses</li>
-          <li><strong>Data Validation:</strong> Rule-based engine for BOM integrity checks</li>
-          <li><strong>Export Pipeline:</strong> Flexible output formats including Excel, CSV, and JSON</li>
-          <li><strong>User Interface:</strong> Intuitive design with real-time progress indicators</li>
+      <div class="arch-section">
+        <h4 data-i18n="arch_versioning">Version Control &amp; Schema Management</h4>
+        <p data-i18n="arch_versioning_desc">The platform implements semantic versioning for both data schemas and cache payloads, ensuring backward compatibility and smooth upgrades:</p>
+        <ul>
+          <li><strong>Schema Versioning (<code>v3.2.0</code>)</strong> &mdash; The structural contract that defines how data is organized, parsed, and indexed. Each schema change is tracked with a MAJOR.MINOR.PATCH version.</li>
+          <li><strong>Data Index Version (<code>latest-v8</code>)</strong> &mdash; The cache payload format identifier. Legacy cache keys (v3 through v7) are automatically migrated on load.</li>
+          <li><strong>Incremental Updates</strong> &mdash; File signatures (path + size + lastModified) enable differential re-indexing, only processing changed workbooks.</li>
+          <li><strong>Backward Compatibility</strong> &mdash; The system reads all prior cache formats and transparently upgrades them, with a minimum compatibility floor of v2.0.0.</li>
+          <li><strong>Audit Trail</strong> &mdash; Each cache write records a <code>generatedAt</code> ISO timestamp, enabling version diffing and rollback analysis.</li>
         </ul>
+      </div>
 
-        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Performance Characteristics</h4>
-        <p>Optimized for enterprise-scale deployments:</p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-          <li>Processes thousands of workbooks in minutes</li>
-          <li>Handles complex BOM hierarchies with millions of part relationships</li>
-          <li>Incremental indexing for continuous data updates</li>
-          <li>Compressed storage with fast retrieval</li>
-          <li>Cross-platform compatibility (Windows desktop, web browsers)</li>
+      <div class="arch-section">
+        <h4 data-i18n="arch_performance">Performance Characteristics</h4>
+        <ul>
+          <li><strong>Throughput:</strong> Processes thousands of workbooks in minutes with multi-threaded parsing (desktop) or Web Worker parallelism (browser)</li>
+          <li><strong>Cache Partitioning:</strong> ~100 MB chunked storage prevents browser quota exhaustion and enables partial cache loads</li>
+          <li><strong>Incremental Indexing:</strong> File signature comparison skips unchanged files, reducing re-index time by up to 90%</li>
+          <li><strong>Lazy Rendering:</strong> UI tables virtualize to show the first 500 records with progressive loading for remaining rows</li>
+          <li><strong>Cross-Platform:</strong> Identical indexing logic in both web (JavaScript) and desktop (Python) implementations</li>
         </ul>
+      </div>
 
-        <p>This tool bridges the gap between legacy Excel-based data storage and modern manufacturing information systems, enabling efficient BOM management while maintaining broad organizational data visibility.</p>
+      <div class="arch-section">
+        <h4 data-i18n="arch_security">Security &amp; Privacy</h4>
+        <ul>
+          <li><strong>Zero Server Upload:</strong> All file processing executes entirely in the browser or local desktop process. No data leaves the machine.</li>
+          <li><strong>Local-First Architecture:</strong> IndexedDB (web) and SQLite (desktop) store all indexed data on the device.</li>
+          <li><strong>Immutable Sources:</strong> Original Excel workbooks are never modified, copied, or transmitted.</li>
+          <li><strong>Content Isolation:</strong> Worker threads parse files in isolated contexts without DOM or network access.</li>
+        </ul>
       </div>
     </div>
-
-   
-
   </div>
 
   <footer>
     <p><strong>BOM Dataset Indexer</strong></p>
     <p>Documentation: <a href="README.md">Web App</a> · <a href="desktop_app/README_DESKTOP.md">Desktop App</a></p>
-    <p style="margin-top: 1rem; font-size: 0.9rem;">Efficiently manage and index BOM datasets</p>
+    <p style="margin-top: 1rem; font-size: 0.9rem;" data-i18n="footer_tagline">Version-controlled BOM indexing for legacy manufacturing databases</p>
   </footer>
+
+  <script>
+    // i18n translations
+    const i18n = {
+      en: {
+        nav_web: "Web Version",
+        nav_desktop: "Desktop App",
+        nav_arch: "Architecture",
+        nav_docs: "Documentation",
+        hero_title: "BOM Dataset Indexer",
+        hero_desc: "A modern, version-controlled system for managing and indexing Bill of Materials datasets. Available as a browser-based application or native desktop executable.",
+        vc_schema: "Schema Version",
+        vc_data: "Data Index Version",
+        vc_updated: "Last Indexed",
+        vc_compat: "Min. Compatibility",
+        web_title: "Web Version",
+        web_desc: "Browser-based progressive web application with local processing and offline capability.",
+        web_f1: "No installation required",
+        web_f2: "Works in any modern browser",
+        web_f3: "Client-side data processing (zero upload)",
+        web_f4: "Progressive Web App (PWA) support",
+        web_f5: "IndexedDB caching with ~100 MB partitions",
+        web_f6: "CSV & Excel export functionality",
+        web_f7: "Multi-language support (EN/VI/ZH)",
+        web_f8: "Dark/light theme toggle",
+        web_launch: "Launch Web App",
+        web_docs: "Documentation",
+        desktop_title: "Desktop v4 ",
+        desktop_desc: "Native Windows desktop application with advanced caching and full offline support.",
+        desktop_f1: "Native Windows GUI (Tkinter-based)",
+        desktop_f2: "Full offline functionality",
+        desktop_f3: "Multi-threaded file processing",
+        desktop_f4: "Advanced partitioned caching system",
+        desktop_f5: "Web sync & cache migration",
+        desktop_f6: "Full-text search across all content",
+        desktop_f7: "Smart data classification engine",
+        desktop_f8: "Multi-language header recognition",
+        desktop_download: "Download v4",
+        desktop_guide: "Setup Guide",
+        arch_title: "System Architecture & Technical Specifications",
+        arch_overview: "The BOM Dataset Indexer is a modular, version-controlled data indexing platform engineered for legacy database management in manufacturing environments. It provides a universal file and content indexing engine with specialized Bill of Materials (BOM) intelligence.",
+        arch_core: "Core Architecture",
+        arch_core_desc: "The system follows a layered, modular architecture with clear separation of concerns:",
+        arch_layer: "Layer",
+        arch_component: "Component",
+        arch_tech: "Technology",
+        arch_desc_col: "Description",
+        arch_index: "Indexing Engine",
+        arch_index_desc: "The indexing pipeline is designed for high-throughput processing of structured and semi-structured Excel data:",
+        arch_versioning: "Version Control & Schema Management",
+        arch_versioning_desc: "The platform implements semantic versioning for both data schemas and cache payloads, ensuring backward compatibility and smooth upgrades:",
+        arch_performance: "Performance Characteristics",
+        arch_security: "Security & Privacy",
+        footer_tagline: "Version-controlled BOM indexing for legacy manufacturing databases"
+      },
+      vi: {
+        nav_web: "Phiên Bản Web",
+        nav_desktop: "Ứng Dụng Desktop",
+        nav_arch: "Kiến Trúc",
+        nav_docs: "Tài Liệu",
+        hero_title: "BOM Dataset Indexer",
+        hero_desc: "Hệ thống quản lý phiên bản hiện đại dành cho việc quản lý và lập chỉ mục tập dữ liệu Bill of Materials. Có sẵn dưới dạng ứng dụng web hoặc ứng dụng desktop.",
+        vc_schema: "Phiên Bản Schema",
+        vc_data: "Phiên Bản Dữ Liệu",
+        vc_updated: "Lần Cập Nhật Cuối",
+        vc_compat: "Khả Năng Tương Thích Tối Thiểu",
+        web_title: "Phiên Bản Web",
+        web_desc: "Ứng dụng web tiến bộ (PWA) với xử lý cục bộ và khả năng ngoại tuyến.",
+        web_f1: "Không cần cài đặt",
+        web_f2: "Hoạt động trên mọi trình duyệt hiện đại",
+        web_f3: "Xử lý dữ liệu phía máy khách (không tải lên)",
+        web_f4: "Hỗ trợ Progressive Web App (PWA)",
+        web_f5: "Bộ nhớ đệm IndexedDB với phân vùng ~100 MB",
+        web_f6: "Xuất dữ liệu CSV & Excel",
+        web_f7: "Hỗ trợ đa ngôn ngữ (EN/VI/ZH)",
+        web_f8: "Chuyển đổi giao diện sáng/tối",
+        web_launch: "Mở Ứng Dụng Web",
+        web_docs: "Tài Liệu",
+        desktop_title: "Desktop v4 ",
+        desktop_desc: "Ứng dụng desktop Windows gốc với bộ nhớ đệm nâng cao và hỗ trợ ngoại tuyến hoàn toàn.",
+        desktop_f1: "Giao diện Windows gốc (Tkinter)",
+        desktop_f2: "Chức năng ngoại tuyến đầy đủ",
+        desktop_f3: "Xử lý tệp đa luồng",
+        desktop_f4: "Hệ thống bộ nhớ đệm phân vùng nâng cao",
+        desktop_f5: "Đồng bộ web & di chuyển bộ nhớ đệm",
+        desktop_f6: "Tìm kiếm toàn văn trên tất cả nội dung",
+        desktop_f7: "Công cụ phân loại dữ liệu thông minh",
+        desktop_f8: "Nhận dạng tiêu đề đa ngôn ngữ",
+        desktop_download: "Tải Về v4",
+        desktop_guide: "Hướng Dẫn Cài Đặt",
+        arch_title: "Kiến Trúc Hệ Thống & Thông Số Kỹ Thuật",
+        arch_overview: "BOM Dataset Indexer là một nền tảng lập chỉ mục dữ liệu mô-đun, có kiểm soát phiên bản, được thiết kế cho việc quản lý cơ sở dữ liệu cũ trong môi trường sản xuất. Nó cung cấp công cụ lập chỉ mục tệp và nội dung phổ quát với trí tuệ BOM chuyên biệt.",
+        arch_core: "Kiến Trúc Cốt Lõi",
+        arch_core_desc: "Hệ thống tuân theo kiến trúc phân lớp, mô-đun với sự phân tách rõ ràng giữa các thành phần:",
+        arch_layer: "Lớp",
+        arch_component: "Thành Phần",
+        arch_tech: "Công Nghệ",
+        arch_desc_col: "Mô Tả",
+        arch_index: "Công Cụ Lập Chỉ Mục",
+        arch_index_desc: "Quy trình lập chỉ mục được thiết kế để xử lý thông lượng cao dữ liệu Excel có cấu trúc và bán cấu trúc:",
+        arch_versioning: "Kiểm Soát Phiên Bản & Quản Lý Schema",
+        arch_versioning_desc: "Nền tảng triển khai semantic versioning cho cả schema dữ liệu và payload bộ nhớ đệm, đảm bảo khả năng tương thích ngược và nâng cấp suôn sẻ:",
+        arch_performance: "Đặc Tính Hiệu Suất",
+        arch_security: "Bảo Mật & Quyền Riêng Tư",
+        footer_tagline: "Lập chỉ mục BOM có kiểm soát phiên bản cho cơ sở dữ liệu sản xuất cũ"
+      }
+    };
+
+    const SUPPORTED_LOCALES = ['en', 'vi'];
+
+    function detectLocale() {
+      const saved = localStorage.getItem('bomLang');
+      if (saved && SUPPORTED_LOCALES.includes(saved)) return saved;
+      const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
+      if (browserLang === 'vi') return 'vi';
+      return 'en';
+    }
+
+    let currentLocale = detectLocale();
+
+    function setLocale(locale) {
+      currentLocale = locale;
+      localStorage.setItem('bomLang', locale);
+      document.documentElement.lang = locale;
+      applyTranslations();
+      updateLangToggle();
+      localStorage.setItem('bomSchemaVersion', '3.2.0');
+      localStorage.setItem('bomDataVersion', 'latest-v8');
+    }
+
+    function applyTranslations() {
+      const dict = i18n[currentLocale] || i18n.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key === 'desktop_title') {
+          el.innerHTML = dict[key] + '<span class="badge accent">LATEST</span>';
+        } else if (dict[key]) {
+          el.textContent = dict[key];
+        }
+      });
+      // Refresh version panel dates
+      const lastIdx = localStorage.getItem('bomLastIndexed');
+      const el = document.getElementById('lastUpdated');
+      if (el) {
+        el.textContent = lastIdx ? new Date(lastIdx).toLocaleString(currentLocale === 'vi' ? 'vi-VN' : 'en-US') : (currentLocale === 'vi' ? '--' : '--');
+      }
+    }
+
+    function updateLangToggle() {
+      const btn = document.getElementById('langToggle');
+      if (btn) {
+        btn.textContent = currentLocale === 'vi' ? 'EN' : 'VI';
+        btn.title = currentLocale === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt';
+      }
+    }
+
+    // Allow the web app to update the "Last Indexed" timestamp via localStorage
+    function checkCachedVersions() {
+      const schemaVer = localStorage.getItem('bomSchemaVersion');
+      const dataVer = localStorage.getItem('bomDataVersion');
+      const lastIdx = localStorage.getItem('bomLastIndexed');
+      if (schemaVer) document.getElementById('schemaVersion').textContent = schemaVer;
+      if (dataVer) document.getElementById('dataVersion').textContent = dataVer;
+      if (lastIdx) {
+        document.getElementById('lastUpdated').textContent = new Date(lastIdx).toLocaleString(currentLocale === 'vi' ? 'vi-VN' : 'en-US');
+      }
+    }
+
+    // Show notification
+    function notify(msg) {
+      const el = document.createElement('div');
+      el.className = 'notification';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }
+
+    document.getElementById('langToggle').addEventListener('click', () => {
+      const next = currentLocale === 'vi' ? 'en' : 'vi';
+      setLocale(next);
+      notify(currentLocale === 'vi' ? 'Đã chuyển sang Tiếng Việt' : 'Switched to English');
+    });
+
+    // Storage event listener for cross-tab updates
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'bomLastIndexed' || e.key === 'bomSchemaVersion' || e.key === 'bomDataVersion') {
+        checkCachedVersions();
+      }
+      if (e.key === 'bomLang') {
+        const newLocale = e.newValue;
+        if (newLocale && SUPPORTED_LOCALES.includes(newLocale) && newLocale !== currentLocale) {
+          setLocale(newLocale);
+        }
+      }
+    });
+
+    // Initialize
+    setLocale(currentLocale);
+    checkCachedVersions();
+  </script>
 </body>
 </html>

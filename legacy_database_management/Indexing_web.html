@@ -701,6 +701,12 @@
       <button id="loadCache" class="secondary">Load Cache</button>
       <button id="exportCsv" class="secondary" disabled>Export CSV</button>
       <button id="themeToggle" class="secondary" aria-label="Toggle theme" style="min-width: 40px; padding: 8px;">🌙</button>
+      <button id="langToggle" class="secondary" style="min-width: 42px; padding: 8px; font-weight: 700;">VI</button>
+    </div>
+    <div id="versionBar" style="display: flex; gap: 18px; padding: 6px 24px; background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.06);font-size:11px;color:var(--muted);flex-wrap:wrap;">
+      <span>📋 <span data-i18n="vc_schema">Schema</span>: <strong style="color:var(--accent);" id="vcSchemaVer">v3.2.0</strong></span>
+      <span>📦 <span data-i18n="vc_data">Data Index</span>: <strong style="color:var(--accent);" id="vcDataVer">latest-v8</strong></span>
+      <span>🕐 <span data-i18n="vc_updated">Last Indexed</span>: <span id="vcLastIdx">--</span></span>
     </div>
   </header>
 
@@ -2058,10 +2064,12 @@
       setProgress(files.length, files.length);
       try {
         const cacheManifest = await saveCacheEntries();
+        syncVersionInfo();
         const cachePartText = cacheManifest && cacheManifest.parts ? ` in ${cacheManifest.parts.length.toLocaleString()} cache part(s)` : "";
         const modeLabel = state.indexMode === "universal" ? "universal files" : "BOM-related files";
         setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} ${modeLabel}, skipped ${state.skippedCount} unrelated files, and saved cache${cachePartText} for next scan.`, "good");
       } catch (error) {
+        syncVersionInfo();
         setStatus(`Processed ${state.processedCount} Excel/CSV files. Indexed ${state.rows.length} files, skipped ${state.skippedCount} unrelated files. Cache save failed: ${escapeHtml(error.message || error)}`, "warn");
       }
       state.busy = false;
@@ -3241,6 +3249,7 @@
       const hasRows = state.rows.length > 0;
       exportCsv.disabled = !hasRows;
       setProgress(entries.length, entries.length);
+      syncVersionInfo();
       setStatus(entries.length ? `Loaded ${state.rows.length} indexed BOM files from browser cache. Skipped entries in cache: ${state.skippedCount}.` : "No browser cache found. Select the dataset folder to build one.", entries.length ? "good" : "warn");
       render();
     }
@@ -3485,6 +3494,278 @@
         if (basePathBox) basePathBox.focus();
       });
     }
+
+    // --- i18n Language Toggle (EN/VI) ---
+
+    const I18N = {
+      en: {
+        header_desc: "Use SheetJS to read Excel or CSV files, recognize titles and headers, focused on file quick indexing and legacy/new BOM indexing.",
+        select_folder: "📂 Select Folder",
+        select_files: "📄 Select Files",
+        start_indexing: "Start Indexing",
+        load_cache: "Load Cache",
+        export_csv: "Export CSV",
+        indexing_config: "Indexing Configuration",
+        search_placeholder: "Search file, sheet, item number, BOM number, product name, or header",
+        type_all: "All detected types",
+        type_bom_line: "BOM line",
+        type_bom_header: "BOM header",
+        type_mixed_bom: "Mixed BOM report",
+        type_non_bom: "Non-BOM",
+        type_unknown: "Unknown",
+        type_error: "Error",
+        record_all: "All records",
+        record_items: "Has item numbers",
+        record_fg: "Has finished goods",
+        record_boms: "Has BOM numbers",
+        record_family: "BOM family (4 digits)",
+        record_old: "Old BOM (1xxxxxx)",
+        record_new: "New BOM (3xxxxxx)",
+        record_versioned: "Versioned BOM (3xxxxxxV01)",
+        record_mold: "Mold (TDxxxx/TDxxxxA)",
+        record_fractional: "Has fractional qty",
+        record_errors: "Has parse errors",
+        save_path: "Save Path",
+        clear_path: "Clear Path",
+        bom_only_label: "Skip unrelated workbooks. Turn this off before indexing if the lookup target is Everything and every Excel file should be searchable.",
+        lookup_title: "Lookup & Status Panel",
+        lookup_status: 'Select the local <strong>dataset</strong> folder to index Excel workbooks or CSV exports. Cache is stored in this browser\'s IndexedDB as <strong>bom-dataset-index-cache / latest-v8</strong> in ~100 MB parts.',
+        lookup_placeholder: "Type item number, BOM number, product name, BOM title, warehouse, quantity, unit, approval user, or file name",
+        lookup_everything: "Everything",
+        lookup_bom: "BOM",
+        lookup_fg: "FG",
+        lookup_item: "Item",
+        lookup_contains: "Contains",
+        lookup_exact: "Exact",
+        clear: "Clear",
+        batch_placeholder: "Batch find: paste item numbers, BOM numbers, names, or any fields. Separate by new line, comma, semicolon, tab, or space.",
+        batch_find: "Batch Find",
+        batch_clear: "Clear Batch",
+        lookup_empty: "After indexing, choose a lookup target and type a value to show related rows, workbook paths, and active FG BOM versions.",
+        workbook_index: "Workbook Index",
+        selected_workbook: "Selected Workbook",
+        selected_placeholder: "Select a row after indexing to inspect workbook details.",
+        vc_schema: "Schema",
+        vc_data: "Data Index",
+        vc_updated: "Last Indexed"
+      },
+      vi: {
+        header_desc: "Sử dụng SheetJS để đọc tệp Excel hoặc CSV, nhận dạng tiêu đề và tiêu đề cột, tập trung vào lập chỉ mục nhanh và lập chỉ mục BOM cũ/mới.",
+        select_folder: "📂 Chọn Thư Mục",
+        select_files: "📄 Chọn Tệp",
+        start_indexing: "Bắt Đầu Lập Chỉ Mục",
+        load_cache: "Tải Bộ Nhớ Đệm",
+        export_csv: "Xuất CSV",
+        indexing_config: "Cấu Hình Lập Chỉ Mục",
+        search_placeholder: "Tìm kiếm tệp, sheet, mã hàng, số BOM, tên sản phẩm hoặc tiêu đề",
+        type_all: "Tất cả loại đã phát hiện",
+        type_bom_line: "Dòng BOM",
+        type_bom_header: "Tiêu đề BOM",
+        type_mixed_bom: "Báo cáo BOM hỗn hợp",
+        type_non_bom: "Không phải BOM",
+        type_unknown: "Không xác định",
+        type_error: "Lỗi",
+        record_all: "Tất cả bản ghi",
+        record_items: "Có mã hàng",
+        record_fg: "Có thành phẩm",
+        record_boms: "Có số BOM",
+        record_family: "Họ BOM (4 chữ số)",
+        record_old: "BOM cũ (1xxxxxx)",
+        record_new: "BOM mới (3xxxxxx)",
+        record_versioned: "BOM có phiên bản (3xxxxxxV01)",
+        record_mold: "Khuôn (TDxxxx/TDxxxxA)",
+        record_fractional: "Có số lượng thập phân",
+        record_errors: "Có lỗi phân tích",
+        save_path: "Lưu Đường Dẫn",
+        clear_path: "Xóa Đường Dẫn",
+        bom_only_label: "Bỏ qua các workbook không liên quan. Tắt tùy chọn này trước khi lập chỉ mục nếu bạn muốn tìm kiếm mọi tệp Excel.",
+        lookup_title: "Bảng Tra Cứu & Trạng Thái",
+        lookup_status: 'Chọn thư mục <strong>dataset</strong> cục bộ để lập chỉ mục workbook Excel hoặc xuất CSV. Bộ nhớ đệm được lưu trong IndexedDB của trình duyệt dưới tên <strong>bom-dataset-index-cache / latest-v8</strong> trong các phần ~100 MB.',
+        lookup_placeholder: "Nhập mã hàng, số BOM, tên sản phẩm, tiêu đề BOM, kho, số lượng, đơn vị, người duyệt hoặc tên tệp",
+        lookup_everything: "Tất cả",
+        lookup_bom: "BOM",
+        lookup_fg: "FG",
+        lookup_item: "Mã hàng",
+        lookup_contains: "Chứa",
+        lookup_exact: "Chính xác",
+        clear: "Xóa",
+        batch_placeholder: "Tìm hàng loạt: dán mã hàng, số BOM, tên hoặc bất kỳ trường nào. Phân tách bằng dòng mới, dấu phẩy, dấu chấm phẩy, tab hoặc dấu cách.",
+        batch_find: "Tìm Hàng Loạt",
+        batch_clear: "Xóa Hàng Loạt",
+        lookup_empty: "Sau khi lập chỉ mục, chọn mục tiêu tra cứu và nhập giá trị để hiển thị các hàng liên quan, đường dẫn workbook và phiên bản FG BOM đang hoạt động.",
+        workbook_index: "Chỉ Mục Workbook",
+        selected_workbook: "Workbook Đã Chọn",
+        selected_placeholder: "Chọn một hàng sau khi lập chỉ mục để xem chi tiết workbook.",
+        vc_schema: "Schema",
+        vc_data: "Chỉ Mục Dữ Liệu",
+        vc_updated: "Lần Cập Nhật Cuối"
+      }
+    };
+
+    const SUPP_LOCALES = ['en', 'vi'];
+
+    function detectLang() {
+      const saved = localStorage.getItem('bomLang');
+      if (saved && SUPP_LOCALES.includes(saved)) return saved;
+      const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
+      if (browserLang === 'vi') return 'vi';
+      return 'en';
+    }
+
+    let currentLang = detectLang();
+
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('bomLang', lang);
+      localStorage.setItem('bomSchemaVersion', '3.2.0');
+      localStorage.setItem('bomDataVersion', 'latest-v8');
+      applyI18n();
+      updateLangBtn();
+      updateVersionBar();
+    }
+
+    function t(key) {
+      const dict = I18N[currentLang] || I18N.en;
+      return dict[key] || key;
+    }
+
+    function applyI18n() {
+      const dict = I18N[currentLang] || I18N.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+
+      // Update static text elements
+      if (document.querySelector('header p')) {
+        document.querySelector('header p').textContent = dict.header_desc;
+      }
+      const folderLabel = document.querySelector('label[for="folderInput"]');
+      if (folderLabel) folderLabel.textContent = dict.select_folder;
+      const fileLabel = document.querySelector('label[for="fileInput"]');
+      if (fileLabel) fileLabel.textContent = dict.select_files;
+      if (startIndexBtn) startIndexBtn.textContent = dict.start_indexing;
+      if (loadCache) loadCache.textContent = dict.load_cache;
+      if (exportCsv) exportCsv.textContent = dict.export_csv;
+      if (searchBox) searchBox.placeholder = dict.search_placeholder;
+      if (lookupBox) lookupBox.placeholder = dict.lookup_placeholder;
+      if (batchBox) batchBox.placeholder = dict.batch_placeholder;
+
+      // Update lookup target options
+      if (lookupTarget) {
+        const opts = lookupTarget.options;
+        if (opts[0]) opts[0].textContent = dict.lookup_everything;
+        if (opts[1]) opts[1].textContent = dict.lookup_bom;
+        if (opts[2]) opts[2].textContent = dict.lookup_fg;
+        if (opts[3]) opts[3].textContent = dict.lookup_item;
+      }
+      if (lookupMode) {
+        const opts = lookupMode.options;
+        if (opts[0]) opts[0].textContent = dict.lookup_contains;
+        if (opts[1]) opts[1].textContent = dict.lookup_exact;
+      }
+      if (clearLookup) clearLookup.textContent = dict.clear;
+      if (runBatch) runBatch.textContent = dict.batch_find;
+      if (clearBatch) clearBatch.textContent = dict.batch_clear;
+
+      // Update type filter options
+      if (typeFilter) {
+        const opts = typeFilter.options;
+        if (opts[0]) opts[0].textContent = dict.type_all;
+        if (opts[1]) opts[1].textContent = dict.type_bom_line;
+        if (opts[2]) opts[2].textContent = dict.type_bom_header;
+        if (opts[3]) opts[3].textContent = dict.type_mixed_bom;
+        if (opts[4]) opts[4].textContent = dict.type_non_bom;
+        if (opts[5]) opts[5].textContent = dict.type_unknown;
+        if (opts[6]) opts[6].textContent = dict.type_error;
+      }
+      if (recordFilter) {
+        const opts = recordFilter.options;
+        if (opts[0]) opts[0].textContent = dict.record_all;
+        if (opts[1]) opts[1].textContent = dict.record_items;
+        if (opts[2]) opts[2].textContent = dict.record_fg;
+        if (opts[3]) opts[3].textContent = dict.record_boms;
+        if (opts[4]) opts[4].textContent = dict.record_family;
+        if (opts[5]) opts[5].textContent = dict.record_old;
+        if (opts[6]) opts[6].textContent = dict.record_new;
+        if (opts[7]) opts[7].textContent = dict.record_versioned;
+        if (opts[8]) opts[8].textContent = dict.record_mold;
+        if (opts[9]) opts[9].textContent = dict.record_fractional;
+        if (opts[10]) opts[10].textContent = dict.record_errors;
+      }
+      if (saveBasePath) saveBasePath.textContent = dict.save_path;
+      if (clearBasePath) clearBasePath.textContent = dict.clear_path;
+
+      // Update panel titles
+      const panels = document.querySelectorAll('.panel h2');
+      if (panels[0]) panels[0].textContent = dict.indexing_config;
+      if (panels[1]) panels[1].textContent = dict.lookup_title;
+      if (panels[2]) panels[2].textContent = dict.workbook_index;
+      if (panels[3]) panels[3].textContent = dict.selected_workbook;
+
+      // Update bom only label text
+      const bomLabel = document.querySelector('label.checkline span');
+      if (bomLabel) bomLabel.textContent = dict.bom_only_label;
+
+      // Update version bar data-i18n elements
+      updateVersionBar();
+
+      // Re-render if data exists
+      if (state.rows.length) render();
+    }
+
+    function updateLangBtn() {
+      const btn = document.getElementById('langToggle');
+      if (btn) {
+        btn.textContent = currentLang === 'vi' ? 'EN' : 'VI';
+        btn.title = currentLang === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt';
+      }
+    }
+
+    function updateVersionBar() {
+      const schemaEl = document.getElementById('vcSchemaVer');
+      const dataEl = document.getElementById('vcDataVer');
+      const lastEl = document.getElementById('vcLastIdx');
+      if (schemaEl) schemaEl.textContent = localStorage.getItem('bomSchemaVersion') || 'v3.2.0';
+      if (dataEl) dataEl.textContent = localStorage.getItem('bomDataVersion') || 'latest-v8';
+      if (lastEl) {
+        const lastIdx = localStorage.getItem('bomLastIndexed');
+        lastEl.textContent = lastIdx ? new Date(lastIdx).toLocaleString(currentLang === 'vi' ? 'vi-VN' : 'en-US') : '--';
+      }
+    }
+
+    function syncVersionInfo() {
+      localStorage.setItem('bomSchemaVersion', '3.2.0');
+      localStorage.setItem('bomDataVersion', 'latest-v8');
+      localStorage.setItem('bomLastIndexed', new Date().toISOString());
+      updateVersionBar();
+    }
+
+    // Language toggle button handler
+    const langToggle = document.getElementById('langToggle');
+    if (langToggle) {
+      langToggle.addEventListener('click', () => {
+        const next = currentLang === 'vi' ? 'en' : 'vi';
+        setLang(next);
+      });
+    }
+
+    // Listen for cross-tab language changes
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'bomLang') {
+        const newLocale = e.newValue;
+        if (newLocale && SUPP_LOCALES.includes(newLocale) && newLocale !== currentLang) {
+          setLang(newLocale);
+        }
+      }
+      if (e.key === 'bomLastIndexed' || e.key === 'bomSchemaVersion' || e.key === 'bomDataVersion') {
+        updateVersionBar();
+      }
+    });
+
+    // Initialize language and version bar
+    setLang(currentLang);
+    updateVersionBar();
 
     render();
   </script>
