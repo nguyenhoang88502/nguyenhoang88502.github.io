@@ -287,7 +287,7 @@
       <p>Powerful tools for managing and indexing Bill of Materials datasets. Choose between our web-based application or desktop application.</p>
     </div>
 
-    <div class="versions">
+     <div class="versions">
       <div class="card" id="web-version">
         <div class="card-header">
           <div class="card-icon">🌐</div>
@@ -331,6 +331,69 @@
         </div>
       </div>
     </div>
+
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <div class="card-icon">📋</div>
+        <h3 class="card-title">Technical Overview</h3>
+      </div>
+      <div class="card-description" style="margin-bottom: 1rem;">
+        The BOM Dataset Indexer is a comprehensive multi-sheet Excel-based indexing tool designed specifically for legacy database management in manufacturing environments. This universal file and content indexer performs deep directory crawls to catalog all files, extracting rich metadata including filenames, sheet names, and specific cell content across multiple workbooks.
+      </div>
+      <div style="color: #c0c0c0; font-size: 0.95rem; line-height: 1.7;">
+        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Core Functionality</h4>
+        <p>Upon directory selection, the system executes a comprehensive crawl algorithm that:</p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+          <li>Recursively traverses all subdirectories</li>
+          <li>Identifies Excel workbooks (.xlsx, .xlsm, .xls) and related data files</li>
+          <li>Extracts structural metadata: file paths, creation dates, modification timestamps</li>
+          <li>Parses workbook contents: sheet names, cell ranges, data types</li>
+          <li>Implements content indexing for text, numbers, and formulas across all cells</li>
+        </ul>
+
+        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Dual-Capability Architecture</h4>
+        <p>The indexer serves as a <strong>general-purpose data retrieval engine</strong> for any organizational information stored in Excel format, providing:</p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+          <li>Full-text search across all indexed content</li>
+          <li>Metadata-based filtering and sorting</li>
+          <li>Cross-workbook relationship mapping</li>
+          <li>Export capabilities for analysis and reporting</li>
+        </ul>
+
+        <p>Simultaneously, it features a <strong>specialized optimization layer</strong> engineered for rapid identification and extraction of Bills of Materials (BOM) related to Wahl Clipper Vietnam operations:</p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+          <li>Pattern recognition for BOM-specific structures (part numbers, quantities, suppliers)</li>
+          <li>Hierarchical BOM relationship analysis</li>
+          <li>Version comparison across product iterations</li>
+          <li>Supplier configuration tracking</li>
+          <li>Automated data validation against engineering specifications</li>
+        </ul>
+
+        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Technical Implementation</h4>
+        <p>Built on a modular architecture with:</p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+          <li><strong>Indexing Engine:</strong> Multi-threaded file processing with memory-efficient streaming</li>
+          <li><strong>Search Backend:</strong> Inverted index structure for sub-second query responses</li>
+          <li><strong>Data Validation:</strong> Rule-based engine for BOM integrity checks</li>
+          <li><strong>Export Pipeline:</strong> Flexible output formats including Excel, CSV, and JSON</li>
+          <li><strong>User Interface:</strong> Intuitive design with real-time progress indicators</li>
+        </ul>
+
+        <h4 style="color: #ffffff; margin: 1.5rem 0 1rem; font-size: 1.1rem;">Performance Characteristics</h4>
+        <p>Optimized for enterprise-scale deployments:</p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+          <li>Processes thousands of workbooks in minutes</li>
+          <li>Handles complex BOM hierarchies with millions of part relationships</li>
+          <li>Incremental indexing for continuous data updates</li>
+          <li>Compressed storage with fast retrieval</li>
+          <li>Cross-platform compatibility (Windows desktop, web browsers)</li>
+        </ul>
+
+        <p>This tool bridges the gap between legacy Excel-based data storage and modern manufacturing information systems, enabling efficient BOM management while maintaining broad organizational data visibility.</p>
+      </div>
+    </div>
+
+   
 
   </div>
 
