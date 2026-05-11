@@ -23,21 +23,45 @@ The system follows a **layered, modular architecture** with clear separation of 
 | **Data Access** | Cache Manager, Partitioned Cache | IndexedDB, SQLite |
 | **Infrastructure** | Web Sync, Cache Migration | REST, File I/O |
 
-## Quick Start
+## Quick Start / Hướng Dẫn Nhanh
 
-### Web Application
-1. Open `Indexing_web.html` in any modern browser (Chrome, Edge, Firefox, Safari)
-2. Click **"Select Folder"** and choose your dataset directory
-3. Choose indexing mode: **BOM focused** or **Universal (all rows)**
-4. Click **"Start Indexing"** — the system processes files locally using Web Workers
-5. Use the search box, type/record filters, and lookup panel to explore results
-6. Export results via **"Export CSV"** (supports 100 MB chunked downloads)
+### Web Application / Ứng Dụng Web
 
-### Desktop Application
-1. Download the latest `BOM Dataset Indexer.exe` from the releases
-2. Run the executable — no installation required
-3. Select the dataset folder via the native file picker
-4. Configure settings in the GUI and start indexing
+**English:**
+
+1. Open the application in your browser.
+2. Click **"Select Folder"** and pick the folder containing your Excel/CSV files.
+3. Choose your indexing mode: **Universal** (for everything) or **BOM** (for manufacturing data).
+4. Click **"Start Indexing"** — the system processes files locally on your computer.
+5. Use the search bar to find records and click **"Export CSV"** to download results.
+
+**Tiếng Việt:**
+
+1. Mở ứng dụng trong trình duyệt của bạn.
+2. Nhấp **"Select Folder"** và chọn thư mục chứa các tệp Excel/CSV.
+3. Chọn chế độ lập chỉ mục: **Universal** (cho tất cả) hoặc **BOM** (cho dữ liệu sản xuất).
+4. Nhấp **"Start Indexing"** — hệ thống xử lý tệp cục bộ trên máy tính của bạn.
+5. Sử dụng thanh tìm kiếm để tìm bản ghi và nhấp **"Export CSV"** để tải kết quả.
+
+### Desktop Application / Ứng Dụng Desktop
+
+**English:**
+
+1. Download the latest **`.exe`** file from the releases page.
+2. **Double-click** to run — no installation is required.
+3. Use the **"Select Folder"** button to locate your Excel/CSV files.
+4. Choose your indexing mode (**Universal** or **BOM**).
+5. Click **"Start Indexing"** to begin processing.
+6. Use the **search bar** to find records and **export** results as needed.
+
+**Tiếng Việt:**
+
+1. Tải tệp **`.exe`** mới nhất từ trang phát hành.
+2. **Nhấp đúp** để chạy — không cần cài đặt.
+3. Sử dụng nút **"Select Folder"** để tìm thư mục chứa tệp Excel/CSV.
+4. Chọn chế độ lập chỉ mục (**Universal** hoặc **BOM**).
+5. Nhấp **"Start Indexing"** để bắt đầu xử lý.
+6. Sử dụng **thanh tìm kiếm** để tìm bản ghi và **xuất** kết quả khi cần.
 
 ## Indexing Engine
 
