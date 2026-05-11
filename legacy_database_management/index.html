@@ -425,60 +425,74 @@
           <li data-i18n="web_f7">Multi-language support (EN/VI/ZH)</li>
           <li data-i18n="web_f8">Dark/light theme toggle</li>
         </ul>
-        <div class="card-actions">
-          <div class="btn-column">
-            <a href="Indexing_web.html" class="btn" data-i18n="web_launch">Launch Web App</a>
-            <a href="README.md" class="btn secondary" data-i18n="web_docs">Documentation</a>
-          </div>
-          <div class="instruction-box">
-            <h5 data-i18n="web_steps_title">How to Use</h5>
-            <ol data-i18n-html="web_steps">
-              <li>Open the application in your browser</li>
-              <li>Click <strong>Select Folder</strong> and pick the folder containing your Excel/CSV files</li>
-              <li>Choose your indexing mode (<strong>Universal</strong> for everything, or <strong>BOM</strong> for manufacturing data)</li>
-              <li>Click <strong>Start Indexing</strong> to begin processing</li>
-              <li>Use the search bar to find records and click <strong>Export CSV</strong> to download results</li>
-            </ol>
-          </div>
+        <div class="btn-column" style="margin-top: 1.2rem;">
+          <a href="Indexing_web.html" class="btn" data-i18n="web_launch">Launch Web App</a>
+          <a href="README.md" class="btn secondary" data-i18n="web_docs">Documentation</a>
         </div>
       </div>
 
       <div class="card" id="desktop-version">
         <div class="card-header">
           <div class="card-icon">💻</div>
-          <h3 class="card-title" data-i18n="desktop_title">Desktop v4 <span class="badge accent">LATEST</span></h3>
+          <h3 class="card-title" data-i18n="desktop_title">Desktop v5 <span class="badge accent">LATEST</span></h3>
         </div>
-        <p class="card-description" data-i18n="desktop_desc">Native Windows desktop application with advanced caching and full offline support.</p>
+        <p class="card-description" data-i18n="desktop_desc">Standalone Windows executable — no Python, no install, no dependencies. Multi-threaded processing with SQLite caching handles thousands of Excel/CSV files at native speed.</p>
         <ul class="features">
-          <li data-i18n="desktop_f1">Native Windows GUI (Tkinter-based)</li>
-          <li data-i18n="desktop_f2">Full offline functionality</li>
+          <li data-i18n="desktop_f1">One-click launch — just download and run</li>
+          <li data-i18n="desktop_f2">Zero dependencies (Python bundled inside)</li>
           <li data-i18n="desktop_f3">Multi-threaded file processing</li>
-          <li data-i18n="desktop_f4">Advanced partitioned caching system</li>
-          <li data-i18n="desktop_f5">Web sync & cache migration</li>
+          <li data-i18n="desktop_f4">SQLite persistent cache for instant reloads</li>
+          <li data-i18n="desktop_f5">Web sync & cross-version cache migration</li>
           <li data-i18n="desktop_f6">Full-text search across all content</li>
-          <li data-i18n="desktop_f7">Smart data classification engine</li>
-          <li data-i18n="desktop_f8">Multi-language header recognition</li>
+          <li data-i18n="desktop_f7">Smart BOM classification engine</li>
+          <li data-i18n="desktop_f8">Multi-language header recognition (EN/VI/ZH)</li>
         </ul>
-        <div class="card-actions">
-          <div class="btn-column">
-            <a href="desktop_app/BOM%20Dataset%20Indexer%20v4/BOM%20Dataset%20Indexer.exe" class="btn" data-i18n="desktop_download">Download v4</a>
-            <a href="desktop_app/README_DESKTOP.md" class="btn secondary" data-i18n="desktop_guide">Setup Guide</a>
-            <a href="https://github.com/nguyenhoang88502/nguyenhoang88502.github.io/tree/main/legacy_database_management" class="btn secondary" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-              <span data-i18n="source_code">Source Code</span>
-            </a>
-          </div>
-          <div class="instruction-box">
-            <h5 data-i18n="desktop_steps_title">How to Use</h5>
-            <ol data-i18n-html="desktop_steps">
-              <li>Download the latest <strong>.exe</strong> file</li>
-              <li><strong>Double-click</strong> to run it (no installation required)</li>
-              <li>Use the <strong>Select Folder</strong> button to locate your files</li>
-              <li>Choose your indexing mode</li>
-              <li>Click <strong>Start Indexing</strong></li>
-              <li>Search and Export</li>
-            </ol>
-          </div>
+        <div class="btn-column" style="margin-top: 1.2rem;">
+          <a href="desktop_app/BOM%20Dataset%20Indexer%20v5/BOM%20Dataset%20Indexer.exe" class="btn" data-i18n="desktop_download">Download v5</a>
+          <a href="desktop_app/README_DESKTOP.md" class="btn secondary" data-i18n="desktop_guide">Setup Guide</a>
+          <a href="https://github.com/nguyenhoang88502/nguyenhoang88502.github.io/tree/main/legacy_database_management" class="btn secondary" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span data-i18n="source_code">Source Code</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Start Guide -->
+    <div class="card" style="margin-bottom: 2rem;" id="quickstart">
+      <div class="card-header">
+        <div class="card-icon">🚀</div>
+        <h3 class="card-title" data-i18n="quickstart_title">Quick Start Guide</h3>
+      </div>
+      <p class="card-description" data-i18n="quickstart_subtitle">Detailed step-by-step instructions for getting started with either version of the BOM Dataset Indexer.</p>
+
+      <div class="grid-2col" style="margin-bottom: 0;">
+        <div style="background: rgba(20,20,20,0.4); border: 1px solid var(--line); border-radius: 5px; padding: 1.8rem;">
+          <h4 style="color: #ffffff; margin: 0 0 1rem 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <span>🌐</span> <span data-i18n="quickstart_web_title">Web Version</span>
+          </h4>
+          <ol data-i18n-html="quickstart_web_steps" style="color: #b0b0b0; font-size: 0.9rem; padding-left: 1.3rem; margin: 0; line-height: 2;">
+            <li>Open <strong>Indexing_web.html</strong> in any modern browser (Chrome, Edge, or Firefox recommended)</li>
+            <li>Click <strong>Select Folder</strong> and choose the root directory containing your Excel or CSV workbooks — the app scans all subfolders automatically</li>
+            <li>Pick an indexing mode: <strong>Universal</strong> indexes every cell in every file; <strong>BOM</strong> focuses on manufacturing Bill of Materials data</li>
+            <li>Click <strong>Start Indexing</strong> — a progress bar tracks each file as it is parsed. Large folders may take a few minutes</li>
+            <li>Once indexing completes, use the <strong>search bar</strong> to query across all indexed content, apply type filters, and click <strong>Export CSV</strong> to download results</li>
+          </ol>
+        </div>
+
+        <div style="background: rgba(20,20,20,0.4); border: 1px solid var(--line); border-radius: 5px; padding: 1.8rem;">
+          <h4 style="color: #ffffff; margin: 0 0 1rem 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <span>💻</span> <span data-i18n="quickstart_desktop_title">Desktop App</span>
+          </h4>
+          <ol data-i18n-html="quickstart_desktop_steps" style="color: #b0b0b0; font-size: 0.9rem; padding-left: 1.3rem; margin: 0; line-height: 2;">
+            <li><strong>Download</strong> the latest <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;">.exe</code> file — no installer, no Python, no dependencies required</li>
+            <li><strong>Double-click</strong> <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;">BOM Dataset Indexer.exe</code> to launch the native Windows application</li>
+            <li>Click <strong>Select Folder</strong> to pick your dataset directory — the app recursively scans all subfolders</li>
+            <li>Choose your scanning mode and click <strong>Start Indexing</strong> — multi-threaded processing runs at native speed</li>
+            <li>Use <strong>full-text search</strong>, <strong>Quick Lookup</strong> (find by item/BOM code), or <strong>Batch Find</strong> (paste multiple codes at once) to locate records</li>
+            <li>Click <strong>Export CSV</strong> to save filtered results for Excel, Power BI, or other tools</li>
+          </ol>
+          <p data-i18n="quickstart_desktop_note" style="color: var(--muted); font-size: 0.8rem; margin: 1rem 0 0 0; padding: 0.6rem 0.8rem; background: rgba(15,118,110,0.05); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0;">💡 <strong>Tip:</strong> The first run creates a <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">data/cache.db</code> SQLite database. Subsequent launches load the cache instantly — no need to re-index.</p>
         </div>
       </div>
     </div>
@@ -616,17 +630,17 @@
         web_docs: "Documentation",
         web_steps_title: "How to Use",
         web_steps: "<li>Open the application in your browser</li><li>Click <strong>Select Folder</strong> and pick the folder containing your Excel/CSV files</li><li>Choose your indexing mode (<strong>Universal</strong> for everything, or <strong>BOM</strong> for manufacturing data)</li><li>Click <strong>Start Indexing</strong> to begin processing</li><li>Use the search bar to find records and click <strong>Export CSV</strong> to download results</li>",
-        desktop_title: "Desktop v4 ",
-        desktop_desc: "Native Windows desktop application with advanced caching and full offline support.",
-        desktop_f1: "Native Windows GUI (Tkinter-based)",
-        desktop_f2: "Full offline functionality",
+        desktop_title: "Desktop v5 ",
+        desktop_desc: "Standalone Windows executable — no Python, no install, no dependencies. Multi-threaded processing with SQLite caching handles thousands of Excel/CSV files at native speed.",
+        desktop_f1: "One-click launch — just download and run",
+        desktop_f2: "Zero dependencies (Python bundled inside)",
         desktop_f3: "Multi-threaded file processing",
-        desktop_f4: "Advanced partitioned caching system",
-        desktop_f5: "Web sync & cache migration",
+        desktop_f4: "SQLite persistent cache for instant reloads",
+        desktop_f5: "Web sync & cross-version cache migration",
         desktop_f6: "Full-text search across all content",
-        desktop_f7: "Smart data classification engine",
-        desktop_f8: "Multi-language header recognition",
-        desktop_download: "Download v4",
+        desktop_f7: "Smart BOM classification engine",
+        desktop_f8: "Multi-language header recognition (EN/VI/ZH)",
+        desktop_download: "Download v5",
         desktop_guide: "Setup Guide",
         desktop_steps_title: "How to Use",
         desktop_steps: "<li>Download the latest <strong>.exe</strong> file</li><li><strong>Double-click</strong> to run it (no installation required)</li><li>Use the <strong>Select Folder</strong> button to locate your files</li><li>Choose your indexing mode</li><li>Click <strong>Start Indexing</strong></li><li>Search and Export</li>",
@@ -645,6 +659,13 @@
         arch_versioning_desc: "The platform implements semantic versioning for both data schemas and cache payloads, ensuring backward compatibility and smooth upgrades:",
         arch_performance: "Performance Characteristics",
         arch_security: "Security & Privacy",
+        quickstart_title: "Quick Start Guide",
+        quickstart_subtitle: "Detailed step-by-step instructions for getting started with either version of the BOM Dataset Indexer.",
+        quickstart_web_title: "Web Version",
+        quickstart_web_steps: "<li>Open <strong>Indexing_web.html</strong> in any modern browser (Chrome, Edge, or Firefox recommended)</li><li>Click <strong>Select Folder</strong> and choose the root directory containing your Excel or CSV workbooks — the app scans all subfolders automatically</li><li>Pick an indexing mode: <strong>Universal</strong> indexes every cell in every file; <strong>BOM</strong> focuses on manufacturing Bill of Materials data</li><li>Click <strong>Start Indexing</strong> — a progress bar tracks each file as it is parsed. Large folders may take a few minutes</li><li>Once indexing completes, use the <strong>search bar</strong> to query across all indexed content, apply type filters, and click <strong>Export CSV</strong> to download results</li>",
+        quickstart_desktop_title: "Desktop App",
+        quickstart_desktop_steps: "<li><strong>Download</strong> the latest <code style='background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;'>.exe</code> file — no installer, no Python, no dependencies required</li><li><strong>Double-click</strong> <code style='background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;'>BOM Dataset Indexer.exe</code> to launch the native Windows application</li><li>Click <strong>Select Folder</strong> to pick your dataset directory — the app recursively scans all subfolders</li><li>Choose your scanning mode and click <strong>Start Indexing</strong> — multi-threaded processing runs at native speed</li><li>Use <strong>full-text search</strong>, <strong>Quick Lookup</strong> (find by item/BOM code), or <strong>Batch Find</strong> (paste multiple codes at once) to locate records</li><li>Click <strong>Export CSV</strong> to save filtered results for Excel, Power BI, or other tools</li>",
+        quickstart_desktop_note: "Tip: The first run creates a data/cache.db SQLite database. Subsequent launches load the cache instantly — no need to re-index.",
         footer_tagline: "Version-controlled BOM indexing for legacy manufacturing databases"
       },
       vi: {
@@ -672,17 +693,17 @@
         web_docs: "Tài Liệu",
         web_steps_title: "Cách Sử Dụng",
         web_steps: "<li>Mở ứng dụng trong trình duyệt của bạn</li><li>Nhấp <strong>Select Folder</strong> và chọn thư mục chứa các tệp Excel/CSV</li><li>Chọn chế độ lập chỉ mục (<strong>Universal</strong> cho tất cả, hoặc <strong>BOM</strong> cho dữ liệu sản xuất)</li><li>Nhấp <strong>Start Indexing</strong> để bắt đầu xử lý</li><li>Sử dụng thanh tìm kiếm để tìm bản ghi và nhấp <strong>Export CSV</strong> để tải kết quả</li>",
-        desktop_title: "Desktop v4 ",
-        desktop_desc: "Ứng dụng desktop Windows gốc với bộ nhớ đệm nâng cao và hỗ trợ ngoại tuyến hoàn toàn.",
-        desktop_f1: "Giao diện Windows gốc (Tkinter)",
-        desktop_f2: "Chức năng ngoại tuyến đầy đủ",
+        desktop_title: "Desktop v5 ",
+        desktop_desc: "Tệp thực thi Windows độc lập — không cần Python, không cần cài đặt, không cần phụ thuộc. Xử lý đa luồng với bộ nhớ đệm SQLite xử lý hàng ngàn tệp Excel/CSV ở tốc độ gốc.",
+        desktop_f1: "Khởi chạy một lần — chỉ cần tải về và chạy",
+        desktop_f2: "Không phụ thuộc (Python đã được đóng gói bên trong)",
         desktop_f3: "Xử lý tệp đa luồng",
-        desktop_f4: "Hệ thống bộ nhớ đệm phân vùng nâng cao",
-        desktop_f5: "Đồng bộ web & di chuyển bộ nhớ đệm",
+        desktop_f4: "Bộ nhớ đệm SQLite để tải lại tức thì",
+        desktop_f5: "Đồng bộ web & di chuyển bộ nhớ đệm đa phiên bản",
         desktop_f6: "Tìm kiếm toàn văn trên tất cả nội dung",
-        desktop_f7: "Công cụ phân loại dữ liệu thông minh",
-        desktop_f8: "Nhận dạng tiêu đề đa ngôn ngữ",
-        desktop_download: "Tải Về v4",
+        desktop_f7: "Công cụ phân loại BOM thông minh",
+        desktop_f8: "Nhận dạng tiêu đề đa ngôn ngữ (EN/VI/ZH)",
+        desktop_download: "Tải Về v5",
         desktop_guide: "Hướng Dẫn Cài Đặt",
         desktop_steps_title: "Cách Sử Dụng",
         desktop_steps: "<li>Tải tệp <strong>.exe</strong> mới nhất</li><li><strong>Nhấp đúp</strong> để chạy (không cần cài đặt)</li><li>Sử dụng nút <strong>Select Folder</strong> để tìm tệp của bạn</li><li>Chọn chế độ lập chỉ mục</li><li>Nhấp <strong>Start Indexing</strong></li><li>Tìm kiếm và Xuất</li>",
@@ -701,6 +722,13 @@
         arch_versioning_desc: "Nền tảng triển khai semantic versioning cho cả schema dữ liệu và payload bộ nhớ đệm, đảm bảo khả năng tương thích ngược và nâng cấp suôn sẻ:",
         arch_performance: "Đặc Tính Hiệu Suất",
         arch_security: "Bảo Mật & Quyền Riêng Tư",
+        quickstart_title: "Hướng Dẫn Bắt Đầu Nhanh",
+        quickstart_subtitle: "Hướng dẫn chi tiết từng bước để bắt đầu với một trong hai phiên bản của BOM Dataset Indexer.",
+        quickstart_web_title: "Phiên Bản Web",
+        quickstart_web_steps: "<li>Mở <strong>Indexing_web.html</strong> trong bất kỳ trình duyệt hiện đại nào (khuyến nghị Chrome, Edge hoặc Firefox)</li><li>Nhấp <strong>Select Folder</strong> và chọn thư mục gốc chứa các tệp Excel hoặc CSV — ứng dụng sẽ tự động quét tất cả thư mục con</li><li>Chọn chế độ lập chỉ mục: <strong>Universal</strong> lập chỉ mục mọi ô trong mọi tệp; <strong>BOM</strong> tập trung vào dữ liệu Bill of Materials sản xuất</li><li>Nhấp <strong>Start Indexing</strong> — thanh tiến trình theo dõi từng tệp khi được phân tích cú pháp. Thư mục lớn có thể mất vài phút</li><li>Sau khi hoàn tất, sử dụng <strong>thanh tìm kiếm</strong> để truy vấn tất cả nội dung đã lập chỉ mục, áp dụng bộ lọc loại và nhấp <strong>Export CSV</strong> để tải kết quả</li>",
+        quickstart_desktop_title: "Ứng Dụng Desktop",
+        quickstart_desktop_steps: "<li><strong>Tải về</strong> tệp <code style='background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;'>.exe</code> mới nhất — không cần cài đặt, không cần Python, không cần phụ thuộc</li><li><strong>Nhấp đúp</strong> vào <code style='background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;'>BOM Dataset Indexer.exe</code> để khởi chạy ứng dụng Windows gốc</li><li>Nhấp <strong>Select Folder</strong> để chọn thư mục dữ liệu của bạn — ứng dụng quét đệ quy tất cả thư mục con</li><li>Chọn chế độ quét và nhấp <strong>Start Indexing</strong> — xử lý đa luồng chạy ở tốc độ gốc</li><li>Sử dụng <strong>tìm kiếm toàn văn</strong>, <strong>Quick Lookup</strong> (tìm theo mã sản phẩm/BOM), hoặc <strong>Batch Find</strong> (dán nhiều mã cùng lúc) để tìm bản ghi</li><li>Nhấp <strong>Export CSV</strong> để lưu kết quả đã lọc cho Excel, Power BI hoặc các công cụ khác</li>",
+        quickstart_desktop_note: "Mẹo: Lần chạy đầu tiên tạo cơ sở dữ liệu SQLite data/cache.db. Các lần khởi chạy sau tải bộ nhớ đệm ngay lập tức — không cần lập chỉ mục lại.",
         footer_tagline: "Lập chỉ mục BOM có kiểm soát phiên bản cho cơ sở dữ liệu sản xuất cũ"
       }
     };
