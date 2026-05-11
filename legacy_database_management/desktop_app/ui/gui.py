@@ -11,7 +11,7 @@ import queue
 import subprocess
 import time
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Callable
 import PySimpleGUI as sg
 
 from logic.excel_parser import scan_directory, get_file_info
@@ -22,10 +22,11 @@ from logic.bom_classifier import (
     detectType, containsBomTitle, bomKind, isFgLike, isBomCodeInContext,
     codeValue, normalize, isFractional
 )
+from ui.i18n import get_text
 
 
 # Application constants
-APP_TITLE = "BOM Dataset Indexer"
+APP_TITLE_KEY = "app_title"
 CACHE_VERSION = 8
 THEME = "SystemDefault"
 MAX_RENDER_ROWS = 2000
@@ -48,12 +49,15 @@ class AppState:
         self.batch_terms = []
         self.lookup_mode = "contains"
         self.lookup_target = "everything"
-        self.index_mode = "bom"
+        self.index_mode = "universal"
         self.type_filter = ""
         self.record_filter = ""
-        self.bom_only = True
+        self.bom_only = False
         self.base_path = ""
         self.busy = False
+        self.lang = "en"
+        self.batch_mode = "single"
+        self.advanced_mode = "standard"
         self.cache_manager: Optional[CacheManager] = None
         self.partitioned_cache_manager: Optional[PartitionedCacheManager] = None
         self.web_asset_cache: Optional[WebAssetCache] = None
@@ -63,6 +67,7 @@ class AppState:
         self.lookup_dirty = False
         self.last_search_change_at = 0.0
         self.last_lookup_change_at = 0.0
+        self.window_geometry: Optional[tuple] = None
 
 
 # ============ Table row helpers ============
@@ -79,8 +84,25 @@ def make_table_row(record: Dict) -> List[str]:
     ]
 
 
-TABLE_HEADINGS = ["Item number", "FG", "FG name", "Product name", "File", "Sheet", "Row"]
-UNIVERSAL_TABLE_HEADINGS = ["Path", "Sheet", "Row", "Column"]
+def get_table_headings(lang: str = "en") -> List[str]:
+    return [
+        get_text("table_item", lang),
+        get_text("table_fg", lang),
+        get_text("table_fg_name", lang),
+        get_text("table_product", lang),
+        get_text("table_file", lang),
+        get_text("table_sheet", lang),
+        get_text("table_row", lang),
+    ]
+
+
+def get_universal_table_headings(lang: str = "en") -> List[str]:
+    return [
+        get_text("table_uni_path", lang),
+        get_text("table_uni_sheet", lang),
+        get_text("table_uni_row", lang),
+        get_text("table_uni_column", lang),
+    ]
 
 
 def make_version_table_row(version: Dict) -> List[str]:
@@ -96,7 +118,17 @@ def make_version_table_row(version: Dict) -> List[str]:
     ]
 
 
-VERSION_HEADINGS = ["File", "Sheet", "Parent Item", "Parent Name", "BOM", "From Qty", "Active", "Approved By"]
+def get_version_headings(lang: str = "en") -> List[str]:
+    return [
+        get_text("table_ver_file", lang),
+        get_text("table_ver_sheet", lang),
+        get_text("table_ver_parent_item", lang),
+        get_text("table_ver_parent_name", lang),
+        get_text("table_ver_bom", lang),
+        get_text("table_ver_from_qty", lang),
+        get_text("table_ver_active", lang),
+        get_text("table_ver_approved_by", lang),
+    ]
 
 
 class BOMIndexerGUI:
@@ -106,6 +138,10 @@ class BOMIndexerGUI:
         self.state = AppState()
         self.window: Optional[sg.Window] = None
         self._setup_cache()
+
+    def _t(self, key: str, *args) -> str:
+        """Translate a UI key using the current language."""
+        return get_text(key, self.state.lang, *args)
 
     def _setup_cache(self):
         """Initialize cache managers"""
@@ -124,51 +160,64 @@ class BOMIndexerGUI:
 
     def _build_layout(self):
         """Construct the PySimpleGUI window layout with scrollable areas"""
-        
+        t = self._t
+
         # Button row at top
         top_row = [
-            sg.Button("Select Dataset Folder", key="-SELECT_FOLDER-", size=(18, 1)),
-            sg.Button("Select Files", key="-SELECT_FILES-", size=(14, 1)),
-            sg.Button("Load Cache", key="-LOAD_CACHE-", size=(12, 1), button_color=('white', '#0066cc')),
-            sg.Button("Export CSV", key="-EXPORT_CSV-", size=(12, 1), disabled=True, button_color=('black', '#cccccc')),
-            sg.Button("Open Selected File", key="-OPEN_SELECTED_FILE-", size=(16, 1), disabled=True),
+            sg.Button(t("select_folder"), key="-SELECT_FOLDER-", size=(18, 1)),
+            sg.Button(t("select_files"), key="-SELECT_FILES-", size=(14, 1)),
+            sg.Button(t("load_cache"), key="-LOAD_CACHE-", size=(12, 1), button_color=('white', '#0066cc')),
+            sg.Button(t("export_csv"), key="-EXPORT_CSV-", size=(12, 1), disabled=True, button_color=('black', '#cccccc')),
+            sg.Button(t("open_selected_file"), key="-OPEN_SELECTED_FILE-", size=(16, 1), disabled=True),
             sg.Push(),
-            sg.Text("", size=(60, 1), key="-STATUS-", text_color="#666666")
+            sg.Button("VI" if self.state.lang == "en" else "EN", key="-LANG_TOGGLE-", size=(3, 1),
+                      tooltip=t("lang_toggle_tooltip"), button_color=('white', '#8e24aa')),
+            sg.Text("", size=(55, 1), key="-STATUS-", text_color="#666666")
         ]
 
         stats_row = [
-            sg.Text("Files: 0", size=(12, 1), key="-STAT_FILES-"),
-            sg.Text("Records: 0", size=(14, 1), key="-STAT_RECORDS-"),
-            sg.Text("Types: 0", size=(20, 1), key="-STAT_TYPES-"),
+            sg.Text(t("stat_files"), size=(12, 1), key="-STAT_FILES-"),
+            sg.Text(t("stat_records"), size=(14, 1), key="-STAT_RECORDS-"),
+            sg.Text(t("stat_types"), size=(20, 1), key="-STAT_TYPES-"),
             sg.Text("Cache: 0", size=(12, 1), key="-STAT_CACHE-"),
         ]
 
         filter_row = [
-            sg.Input("", size=(40, 1), key="-SEARCH-", enable_events=True, tooltip="Search in all fields"),
+            sg.Input("", size=(40, 1), key="-SEARCH-", enable_events=True, tooltip=t("search_tooltip")),
             sg.Combo([], size=(18, 1), key="-TYPE_FILTER-", enable_events=True, readonly=True,
-                      tooltip="Filter by BOM type"),
+                      tooltip=t("type_filter_tooltip")),
             sg.Combo([], size=(18, 1), key="-RECORD_FILTER-", enable_events=True, readonly=True,
-                      tooltip="Filter by record properties"),
+                      tooltip=t("record_filter_tooltip")),
         ]
 
         base_row = [
-            sg.Input("", size=(50, 1), key="-BASEPATH-", tooltip="Optional base path prefix"),
-            sg.Button("Save Path", key="-SAVE_PATH-", size=(10, 1)),
-            sg.Button("Clear Path", key="-CLEAR_PATH-", size=(10, 1)),
+            sg.Input("", size=(50, 1), key="-BASEPATH-", tooltip=t("basepath_tooltip")),
+            sg.Button(t("save_path"), key="-SAVE_PATH-", size=(10, 1)),
+            sg.Button(t("clear_path"), key="-CLEAR_PATH-", size=(10, 1)),
         ]
 
         options_row = [
-            sg.Text("Index mode:"),
+            sg.Text(t("index_mode_label")),
             sg.Combo(
-                ["BOM focused", "Universal (all rows)"],
-                default_value="BOM focused",
+                [t("index_mode_universal"), t("index_mode_bom")],
+                default_value=t("index_mode_universal"),
                 size=(22, 1),
                 key="-INDEX_MODE-",
                 readonly=True,
                 enable_events=True,
                 tooltip="Choose before selecting folder/files"
             ),
-            sg.Checkbox("Skip unrelated workbooks", default=True, key="-BOM_ONLY-", enable_events=True,
+            sg.Text(t("advanced_mode_label")),
+            sg.Combo(
+                [t("advanced_standard"), t("advanced_bom_legacy")],
+                default_value=t("advanced_standard"),
+                size=(20, 1),
+                key="-ADVANCED_MODE-",
+                readonly=True,
+                enable_events=True,
+                tooltip="Legacy BOM-focused mode (select explicitly to enable)"
+            ),
+            sg.Checkbox(t("skip_unrelated"), default=False, key="-BOM_ONLY-", enable_events=True,
                         tooltip="Turn off to index all Excel files")
         ]
 
@@ -177,36 +226,45 @@ class BOMIndexerGUI:
         ]
 
         lookup_grid = [
-            [sg.Text("Quick Lookup:", font=("Arial", 10, "bold"))],
+            [sg.Text(t("lookup_label"), font=("Arial", 10, "bold"), key="-LOOKUP_LABEL-")],
             [
                 sg.Input("", size=(50, 1), key="-LOOKUP-", enable_events=True,
-                         tooltip="Type value to search"),
+                         tooltip=t("lookup_tooltip")),
                 sg.Combo(["everything", "bom", "family", "old", "new", "versioned", "mold",
                           "fg", "item"],
                          default_value="everything", size=(14, 1), key="-LOOKUP_TARGET-", readonly=True,
-                         tooltip="Lookup scope"),
+                         tooltip=t("lookup_target_label")),
                 sg.Combo(["contains", "exact"], default_value="contains", size=(10, 1),
-                         key="-LOOKUP_MODE-", readonly=True, tooltip="Match mode"),
-                sg.Button("Clear", key="-CLEAR_LOOKUP-", size=(8, 1)),
+                         key="-LOOKUP_MODE-", readonly=True, tooltip=t("lookup_mode_label")),
+                sg.Button(t("clear_lookup_btn"), key="-CLEAR_LOOKUP-", size=(8, 1)),
             ],
             [
                 sg.Multiline("", size=(60, 4), key="-BATCH-",
-                             tooltip="Batch find: one value per line or comma-separated"),
+                             tooltip=t("batch_tooltip")),
                 sg.Column([
-                    [sg.Button("Batch Find", key="-RUN_BATCH-", size=(12, 1))],
-                    [sg.Button("Clear Batch", key="-CLEAR_BATCH-", size=(12, 1))]
+                    [sg.Button(t("batch_find"), key="-RUN_BATCH-", size=(12, 1))],
+                    [sg.Button(t("clear_batch"), key="-CLEAR_BATCH-", size=(12, 1))],
+                    [sg.Text(t("batch_mode_label"), key="-BATCH_MODE_LABEL-")],
+                    [sg.Combo(
+                        [t("batch_single"), t("batch_and"), t("batch_or")],
+                        default_value=t("batch_single"),
+                        size=(14, 1),
+                        key="-BATCH_MODE-",
+                        readonly=True,
+                        tooltip="Single Key: any term matches. AND: all terms required. OR: at least one term."
+                    )],
                 ], vertical_alignment='TOP'),
             ],
             [sg.Text("", size=(80, 1), key="-LOOKUP_STATUS-", text_color="#555555")],
         ]
 
-        lookup_frame = sg.Frame("Quick Lookup", lookup_grid, expand_x=True)
+        lookup_frame = sg.Frame(t("lookup_frame"), lookup_grid, expand_x=True, key="-LOOKUP_FRAME-")
 
         # Main table with scroll
         table_cols = [[
             sg.Table(
                 values=[],
-                headings=TABLE_HEADINGS,
+                headings=get_table_headings(self.state.lang),
                 display_row_numbers=False,
                 auto_size_columns=True,
                 justification='left',
@@ -216,11 +274,11 @@ class BOMIndexerGUI:
                 expand_x=True,
                 expand_y=True,
                 vertical_scroll_only=False,
-                visible=True
+                visible=False
             ),
             sg.Table(
                 values=[],
-                headings=UNIVERSAL_TABLE_HEADINGS,
+                headings=get_universal_table_headings(self.state.lang),
                 display_row_numbers=False,
                 auto_size_columns=False,
                 col_widths=[90, 20, 8],
@@ -231,20 +289,20 @@ class BOMIndexerGUI:
                 expand_x=True,
                 expand_y=True,
                 vertical_scroll_only=False,
-                visible=False
+                visible=True
             )
         ]]
 
         # Details pane with scroll
         details_col = [
-            [sg.Text("Selected Context", font=("Arial", 10, "bold"), key="-DETAILS_TITLE-")],
+            [sg.Text(t("details_title"), font=("Arial", 10, "bold"), key="-DETAILS_TITLE-")],
             [sg.Multiline("", size=(40, 15), key="-DETAILS-", disabled=True, expand_x=True, expand_y=True)]
         ]
 
         # Version table with scroll
         version_table = [[sg.Table(
             values=[],
-            headings=VERSION_HEADINGS,
+            headings=get_version_headings(self.state.lang),
             display_row_numbers=False,
             auto_size_columns=True,
             justification='left',
@@ -273,7 +331,7 @@ class BOMIndexerGUI:
                 sg.VerticalSeparator(key="-DETAILS_SEP-"),
                 sg.Column(details_col, expand_x=False, expand_y=True, pad=(0, 0), key="-DETAILS_COL-")
             ],
-            [sg.Frame("BOM Versions", version_table, expand_x=True, key="-VERSION_FRAME-")],
+            [sg.Frame(t("version_frame"), version_table, expand_x=True, key="-VERSION_FRAME-")],
         ]
 
         return layout
@@ -291,9 +349,15 @@ class BOMIndexerGUI:
         total_files = len(self.state.entries)
         total_records = len(self.state.all_records)
         unique_types = {e.get('type', 'Unknown') for e in self.state.entries.values()}
-        self.window["-STAT_FILES-"].update(f"Files: {total_files}")
-        self.window["-STAT_RECORDS-"].update(f"Records: {total_records:,}")
-        self.window["-STAT_TYPES-"].update(f"Types: {', '.join(sorted(unique_types))}")
+        self.window["-STAT_FILES-"].update(
+            self._t("stat_files").replace("0", str(total_files))
+        )
+        self.window["-STAT_RECORDS-"].update(
+            self._t("stat_records").replace("0", f"{total_records:,}")
+        )
+        self.window["-STAT_TYPES-"].update(
+            self._t("stat_types").replace("0", ', '.join(sorted(unique_types)))
+        )
         
         # Show cache information based on which cache is being used
         if self.state.partitioned_cache_manager:
@@ -347,7 +411,10 @@ class BOMIndexerGUI:
 
     def _update_mode_ui(self):
         universal = self.state.index_mode == "universal"
-        self.window["-BOM_ONLY-"].update(value=False if universal else self.state.bom_only, disabled=universal)
+        self.window["-BOM_ONLY-"].update(
+            value=self.state.bom_only if not universal else False,
+            disabled=universal
+        )
         self.window["-VERSION_FRAME-"].update(visible=not universal)
         self.window["-DETAILS_SEP-"].update(visible=True)
         self.window["-DETAILS_COL-"].update(visible=True)
@@ -415,13 +482,13 @@ class BOMIndexerGUI:
 
     def _handle_select_folder(self):
         """Handle folder selection dialog"""
-        folder = sg.popup_get_folder("Select dataset folder", default_path=self.state.base_path or os.getcwd())
+        folder = sg.popup_get_folder(self._t("select_folder"), default_path=self.state.base_path or os.getcwd())
         if folder:
             self._start_indexing(folder)
 
     def _handle_select_files(self):
         files = sg.popup_get_file(
-            "Select Excel files",
+            self._t("select_files"),
             multiple_files=True,
             file_types=(("Excel Files", "*.xlsx *.xlsm *.xlsb *.xls *.csv"), ("All Files", "*.*"))
         )
@@ -431,44 +498,133 @@ class BOMIndexerGUI:
             self._start_file_indexing(files)
 
     def _handle_load_cache(self):
+        if self.state.busy:
+            sg.popup(self._t("msg_busy"))
+            return
+        self.state.busy = True
+        self.window["-EXPORT_CSV-"].update(disabled=True)
+        self._update_status(self._t("msg_cache_validating"), "#0066cc")
+        thread = threading.Thread(target=self._load_cache_worker, daemon=True)
+        thread.start()
+
+    def _load_cache_worker(self):
+        """Background worker: load cache entries and validate timestamps."""
         try:
-            self._update_status("Loading cache...", "#0066cc")
-            
-            # Try to load from partitioned cache first
+            # Load entries from partitioned cache first, fallback to legacy
+            entries = None
+            cache_source = "partitioned"
             if self.state.partitioned_cache_manager:
                 entries = self.state.partitioned_cache_manager.load_entries()
-                if entries:
-                    self.state.entries = entries
-                    self._rebuild_state_from_entries()
-                    self._update_stats()
-                    self._populate_type_filter()
-                    self._apply_filters()
-                    self._refresh_version_table()
-                    self.window["-EXPORT_CSV-"].update(disabled=False)
-                    self._update_status(f"Partitioned cache loaded: {len(entries)} files.", "#0a7f4f")
-                    return
-            
-            # Fallback to legacy cache
-            entries = self.state.cache_manager.load_entries()
-            if entries and self.state.cache_manager.count_records() == 0:
-                self.state.cache_manager.rebuild_records_index(list(entries.values()))
-            self.state.entries = entries
-            self._rebuild_state_from_entries()
-            self._update_stats()
-            self._populate_type_filter()
-            self._apply_filters()
-            self._refresh_version_table()
-            self.window["-EXPORT_CSV-"].update(disabled=False)
-            self._update_status(f"Legacy cache loaded: {len(entries)} files.", "#0a7f4f")
+            if not entries:
+                entries = self.state.cache_manager.load_entries()
+                cache_source = "legacy"
+                if entries and self.state.cache_manager.count_records() == 0:
+                    self.state.cache_manager.rebuild_records_index(list(entries.values()))
+
+            if not entries:
+                self.state.result_queue.put(('status', self._t("msg_cache_failed", "no entries found"), "#d32f2f"))
+                self.state.result_queue.put(('done',))
+                return
+
+            total = len(entries)
+            self.state.result_queue.put(('status', self._t("msg_cache_validating"), "#0066cc"))
+
+            # Validate each cached entry's timestamp against actual disk file
+            stale_paths = []
+            valid_entries = {}
+            checked = 0
+
+            for path, entry in entries.items():
+                checked += 1
+                sig = entry.get('signature', '')
+                try:
+                    if os.path.exists(path):
+                        stat = os.stat(path)
+                        current_mtime = int(stat.st_mtime * 1000)
+                        current_size = stat.st_size
+                        # Parse cached signature: filepath|size|mtime
+                        sig_parts = sig.split('|')
+                        cached_mtime = int(sig_parts[2]) if len(sig_parts) >= 3 and sig_parts[2].isdigit() else 0
+                        cached_size = int(sig_parts[1]) if len(sig_parts) >= 2 and sig_parts[1].isdigit() else 0
+
+                        if current_mtime != cached_mtime or current_size != cached_size:
+                            stale_paths.append(path)
+                        else:
+                            valid_entries[path] = entry
+                    else:
+                        stale_paths.append(path)
+                except Exception:
+                    stale_paths.append(path)
+
+                if checked % 50 == 0:
+                    self.state.result_queue.put(('progress', int((checked / total) * 50)))
+
+            stale_count = len(stale_paths)
+            valid_count = len(valid_entries)
+
+            if stale_count == 0:
+                # All entries valid, use them directly
+                self.state.result_queue.put(('progress', 100))
+                self.state.result_queue.put(('cache_result', list(entries.values()),
+                                            self._t("msg_cache_valid", total), cache_source))
+                self.state.result_queue.put(('done',))
+                return
+
+            # Report stale files and rescan them
+            self.state.result_queue.put(('status',
+                self._t("msg_cache_stale", stale_count, total), "#e65100"))
+
+            # Rescan stale files
+            refreshed = 0
+            for i, path in enumerate(stale_paths):
+                try:
+                    file_meta = get_file_info(path)
+                    if self.state.index_mode == "universal":
+                        entry = summarize_workbook_universal(path)
+                    else:
+                        entry = summarize_workbook(path)
+                    entry['path'] = path
+
+                    # Build signature for cache manager
+                    sig_mgr = (self.state.partitioned_cache_manager or self.state.cache_manager)
+                    if sig_mgr:
+                        entry['signature'] = sig_mgr.file_signature(
+                            path,
+                            file_meta['size'],
+                            int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                        )
+                    valid_entries[path] = entry
+                    refreshed += 1
+                except Exception:
+                    # Keep existing entry if rescan fails, but flag as stale
+                    if path in entries:
+                        valid_entries[path] = entries[path]
+
+                pct = 50 + int(((i + 1) / stale_count) * 50)
+                self.state.result_queue.put(('progress', pct))
+
+            # Save updated entries back to cache
+            all_entries = list(valid_entries.values())
+            if self.state.partitioned_cache_manager:
+                self.state.partitioned_cache_manager.save_entries_incremental(all_entries)
+            else:
+                self.state.cache_manager.save_entries(all_entries)
+
+            self.state.result_queue.put(('progress', 100))
+            msg = self._t("msg_cache_refreshed", refreshed)
+            self.state.result_queue.put(('cache_result', all_entries, msg, cache_source))
+            self.state.result_queue.put(('done',))
+
         except Exception as e:
-            self._update_status(f"Cache load failed: {e}", "#d32f2f")
+            self.state.result_queue.put(('error', str(e)))
+            self.state.result_queue.put(('done',))
 
     def _handle_export_csv(self):
         if not self.state.filtered_rows:
-            sg.popup("No data to export.")
+            sg.popup(self._t("msg_no_data_export"))
             return
 
-        save_path = sg.popup_get_file("Save CSV file", save_as=True,
+        save_path = sg.popup_get_file(self._t("msg_save_csv"), save_as=True,
                                       file_types=(("CSV Files", "*.csv"), ("All Files", "*.*")),
                                       default_extension=".csv")
         if not save_path:
@@ -479,9 +635,9 @@ class BOMIndexerGUI:
                 writer = csv.DictWriter(f, fieldnames=list(self.state.filtered_rows[0].keys()))
                 writer.writeheader()
                 writer.writerows(self.state.filtered_rows)
-            self._update_status(f"Exported {len(self.state.filtered_rows)} rows to {save_path}", "#0a7f4f")
+            self._update_status(self._t("msg_exported", len(self.state.filtered_rows), save_path), "#0a7f4f")
         except Exception as e:
-            sg.popup_error(f"Export failed: {e}")
+            sg.popup_error(self._t("msg_export_failed", str(e)))
 
     def _handle_row_select(self, values):
         selected_key = "-TABLE_UNI-" if self.state.index_mode == "universal" else "-TABLE-"
@@ -499,14 +655,14 @@ class BOMIndexerGUI:
     def _open_selected_file(self):
         record = self.state.selected_row
         if not record:
-            sg.popup("Select a row first.")
+            sg.popup(self._t("msg_select_row_first"))
             return
         path = record.get('path', '')
         if not path:
-            sg.popup("Selected row does not contain a file path.")
+            sg.popup(self._t("msg_no_path"))
             return
         if not Path(path).exists():
-            sg.popup(f"File not found:\n{path}")
+            sg.popup(self._t("msg_file_not_found") + f"\n{path}")
             return
         try:
             # Highlight the file in Windows Explorer.
@@ -515,7 +671,7 @@ class BOMIndexerGUI:
             try:
                 os.startfile(str(Path(path).parent))
             except Exception as e:
-                sg.popup_error(f"Cannot open Explorer: {e}")
+                sg.popup_error(self._t("msg_cannot_open_explorer", str(e)))
 
     def _format_record_details(self, record: Dict) -> str:
         if self.state.index_mode == "universal":
@@ -607,7 +763,7 @@ class BOMIndexerGUI:
                 json.dump({"base_path": self.state.base_path}, f)
         except:
             pass
-        sg.popup("Base path saved.")
+        sg.popup(self._t("msg_basepath_saved"))
 
     def _on_basepath_clear(self):
         self.state.base_path = ""
@@ -616,7 +772,7 @@ class BOMIndexerGUI:
             os.remove("data/config.json")
         except:
             pass
-        sg.popup("Base path cleared.")
+        sg.popup(self._t("msg_basepath_cleared"))
 
     def _on_lookup(self, values):
         self.state.lookup_text = values["-LOOKUP-"].strip()
@@ -628,7 +784,7 @@ class BOMIndexerGUI:
     def _perform_lookup(self):
         term = self.state.lookup_text.strip()
         if not term:
-            self.window["-LOOKUP_STATUS-"].update("Enter a value to search")
+            self.window["-LOOKUP_STATUS-"].update(self._t("msg_enter_search"))
             return
 
         term_norm = normalize(term)
@@ -657,10 +813,11 @@ class BOMIndexerGUI:
             shown = min(len(record_matches), MAX_RENDER_ROWS)
             if len(record_matches) > MAX_RENDER_ROWS:
                 self.window["-LOOKUP_STATUS-"].update(
-                    f"Found {len(record_matches)} records. Showing first {shown:,} for smoother UI."
+                    self._t("msg_found_records", len(record_matches)) + ". " +
+                    self._t("msg_showing_first", shown)
                 )
             else:
-                self.window["-LOOKUP_STATUS-"].update(f"Found {len(record_matches)} records")
+                self.window["-LOOKUP_STATUS-"].update(self._t("msg_found_records", len(record_matches)))
             return
 
         # --- Records matching ---
@@ -802,29 +959,48 @@ class BOMIndexerGUI:
         self._refresh_table()
         self._refresh_version_table()
         shown = min(len(record_matches), MAX_RENDER_ROWS)
-        msg = f"Found {len(record_matches)} records, {len(version_matches)} BOM versions"
+        msg = self._t("msg_found_both", len(record_matches), len(version_matches))
         if len(record_matches) > MAX_RENDER_ROWS:
-            msg += f". Showing first {shown:,} for smoother UI."
+            msg += ". " + self._t("msg_showing_first", shown)
         self.window["-LOOKUP_STATUS-"].update(msg)
 
     def _on_batch(self, values):
         text_val = values["-BATCH-"].strip()
         if not text_val:
             return
-        import re
         terms = re.split(r'[\n,;\t\s]+', text_val)
         terms = [normalize(t) for t in terms if t.strip()]
+        if not terms:
+            return
+
+        mode = self.state.batch_mode
 
         matched = []
-        for r in self.state.all_records:
-            search_txt = r.get('searchText', '')
-            if any(term in search_txt for term in terms):
-                matched.append(r)
+        if mode == "and":
+            # AND mode: record must contain ALL terms
+            for r in self.state.all_records:
+                search_txt = r.get('searchText', '')
+                if all(term in search_txt for term in terms):
+                    matched.append(r)
+        elif mode == "or":
+            # OR mode: record must contain at least ONE term
+            for r in self.state.all_records:
+                search_txt = r.get('searchText', '')
+                if any(term in search_txt for term in terms):
+                    matched.append(r)
+        else:
+            # Single key mode: any term matches (original behavior)
+            for r in self.state.all_records:
+                search_txt = r.get('searchText', '')
+                if any(term in search_txt for term in terms):
+                    matched.append(r)
 
         self.state.filtered_rows = matched
         self.state.batch_terms = terms
         self._refresh_table()
-        self.window["-LOOKUP_STATUS-"].update(f"Batch: {len(matched)} matches across {len(terms)} terms")
+        self.window["-LOOKUP_STATUS-"].update(
+            self._t("msg_batch_status", len(matched), len(terms))
+        )
 
     # ============ Background indexing ============
 
@@ -833,7 +1009,7 @@ class BOMIndexerGUI:
         try:
             files = scan_directory(folder_path, recursive=True)
             total_files = len(files)
-            self.state.result_queue.put(('status', f"Found {total_files} Excel files. Processing...", "#0066cc"))
+            self.state.result_queue.put(('status', self._t("msg_processing", total_files), "#0066cc"))
             
             # Use partitioned cache for incremental updates if available
             if self.state.partitioned_cache_manager:
@@ -889,7 +1065,7 @@ class BOMIndexerGUI:
                     pct = int((processed / total_files) * 100) if total_files else 0
                     self.state.result_queue.put(('progress', pct))
 
-                self.state.result_queue.put(('status', "Saving cache...", "#0066cc"))
+                self.state.result_queue.put(('status', self._t("msg_saving_cache"), "#0066cc"))
                 # Save only changed entries incrementally
                 self.state.partitioned_cache_manager.save_entries_incremental(new_entries)
                 self.state.result_queue.put(('result', new_entries, skipped))
@@ -945,7 +1121,7 @@ class BOMIndexerGUI:
                     pct = int((processed / total_files) * 100) if total_files else 0
                     self.state.result_queue.put(('progress', pct))
 
-                self.state.result_queue.put(('status', "Saving cache...", "#0066cc"))
+                self.state.result_queue.put(('status', self._t("msg_saving_cache"), "#0066cc"))
                 self.state.cache_manager.save_entries(new_entries)
                 self.state.result_queue.put(('result', new_entries, skipped))
 
@@ -1055,9 +1231,9 @@ class BOMIndexerGUI:
                     _, entries, skipped = msg
                     self.state.entries = {e['path']: e for e in entries}
                     self._rebuild_state_from_entries()
-                    msg_text = f"Done. Indexed {len(entries)} files."
+                    msg_text = self._t("msg_done", len(entries))
                     if skipped:
-                        msg_text += f" Skipped {skipped} non-BOM files."
+                        msg_text += " " + self._t("msg_skipped", skipped)
                     self.window["-STATUS-"].update(msg_text, text_color="#0a7f4f")
                     self._update_stats()
                     self._populate_type_filter()
@@ -1070,39 +1246,91 @@ class BOMIndexerGUI:
                     self.state.entries = self.state.entries.copy()
                     self.state.entries.update({e['path']: e for e in entries})
                     self._rebuild_state_from_entries()
-                    self.window["-STATUS-"].update(f"Indexed {len(entries)} files.", text_color="#0a7f4f")
+                    self.window["-STATUS-"].update(
+                        self._t("msg_done", len(entries)), text_color="#0a7f4f")
                     self._update_stats()
                     self._populate_type_filter()
                     self._apply_filters()
                     self._refresh_version_table()
                     self.window["-EXPORT_CSV-"].update(disabled=False)
                     self.state.busy = False
+                elif msg[0] == 'cache_result':
+                    _, entries, status_msg, cache_source = msg
+                    self.state.entries = {e['path']: e for e in entries}
+                    self._rebuild_state_from_entries()
+                    self._update_stats()
+                    self._populate_type_filter()
+                    self._apply_filters()
+                    self._refresh_version_table()
+                    self.window["-EXPORT_CSV-"].update(disabled=False)
+                    self._update_status(status_msg, "#0a7f4f")
                 elif msg[0] == 'error':
                     _, err = msg
                     self.window["-STATUS-"].update(f"Error: {err}", text_color="#d32f2f")
+                    self.state.busy = False
+                elif msg[0] == 'done':
                     self.state.busy = False
         except queue.Empty:
             pass
 
     def _start_indexing(self, folder_path: str):
         if self.state.busy:
-            sg.popup("Please wait for the current operation to finish.")
+            sg.popup(self._t("msg_busy"))
             return
         self.state.busy = True
         self.window["-EXPORT_CSV-"].update(disabled=True)
-        self._update_status("Starting indexing...", "#0066cc")
+        self._update_status(self._t("msg_starting_index"), "#0066cc")
         thread = threading.Thread(target=self._worker_thread, args=(folder_path,), daemon=True)
         thread.start()
 
     def _start_file_indexing(self, file_paths: List[str]):
         if self.state.busy:
-            sg.popup("Please wait for the current operation to finish.")
+            sg.popup(self._t("msg_busy"))
             return
         self.state.busy = True
         self.window["-EXPORT_CSV-"].update(disabled=True)
-        self._update_status("Starting file indexing...", "#0066cc")
+        self._update_status(self._t("msg_starting_file_index"), "#0066cc")
         thread = threading.Thread(target=self._worker_thread_files, args=(file_paths,), daemon=True)
         thread.start()
+
+    def _rebuild_window(self):
+        """Save geometry, close window, rebuild layout in current language, reopen, restore state."""
+        try:
+            self.state.window_geometry = (
+                self.window.size[0], self.window.size[1],
+                self.window.current_location()[0], self.window.current_location()[1]
+            )
+        except Exception:
+            self.state.window_geometry = (1400, 800, 100, 100)
+        self.window.close()
+        layout = self._build_layout()
+        geom = self.state.window_geometry
+        self.window = sg.Window(self._t("app_title"), layout, finalize=True, resizable=True,
+                                size=(geom[0], geom[1]), location=(geom[2], geom[3]))
+        self._restore_ui_state()
+
+    def _restore_ui_state(self):
+        """Re-populate all UI elements after window rebuild (language switch)."""
+        self.window["-BASEPATH-"].update(self.state.base_path)
+        self._update_stats()
+        self._populate_type_filter()
+        self._populate_record_filter()
+        self._update_mode_ui()
+        self._apply_filters()
+        self._refresh_version_table()
+        if self.state.filtered_rows:
+            self.window["-EXPORT_CSV-"].update(disabled=False)
+        self.window["-LOOKUP-"].update(self.state.lookup_text)
+        self.window["-BATCH-"].update(
+            "\n".join(self.state.batch_terms) if self.state.batch_terms else ""
+        )
+        # Restore batch mode selection
+        mode_map = {"single": "batch_single", "and": "batch_and", "or": "batch_or"}
+        mode_key = mode_map.get(self.state.batch_mode, "batch_single")
+        self.window["-BATCH_MODE-"].update(self._t(mode_key))
+        # Restore advanced mode selection
+        adv_key = "advanced_bom_legacy" if self.state.advanced_mode == "bom_legacy" else "advanced_standard"
+        self.window["-ADVANCED_MODE-"].update(self._t(adv_key))
 
     # ============ Main event loop ============
 
@@ -1110,7 +1338,7 @@ class BOMIndexerGUI:
         """Main event loop. Optionally start indexing a folder immediately."""
         sg.theme(THEME)
         layout = self._build_layout()
-        self.window = sg.Window(APP_TITLE, layout, finalize=True, resizable=True,
+        self.window = sg.Window(self._t("app_title"), layout, finalize=True, resizable=True,
                                 size=(1400, 800), location=(100, 100))
 
         # Load saved base path
@@ -1124,7 +1352,7 @@ class BOMIndexerGUI:
 
         self._populate_type_filter()
         self._populate_record_filter()
-        self._update_status("Ready. Choose index mode, then select dataset folder.")
+        self._update_status(self._t("status_ready"))
         self._update_mode_ui()
 
         # If an initial folder is provided, start indexing in background
@@ -1134,7 +1362,7 @@ class BOMIndexerGUI:
         while True:
             # Process any pending queue messages from background threads
             self._process_queue()
-            
+
             event, values = self.window.read(timeout=100)
 
             # Debounce heavy filtering/lookup so typing remains responsive.
@@ -1199,12 +1427,40 @@ class BOMIndexerGUI:
 
             elif event == "-INDEX_MODE-":
                 selected = values["-INDEX_MODE-"]
-                self.state.index_mode = "universal" if selected == "Universal (all rows)" else "bom"
+                self.state.index_mode = "universal" if selected == self._t("index_mode_universal") else "bom"
                 self._update_mode_ui()
                 if self.state.index_mode == "universal":
-                    self._update_status("Universal mode selected: indexing every non-empty row in every Excel file.")
+                    self._update_status(self._t("msg_universal_selected"))
                 else:
-                    self._update_status("BOM focused mode selected.")
+                    self._update_status(self._t("msg_bom_selected"))
+
+            elif event == "-ADVANCED_MODE-":
+                selected = values["-ADVANCED_MODE-"]
+                if selected == self._t("advanced_bom_legacy"):
+                    self.state.advanced_mode = "bom_legacy"
+                    self.state.index_mode = "bom"
+                    self.window["-INDEX_MODE-"].update(self._t("index_mode_bom"))
+                    self._update_mode_ui()
+                    self._update_status(self._t("msg_bom_selected"))
+                else:
+                    self.state.advanced_mode = "standard"
+                    self.state.index_mode = "universal"
+                    self.window["-INDEX_MODE-"].update(self._t("index_mode_universal"))
+                    self._update_mode_ui()
+                    self._update_status(self._t("msg_universal_selected"))
+
+            elif event == "-BATCH_MODE-":
+                selected = values["-BATCH_MODE-"]
+                if selected == self._t("batch_and"):
+                    self.state.batch_mode = "and"
+                elif selected == self._t("batch_or"):
+                    self.state.batch_mode = "or"
+                else:
+                    self.state.batch_mode = "single"
+
+            elif event == "-LANG_TOGGLE-":
+                self.state.lang = "vi" if self.state.lang == "en" else "en"
+                self._rebuild_window()
 
         self.window.close()
 

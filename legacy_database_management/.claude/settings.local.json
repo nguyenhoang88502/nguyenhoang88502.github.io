@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import ast; ast.parse\\(open\\('desktop_app/ui/i18n.py'\\).read\\(\\)\\); print\\('i18n.py: OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('desktop_app/ui/gui.py'\\).read\\(\\)\\); print\\('gui.py: OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('desktop_app/ui/i18n.py', encoding='utf-8'\\).read\\(\\)\\); print\\('i18n.py: OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('desktop_app/ui/gui.py', encoding='utf-8'\\).read\\(\\)\\); print\\('gui.py: OK'\\)\")",
+      "Bash(python -c \"from ui.i18n import get_text, TEXTS; print\\('i18n keys EN:', len\\(TEXTS['en']\\)\\); print\\('i18n keys VI:', len\\(TEXTS['vi']\\)\\); print\\('OK'\\)\")",
+      "Bash(python -c \"from ui.gui import BOMIndexerGUI, AppState, get_table_headings, get_universal_table_headings, get_version_headings; print\\('Imports OK'\\); s = AppState\\(\\); print\\(f'Default mode: {s.index_mode}'\\); print\\(f'Default lang: {s.lang}'\\); print\\(f'Default batch_mode: {s.batch_mode}'\\); print\\(f'Default advanced_mode: {s.advanced_mode}'\\)\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}
