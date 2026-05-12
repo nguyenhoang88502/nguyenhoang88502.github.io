@@ -1050,17 +1050,8 @@ class BOMIndexerGUI:
                                 'signature': signature
                             }
 
-                    if self.state.index_mode == "universal":
-                        new_entries.append(entry)
-                    elif self.state.bom_only:
-                        allowed = ('BOM line', 'BOM header', 'Mixed BOM report')
-                        if entry.get('type') not in allowed:
-                            skipped += 1
-                        else:
-                            new_entries.append(entry)
-                    else:
-                        new_entries.append(entry)
-                    
+                    new_entries.append(entry)
+
                     processed += 1
                     pct = int((processed / total_files) * 100) if total_files else 0
                     self.state.result_queue.put(('progress', pct))
@@ -1106,17 +1097,8 @@ class BOMIndexerGUI:
                                 'signature': signature
                             }
 
-                    if self.state.index_mode == "universal":
-                        new_entries.append(entry)
-                    elif self.state.bom_only:
-                        allowed = ('BOM line', 'BOM header', 'Mixed BOM report')
-                        if entry.get('type') not in allowed:
-                            skipped += 1
-                        else:
-                            new_entries.append(entry)
-                    else:
-                        new_entries.append(entry)
-                    
+                    new_entries.append(entry)
+
                     processed += 1
                     pct = int((processed / total_files) * 100) if total_files else 0
                     self.state.result_queue.put(('progress', pct))
@@ -1162,10 +1144,7 @@ class BOMIndexerGUI:
                                 'error': str(e), 'records': [], 'bomVersions': [], 'signature': signature
                             }
 
-                    if self.state.index_mode == "universal":
-                        new_entries.append(entry)
-                    elif (not self.state.bom_only or entry.get('type') in ('BOM line', 'BOM header', 'Mixed BOM report')):
-                        new_entries.append(entry)
+                    new_entries.append(entry)
 
                     pct = int(((i + 1) / total) * 100)
                     self.state.result_queue.put(('progress', pct))
@@ -1201,10 +1180,7 @@ class BOMIndexerGUI:
                                 'error': str(e), 'records': [], 'bomVersions': [], 'signature': signature
                             }
 
-                    if self.state.index_mode == "universal":
-                        new_entries.append(entry)
-                    elif (not self.state.bom_only or entry.get('type') in ('BOM line', 'BOM header', 'Mixed BOM report')):
-                        new_entries.append(entry)
+                    new_entries.append(entry)
 
                     pct = int(((i + 1) / total) * 100)
                     self.state.result_queue.put(('progress', pct))

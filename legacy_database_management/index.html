@@ -434,7 +434,7 @@
       <div class="card" id="desktop-version">
         <div class="card-header">
           <div class="card-icon">💻</div>
-          <h3 class="card-title" data-i18n="desktop_title">Desktop v5 <span class="badge accent">LATEST</span></h3>
+          <h3 class="card-title" data-i18n="desktop_title">Desktop v6 <span class="badge accent">LATEST</span></h3>
         </div>
         <p class="card-description" data-i18n="desktop_desc">Standalone Windows executable — no Python, no install, no dependencies. Multi-threaded processing with SQLite caching handles thousands of Excel/CSV files at native speed.</p>
         <ul class="features">
@@ -448,7 +448,7 @@
           <li data-i18n="desktop_f8">Multi-language header recognition (EN/VI/ZH)</li>
         </ul>
         <div class="btn-column" style="margin-top: 1.2rem;">
-          <a href="desktop_app/BOM%20Dataset%20Indexer%20v5/BOM%20Dataset%20Indexer.exe" class="btn" data-i18n="desktop_download">Download v5</a>
+          <a href="desktop_app/BOM%20Dataset%20Indexer%20v6/BOM%20Dataset%20Indexer.exe" class="btn" data-i18n="desktop_download">Download v6</a>
           <a href="desktop_app/README_DESKTOP.md" class="btn secondary" data-i18n="desktop_guide">Setup Guide</a>
           <a href="https://github.com/nguyenhoang88502/nguyenhoang88502.github.io/tree/main/legacy_database_management" class="btn secondary" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px;">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -493,6 +493,31 @@
             <li>Click <strong>Export CSV</strong> to save filtered results for Excel, Power BI, or other tools</li>
           </ol>
           <p data-i18n="quickstart_desktop_note" style="color: var(--muted); font-size: 0.8rem; margin: 1rem 0 0 0; padding: 0.6rem 0.8rem; background: rgba(15,118,110,0.05); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0;">💡 <strong>Tip:</strong> The first run creates a <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;">data/cache.db</code> SQLite database. Subsequent launches load the cache instantly — no need to re-index.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- v6 Release Notes -->
+    <div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--accent);" id="v6-release-notes">
+      <div class="card-header">
+        <div class="card-icon">📋</div>
+        <h3 class="card-title">What's New in Desktop v6</h3>
+      </div>
+      <div class="card-description" style="margin-bottom: 1rem;">
+        The Desktop v6 release introduces two significant workflow improvements for broader dataset coverage and streamlined operation.
+      </div>
+      <div class="grid-2col" style="margin-bottom: 0;">
+        <div style="background: rgba(20,20,20,0.4); border: 1px solid var(--line); border-radius: 5px; padding: 1.5rem;">
+          <h4 style="color: var(--accent); margin: 0 0 0.8rem 0; font-size: 1rem;">Universal Mode as Default</h4>
+          <p style="color: #b0b0b0; font-size: 0.9rem; margin: 0; line-height: 1.7;">
+            The application now launches in <strong>Universal Mode</strong> by default. This mode indexes every non-empty row across every cell in every Excel file, ensuring complete dataset coverage without requiring manual mode selection. Users who require BOM-focused indexing can still switch to BOM mode explicitly via the index mode selector.
+          </p>
+        </div>
+        <div style="background: rgba(20,20,20,0.4); border: 1px solid var(--line); border-radius: 5px; padding: 1.5rem;">
+          <h4 style="color: var(--accent); margin: 0 0 0.8rem 0; font-size: 1rem;">All Workbooks Processed</h4>
+          <p style="color: #b0b0b0; font-size: 0.9rem; margin: 0; line-height: 1.7;">
+            The indexing engine now processes <strong>all Excel workbooks</strong> in the selected scope regardless of BOM classification. Previously, non-BOM workbooks could be excluded when the "Skip unrelated workbooks" option was active. This change guarantees complete visibility into every file, worksheet, and cell, eliminating the risk of overlooked data.
+          </p>
         </div>
       </div>
     </div>
@@ -640,7 +665,7 @@
         desktop_f6: "Full-text search across all content",
         desktop_f7: "Smart BOM classification engine",
         desktop_f8: "Multi-language header recognition (EN/VI/ZH)",
-        desktop_download: "Download v5",
+        desktop_download: "Download v6",
         desktop_guide: "Setup Guide",
         desktop_steps_title: "How to Use",
         desktop_steps: "<li>Download the latest <strong>.exe</strong> file</li><li><strong>Double-click</strong> to run it (no installation required)</li><li>Use the <strong>Select Folder</strong> button to locate your files</li><li>Choose your indexing mode</li><li>Click <strong>Start Indexing</strong></li><li>Search and Export</li>",
@@ -693,7 +718,7 @@
         web_docs: "Tài Liệu",
         web_steps_title: "Cách Sử Dụng",
         web_steps: "<li>Mở ứng dụng trong trình duyệt của bạn</li><li>Nhấp <strong>Select Folder</strong> và chọn thư mục chứa các tệp Excel/CSV</li><li>Chọn chế độ lập chỉ mục (<strong>Universal</strong> cho tất cả, hoặc <strong>BOM</strong> cho dữ liệu sản xuất)</li><li>Nhấp <strong>Start Indexing</strong> để bắt đầu xử lý</li><li>Sử dụng thanh tìm kiếm để tìm bản ghi và nhấp <strong>Export CSV</strong> để tải kết quả</li>",
-        desktop_title: "Desktop v5 ",
+        desktop_title: "Desktop v6 ",
         desktop_desc: "Tệp thực thi Windows độc lập — không cần Python, không cần cài đặt, không cần phụ thuộc. Xử lý đa luồng với bộ nhớ đệm SQLite xử lý hàng ngàn tệp Excel/CSV ở tốc độ gốc.",
         desktop_f1: "Khởi chạy một lần — chỉ cần tải về và chạy",
         desktop_f2: "Không phụ thuộc (Python đã được đóng gói bên trong)",
@@ -703,7 +728,7 @@
         desktop_f6: "Tìm kiếm toàn văn trên tất cả nội dung",
         desktop_f7: "Công cụ phân loại BOM thông minh",
         desktop_f8: "Nhận dạng tiêu đề đa ngôn ngữ (EN/VI/ZH)",
-        desktop_download: "Tải Về v5",
+        desktop_download: "Tải Về v6",
         desktop_guide: "Hướng Dẫn Cài Đặt",
         desktop_steps_title: "Cách Sử Dụng",
         desktop_steps: "<li>Tải tệp <strong>.exe</strong> mới nhất</li><li><strong>Nhấp đúp</strong> để chạy (không cần cài đặt)</li><li>Sử dụng nút <strong>Select Folder</strong> để tìm tệp của bạn</li><li>Chọn chế độ lập chỉ mục</li><li>Nhấp <strong>Start Indexing</strong></li><li>Tìm kiếm và Xuất</li>",

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -Depth 2 -Filter \"*.py\")",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Recurse -Directory -Path \"C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\legacy_database_management\" | ForEach-Object { $_.FullName })",
+      "Bash(python -m pip install -r requirements.txt --quiet)",
+      "Bash(Select-Object -Last 5)"
+    ]
+  }
+}

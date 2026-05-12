@@ -124,7 +124,7 @@ THƯ MỤC CHỨA FILE        BỘ CHỈ MỤC              TRA CỨU
 
 ### Dành cho Trưởng bộ phận:
 
-1. **Tải app về** — link tải: `[Server nội bộ]/BOM Dataset Indexer v5.exe` (hoặc lấy từ thư mục `legacy_database_management/desktop_app/`)
+1. **Tải app về** — link tải: `[Server nội bộ]/BOM Dataset Indexer v6.exe` (hoặc lấy từ thư mục `legacy_database_management/desktop_app/`)
 2. **Chạy thử với 1 dự án** — chọn thư mục của 1 dự án NPI đã hoàn thành gần đây, index và test tìm kiếm
 3. **Phổ biến cho team** — tổ chức 1 buổi họp 15 phút demo cách dùng (xem phần "Hướng dẫn nhanh" bên dưới)
 4. **Thiết lập thói quen** — mỗi khi bắt đầu dự án mới, index folder dự án đó vào BOM Indexer. Mỗi tuần re-index 1 lần để cập nhật dữ liệu mới.
