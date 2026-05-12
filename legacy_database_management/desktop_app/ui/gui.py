@@ -57,7 +57,6 @@ class AppState:
         self.busy = False
         self.lang = "en"
         self.batch_mode = "single"
-        self.advanced_mode = "standard"
         self.cache_manager: Optional[CacheManager] = None
         self.partitioned_cache_manager: Optional[PartitionedCacheManager] = None
         self.web_asset_cache: Optional[WebAssetCache] = None
@@ -206,16 +205,6 @@ class BOMIndexerGUI:
                 readonly=True,
                 enable_events=True,
                 tooltip="Choose before selecting folder/files"
-            ),
-            sg.Text(t("advanced_mode_label")),
-            sg.Combo(
-                [t("advanced_standard"), t("advanced_bom_legacy")],
-                default_value=t("advanced_standard"),
-                size=(20, 1),
-                key="-ADVANCED_MODE-",
-                readonly=True,
-                enable_events=True,
-                tooltip="Legacy BOM-focused mode (select explicitly to enable)"
             ),
             sg.Checkbox(t("skip_unrelated"), default=False, key="-BOM_ONLY-", enable_events=True,
                         tooltip="Turn off to index all Excel files")
@@ -1304,9 +1293,6 @@ class BOMIndexerGUI:
         mode_map = {"single": "batch_single", "and": "batch_and", "or": "batch_or"}
         mode_key = mode_map.get(self.state.batch_mode, "batch_single")
         self.window["-BATCH_MODE-"].update(self._t(mode_key))
-        # Restore advanced mode selection
-        adv_key = "advanced_bom_legacy" if self.state.advanced_mode == "bom_legacy" else "advanced_standard"
-        self.window["-ADVANCED_MODE-"].update(self._t(adv_key))
 
     # ============ Main event loop ============
 
@@ -1410,20 +1396,6 @@ class BOMIndexerGUI:
                 else:
                     self._update_status(self._t("msg_bom_selected"))
 
-            elif event == "-ADVANCED_MODE-":
-                selected = values["-ADVANCED_MODE-"]
-                if selected == self._t("advanced_bom_legacy"):
-                    self.state.advanced_mode = "bom_legacy"
-                    self.state.index_mode = "bom"
-                    self.window["-INDEX_MODE-"].update(self._t("index_mode_bom"))
-                    self._update_mode_ui()
-                    self._update_status(self._t("msg_bom_selected"))
-                else:
-                    self.state.advanced_mode = "standard"
-                    self.state.index_mode = "universal"
-                    self.window["-INDEX_MODE-"].update(self._t("index_mode_universal"))
-                    self._update_mode_ui()
-                    self._update_status(self._t("msg_universal_selected"))
 
             elif event == "-BATCH_MODE-":
                 selected = values["-BATCH_MODE-"]
