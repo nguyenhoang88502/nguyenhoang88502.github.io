@@ -612,14 +612,21 @@
     if (localStorage.getItem('autoExportYamazumi') === 'true') {
       localStorage.removeItem('autoExportYamazumi');
       // Wait for JSZip CDN to load, then export
+      let autoExportStarted = false;
       const waitForJSZip = setInterval(() => {
         if (typeof JSZip !== 'undefined' && typeof exportYamazumiOptionB === 'function') {
+          autoExportStarted = true;
           clearInterval(waitForJSZip);
           setTimeout(() => exportYamazumiOptionB(), 500);
         }
       }, 200);
       // Timeout after 10 seconds if CDN fails
-      setTimeout(() => clearInterval(waitForJSZip), 10000);
+      setTimeout(() => {
+        clearInterval(waitForJSZip);
+        if (!autoExportStarted) {
+          alert('Yamazumi export could not start because the XLSX export library did not load. Reload the page and try again.');
+        }
+      }, 10000);
     }
   };
 
@@ -1656,29 +1663,201 @@
   }
 
   /* ── Download Original Template ── */
+  const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const YAMAZUMI_TEMPLATE_URLS = [
+    'temp.xlsx',
+    './temp.xlsx',
+    'https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx'
+  ];
+  const YAMAZUMI_SHEETS = {
+    dataPTCT: 'Data PT-CT',
+    vaaNVAA: 'VAA-NVAA'
+  };
+  const YAMAZUMI_MAX_STATIONS = 10;
+  const YAMAZUMI_TASKS_PER_STATION = 10;
+  // Captured time-study data represents the current/before state in the Yamazumi template.
+  // Only input columns are written; CT, macro lookup, and chart formula columns are preserved.
+  const YAMAZUMI_EXPORT_BLOCK_KEYS = ['before'];
+  const YAMAZUMI_PTCT_BLOCKS = {
+    reference: { label: 'REFERENCE', descCol: 'C',  sampleCols: ['F','G','H','I','J','K','L','M','N','O'] },
+    before:    { label: 'BEFORE',    descCol: 'S',  sampleCols: ['V','W','X','Y','Z','AA','AB','AC','AD','AE'] },
+    rev01:     { label: 'REV-01',    descCol: 'AJ', sampleCols: ['AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV'] },
+    rev02:     { label: 'REV-02',    descCol: 'BA', sampleCols: ['BD','BE','BF','BG','BH','BI','BJ','BK','BL','BM'] },
+    rev03:     { label: 'REV-03',    descCol: 'BR', sampleCols: ['BU','BV','BW','BX','BY','BZ','CA','CB','CC','CD'] },
+    rev04:     { label: 'REV-04',    descCol: 'CI', sampleCols: ['CL','CM','CN','CO','CP','CQ','CR','CS','CT','CU'] },
+    rev05:     { label: 'REV-05',    descCol: 'CZ', sampleCols: ['DC','DD','DE','DF','DG','DH','DI','DJ','DK','DL'] }
+  };
+  const YAMAZUMI_VAA_BLOCKS = {
+    reference: { label: 'REFERENCE', microCol: 'F' },
+    before:    { label: 'BEFORE',    microCol: 'O' },
+    rev01:     { label: 'REV-01',    microCol: 'X' },
+    rev02:     { label: 'REV-02',    microCol: 'AG' },
+    rev03:     { label: 'REV-03',    microCol: 'AP' },
+    rev04:     { label: 'REV-04',    microCol: 'AY' },
+    rev05:     { label: 'REV-05',    microCol: 'BH' }
+  };
+  const XLSX_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  const XLSX_REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
   async function downloadRawTemplate() {
     try {
-      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const buf = await resp.arrayBuffer();
-      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'temp.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
+      const buf = await fetchFirstAvailableArrayBuffer(YAMAZUMI_TEMPLATE_URLS);
+      triggerBlobDownload(new Blob([buf], { type: XLSX_MIME }), 'temp.xlsx');
     } catch (err) {
-      alert("Could not download template: " + err.message);
+      alert('Could not download template: ' + err.message);
     }
   }
 
-  /* ── YAMAZUMI EXPORT: JSZip + Direct XML Engine ── */
-  // XML namespace used in xlsx sheets
-  const XLSX_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  async function fetchFirstAvailableArrayBuffer(urls) {
+    let lastErr = null;
+    for (const url of urls) {
+      try {
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) throw new Error(`${url} returned HTTP ${resp.status}`);
+        return await resp.arrayBuffer();
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('No template URL could be loaded.');
+  }
 
-  /* Central data resolver — same as before */
+  function triggerBlobDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function parseXmlStrict(xmlStr, label) {
+    const doc = new DOMParser().parseFromString(xmlStr, 'text/xml');
+    if (doc.querySelector('parsererror')) throw new Error(`${label || 'XML'} could not be parsed.`);
+    return doc;
+  }
+
+  function serializeXml(doc) {
+    return new XMLSerializer().serializeToString(doc);
+  }
+
+  function colNum(col) {
+    let n = 0;
+    for (let i = 0; i < col.length; i++) n = n * 26 + (col.charCodeAt(i) - 64);
+    return n;
+  }
+
+  function colName(num) {
+    let name = '';
+    while (num > 0) {
+      const mod = (num - 1) % 26;
+      name = String.fromCharCode(65 + mod) + name;
+      num = Math.floor((num - 1) / 26);
+    }
+    return name || 'A';
+  }
+
+  function parseCellRef(ref) {
+    const match = String(ref || '').match(/^([A-Z]+)(\d+)$/i);
+    if (!match) return null;
+    return { col: match[1].toUpperCase(), row: parseInt(match[2], 10) };
+  }
+
+  function normalizeWorkbookTarget(target) {
+    let clean = String(target || '').replace(/\\/g, '/');
+    if (!clean) return '';
+    if (clean.startsWith('/')) clean = clean.slice(1);
+    if (clean.startsWith('xl/')) return clean;
+    clean = `xl/${clean}`;
+    const parts = [];
+    clean.split('/').forEach(part => {
+      if (!part || part === '.') return;
+      if (part === '..') parts.pop();
+      else parts.push(part);
+    });
+    return parts.join('/');
+  }
+
+  async function resolveWorksheetPaths(zip) {
+    const wbFile = zip.file('xl/workbook.xml');
+    const relsFile = zip.file('xl/_rels/workbook.xml.rels');
+    if (!wbFile || !relsFile) throw new Error('Template is missing workbook metadata.');
+
+    const wbDoc = parseXmlStrict(await wbFile.async('string'), 'workbook.xml');
+    const relsDoc = parseXmlStrict(await relsFile.async('string'), 'workbook.xml.rels');
+    const relMap = {};
+
+    relsDoc.querySelectorAll('Relationship').forEach(rel => {
+      relMap[rel.getAttribute('Id')] = normalizeWorkbookTarget(rel.getAttribute('Target'));
+    });
+
+    const sheetPaths = {};
+    wbDoc.querySelectorAll('sheet').forEach(sheet => {
+      const name = sheet.getAttribute('name');
+      const rId = sheet.getAttributeNS(XLSX_REL_NS, 'id') || sheet.getAttribute('r:id');
+      if (name && rId && relMap[rId]) sheetPaths[name] = relMap[rId];
+    });
+
+    return sheetPaths;
+  }
+
+  async function getRequiredWorksheetPath(zip, sheetName) {
+    const sheetPaths = await resolveWorksheetPaths(zip);
+    const exactPath = sheetPaths[sheetName];
+    if (exactPath && zip.file(exactPath)) return exactPath;
+
+    const normalizedName = sheetName.toLowerCase().replace(/\s+/g, '');
+    const fuzzyName = Object.keys(sheetPaths).find(name => name.toLowerCase().replace(/\s+/g, '') === normalizedName);
+    if (fuzzyName && zip.file(sheetPaths[fuzzyName])) return sheetPaths[fuzzyName];
+
+    throw new Error(`Template is missing required sheet "${sheetName}".`);
+  }
+
+  async function markWorkbookForRecalculation(zip) {
+    const wbFile = zip.file('xl/workbook.xml');
+    if (!wbFile) return;
+
+    const wbDoc = parseXmlStrict(await wbFile.async('string'), 'workbook.xml');
+    let calcPr = wbDoc.querySelector('calcPr');
+    if (!calcPr) {
+      calcPr = wbDoc.createElementNS(XLSX_NS, 'calcPr');
+      wbDoc.documentElement.appendChild(calcPr);
+    }
+    calcPr.setAttribute('calcMode', 'auto');
+    calcPr.setAttribute('fullCalcOnLoad', '1');
+    calcPr.setAttribute('forceFullCalc', '1');
+    zip.file('xl/workbook.xml', serializeXml(wbDoc));
+
+    zip.remove('xl/calcChain.xml');
+
+    const contentTypesFile = zip.file('[Content_Types].xml');
+    if (contentTypesFile) {
+      const contentDoc = parseXmlStrict(await contentTypesFile.async('string'), '[Content_Types].xml');
+      contentDoc.querySelectorAll('Override').forEach(node => {
+        if (node.getAttribute('PartName') === '/xl/calcChain.xml') node.parentNode.removeChild(node);
+      });
+      zip.file('[Content_Types].xml', serializeXml(contentDoc));
+    }
+
+    const relsFile = zip.file('xl/_rels/workbook.xml.rels');
+    if (relsFile) {
+      const relsDoc = parseXmlStrict(await relsFile.async('string'), 'workbook.xml.rels');
+      relsDoc.querySelectorAll('Relationship').forEach(node => {
+        const type = node.getAttribute('Type') || '';
+        const target = node.getAttribute('Target') || '';
+        if (type.endsWith('/calcChain') || target === 'calcChain.xml') node.parentNode.removeChild(node);
+      });
+      zip.file('xl/_rels/workbook.xml.rels', serializeXml(relsDoc));
+    }
+  }
+
+  function getMicroTypeForMacro(macroType) {
+    const fallbackVi = MACRO_TO_VI_LABEL[macroType] || MACRO_TO_VI_LABEL.VAA;
+    return MICRO_TYPES_MASTER.find(item => item.vi === fallbackVi) || MICRO_TYPES_MASTER[0];
+  }
+
   function resolveYamazumiExportData() {
     saveCurrentTasks();
     const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
@@ -1687,375 +1866,285 @@
 
     const stationMap = {};
     validTasks.forEach(t => {
-      const stn = t.station || 1;
+      const stn = parseInt(t.station || 1, 10) || 1;
       if (!stationMap[stn]) stationMap[stn] = [];
       const pertMean = parseFloat(((t.a + 4 * t.m + t.b) / 6).toFixed(2));
       const samples = [];
-      for (let i = 0; i < 10; i++) {
-        samples.push(parseFloat(triangular(t.a, t.m, t.b).toFixed(2)));
-      }
+      for (let i = 0; i < 10; i++) samples.push(parseFloat(triangular(t.a, t.m, t.b).toFixed(2)));
+      const macroType = normalizeTaskType(t.type);
+      const microType = getMicroTypeForMacro(macroType);
       stationMap[stn].push({
-        name:      t.name || 'Task',
-        type:      normalizeTaskType(t.type),
+        name: t.name || 'Task',
+        station: stn,
+        type: macroType,
         pertMean,
         samples,
-        microTypeVi: MACRO_TO_VI_LABEL[normalizeTaskType(t.type)] || 'Lắp ráp',
-        macroType:  normalizeTaskType(t.type),
+        microTypeVi: microType.vi,
+        microTypeEn: microType.en,
+        macroType
       });
     });
+
     const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
     return { stationMap, sortedStns, tasks: validTasks };
   }
 
-  /**
-   * Inject values into cells in a sheet XML string.
-   * Uses inline strings (<is><t>) so sharedStrings.xml is NOT touched.
-   * @param {string} xmlStr - The sheet XML as a string
-   * @param {Object<string, {v: string|number, t: 's'|'n'}>} cellMap - { "C3": {v:"TaskName", t:"s"}, "E3": {v:12.5, t:"n"} }
-   * @returns {string} Modified XML string
-   */
-  function injectCellsIntoSheetXML(xmlStr, cellMap) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlStr, 'text/xml');
-    const sheetData = doc.querySelector('sheetData');
-    if (!sheetData) return xmlStr;
+  function getTemplateStationNumbers(sortedStns) {
+    return sortedStns
+      .map(stn => parseInt(stn, 10))
+      .filter(stn => Number.isInteger(stn) && stn >= 1 && stn <= YAMAZUMI_MAX_STATIONS);
+  }
 
-    // Build a map of existing row elements: rowNum -> element
+  function getPTCTRow(stationNumber, taskIndex) {
+    return 3 + ((stationNumber - 1) * 12) + taskIndex;
+  }
+
+  function getVAANVAARow(stationNumber, taskIndex) {
+    return 8 + ((stationNumber - 1) * 11) + taskIndex;
+  }
+
+  function eachYamazumiTemplateRow(callback) {
+    for (let stationNumber = 1; stationNumber <= YAMAZUMI_MAX_STATIONS; stationNumber++) {
+      for (let taskIndex = 0; taskIndex < YAMAZUMI_TASKS_PER_STATION; taskIndex++) {
+        callback(stationNumber, taskIndex);
+      }
+    }
+  }
+
+  function injectCellsIntoSheetXML(xmlStr, cellMap) {
+    const doc = parseXmlStrict(xmlStr, 'worksheet');
+    const sheetData = doc.querySelector('sheetData');
+    if (!sheetData) throw new Error('Worksheet is missing sheetData.');
+
     const rowEls = {};
-    sheetData.querySelectorAll('row').forEach(r => {
-      rowEls[parseInt(r.getAttribute('r'))] = r;
+    sheetData.querySelectorAll('row').forEach(row => {
+      rowEls[parseInt(row.getAttribute('r'), 10)] = row;
     });
 
-    // Group requested cells by row
     const cellsByRow = {};
-    for (const [ref, data] of Object.entries(cellMap)) {
-      const match = ref.match(/^([A-Z]+)(\d+)$/);
-      if (!match) continue;
-      const col = match[1];
-      const rowNum = parseInt(match[2], 10);
-      if (!cellsByRow[rowNum]) cellsByRow[rowNum] = [];
-      cellsByRow[rowNum].push({ col, ref, ...data });
-    }
+    Object.entries(cellMap).forEach(([ref, data]) => {
+      const parsed = parseCellRef(ref);
+      if (!parsed) return;
+      if (!cellsByRow[parsed.row]) cellsByRow[parsed.row] = [];
+      cellsByRow[parsed.row].push({ ...parsed, ref, ...data });
+    });
 
-    // Inject cells into each row
-    for (const [rowNum, cells] of Object.entries(cellsByRow)) {
-      let rowEl = rowEls[parseInt(rowNum)];
+    Object.entries(cellsByRow).forEach(([rowNumText, cells]) => {
+      const rowNum = parseInt(rowNumText, 10);
+      let rowEl = rowEls[rowNum];
       if (!rowEl) {
         rowEl = doc.createElementNS(XLSX_NS, 'row');
         rowEl.setAttribute('r', String(rowNum));
-        // Insert row in correct sorted position
-        let inserted = false;
-        const allRows = Array.from(sheetData.querySelectorAll('row'));
-        for (const existingRow of allRows) {
-          if (parseInt(existingRow.getAttribute('r')) > parseInt(rowNum)) {
-            sheetData.insertBefore(rowEl, existingRow);
-            inserted = true;
-            break;
-          }
-        }
-        if (!inserted) sheetData.appendChild(rowEl);
-        rowEls[parseInt(rowNum)] = rowEl;
+        const nextRow = Array.from(sheetData.querySelectorAll('row')).find(row => parseInt(row.getAttribute('r'), 10) > rowNum);
+        if (nextRow) sheetData.insertBefore(rowEl, nextRow);
+        else sheetData.appendChild(rowEl);
+        rowEls[rowNum] = rowEl;
       }
 
-      // Build a map of existing c elements in this row: col_letter -> element
       const cellEls = {};
-      rowEl.querySelectorAll('c').forEach(c => {
-        const ref = c.getAttribute('r');
-        const colLetter = ref.replace(/\d/g, '');
-        cellEls[colLetter] = c;
+      rowEl.querySelectorAll('c').forEach(cell => {
+        const parsed = parseCellRef(cell.getAttribute('r'));
+        if (parsed) cellEls[parsed.col] = cell;
       });
 
-      for (const cellData of cells) {
-        const { col, ref, v, t } = cellData;
-
-        // Remove existing cell content
-        let cellEl = cellEls[col];
-        if (cellEl) {
-          // Clear existing children (v, is, f)
-          while (cellEl.firstChild) cellEl.removeChild(cellEl.firstChild);
-          // Remove t and f attributes from existing cell
-          cellEl.removeAttribute('t');
-          cellEl.removeAttribute('f');
-          // Keep s (style), r (reference) attributes
-        } else {
-          // Create new cell
+      cells.sort((a, b) => colCompare(a.col, b.col)).forEach(cellData => {
+        let cellEl = cellEls[cellData.col];
+        if (!cellEl) {
           cellEl = doc.createElementNS(XLSX_NS, 'c');
-          cellEl.setAttribute('r', ref);
-          // Insert in correct column order
-          let inserted = false;
-          const allCells = Array.from(rowEl.querySelectorAll('c'));
-          for (const existingCell of allCells) {
-            const existingCol = existingCell.getAttribute('r').replace(/\d/g, '');
-            if (colCompare(col, existingCol) < 0) {
-              rowEl.insertBefore(cellEl, existingCell);
-              inserted = true;
-              break;
-            }
-          }
-          if (!inserted) rowEl.appendChild(cellEl);
-          cellEls[col] = cellEl;
+          cellEl.setAttribute('r', cellData.ref);
+          const nextCell = Array.from(rowEl.querySelectorAll('c')).find(cell => {
+            const parsed = parseCellRef(cell.getAttribute('r'));
+            return parsed && colCompare(parsed.col, cellData.col) > 0;
+          });
+          if (nextCell) rowEl.insertBefore(cellEl, nextCell);
+          else rowEl.appendChild(cellEl);
+          cellEls[cellData.col] = cellEl;
         }
 
-        // Set the value
-        if (t === 's' || typeof v === 'string') {
-          // Inline string — does not modify sharedStrings.xml
+        while (cellEl.firstChild) cellEl.removeChild(cellEl.firstChild);
+        cellEl.removeAttribute('t');
+        cellEl.removeAttribute('f');
+
+        if (cellData.clear) return;
+
+        if (cellData.t === 's' || typeof cellData.v === 'string') {
           cellEl.setAttribute('t', 'inlineStr');
-          const is = doc.createElementNS(XLSX_NS, 'is');
+          const inlineStr = doc.createElementNS(XLSX_NS, 'is');
           const textEl = doc.createElementNS(XLSX_NS, 't');
-          textEl.textContent = String(v);
-          is.appendChild(textEl);
-          cellEl.appendChild(is);
+          const value = String(cellData.v ?? '');
+          textEl.textContent = value;
+          if (/^\s|\s$/.test(value)) textEl.setAttribute('xml:space', 'preserve');
+          inlineStr.appendChild(textEl);
+          cellEl.appendChild(inlineStr);
         } else {
-          // Number
+          const numericValue = Number(cellData.v);
           const valEl = doc.createElementNS(XLSX_NS, 'v');
-          valEl.textContent = String(v);
+          valEl.textContent = Number.isFinite(numericValue) ? String(numericValue) : '0';
           cellEl.appendChild(valEl);
         }
-      }
-    }
+      });
+    });
 
-    // Expand dimension ref if needed
-    const dimension = doc.querySelector('dimension');
-    if (dimension) {
-      let maxRow = 0;
-      let maxCol = '';
-      for (const ref of Object.keys(cellMap)) {
-        const match = ref.match(/^([A-Z]+)(\d+)$/);
-        if (!match) continue;
-        const r = parseInt(match[2], 10);
-        const c = match[1];
-        if (r > maxRow) maxRow = r;
-        if (!maxCol || colCompare(c, maxCol) > 0) maxCol = c;
-      }
-      if (maxCol) {
-        dimension.setAttribute('ref', 'A1:' + maxCol + maxRow);
-      }
-    }
-
-    return new XMLSerializer().serializeToString(doc);
+    expandWorksheetDimension(doc, cellMap);
+    return serializeXml(doc);
   }
 
-  /** Compare two column letter strings (e.g., "A" < "B", "AA" > "Z") */
-  function colCompare(a, b) {
-    function colNum(col) {
-      let n = 0;
-      for (let i = 0; i < col.length; i++) {
-        n = n * 26 + (col.charCodeAt(i) - 64);
-      }
-      return n;
+  function expandWorksheetDimension(doc, cellMap) {
+    let maxRow = 1;
+    let maxColNum = 1;
+
+    function includeRef(ref) {
+      const parsed = parseCellRef(ref);
+      if (!parsed) return;
+      maxRow = Math.max(maxRow, parsed.row);
+      maxColNum = Math.max(maxColNum, colNum(parsed.col));
     }
+
+    const dimension = doc.querySelector('dimension');
+    const currentRef = dimension?.getAttribute('ref') || '';
+    currentRef.split(':').forEach(includeRef);
+    doc.querySelectorAll('c').forEach(cell => includeRef(cell.getAttribute('r')));
+    Object.keys(cellMap).forEach(includeRef);
+
+    if (dimension) dimension.setAttribute('ref', `A1:${colName(maxColNum)}${maxRow}`);
+  }
+
+  function colCompare(a, b) {
     return colNum(a) - colNum(b);
   }
 
-  /**
-   * Build cell injection map for Data PT-CT sheet.
-   * Template layout: "BEFORE" block occupies columns A-Q (17 cols wide), data rows 3-12.
-   *   Col A: station info, Col B: pos code, Col C: TASK NAME, Col D: C/T Act,
-   *   Col E: PERT MEAN, Cols F-O: SAMPLE 1-10, Col P: Comment, Col Q: separator
-   */
   function buildDataPTCTCellMap(stationMap, sortedStns) {
     const cellMap = {};
-    // "BEFORE" block: columns A-Q
-    const nameCol    = 'C';  // Task name
-    const pertCol    = 'E';  // PERT mean
-    const sampleCols = ['F','G','H','I','J','K','L','M','N','O'];
 
-    // Combine all tasks from all stations, flat list
-    const flatTasks = [];
-    sortedStns.forEach(stnNum => {
-      stationMap[stnNum].slice(0, 10).forEach(task => {
-        flatTasks.push(task);
+    YAMAZUMI_EXPORT_BLOCK_KEYS.forEach(blockKey => {
+      const block = YAMAZUMI_PTCT_BLOCKS[blockKey];
+      if (!block) return;
+
+      eachYamazumiTemplateRow((stationNumber, taskIndex) => {
+        const row = getPTCTRow(stationNumber, taskIndex);
+        cellMap[`${block.descCol}${row}`] = { clear: true };
+        block.sampleCols.forEach(col => {
+          cellMap[`${col}${row}`] = { clear: true };
+        });
+      });
+
+      getTemplateStationNumbers(sortedStns).forEach(stationNumber => {
+        const stationTasks = (stationMap[stationNumber] || []).slice(0, YAMAZUMI_TASKS_PER_STATION);
+        stationTasks.forEach((task, taskIndex) => {
+          const row = getPTCTRow(stationNumber, taskIndex);
+          cellMap[`${block.descCol}${row}`] = { v: task.name, t: 's' };
+          block.sampleCols.forEach((col, sampleIndex) => {
+            const sample = Number.isFinite(task.samples?.[sampleIndex]) ? task.samples[sampleIndex] : task.pertMean;
+            cellMap[`${col}${row}`] = { v: sample, t: 'n' };
+          });
+        });
       });
     });
-
-    // Write into rows 3-12 (max 10 tasks — first 10 across all stations)
-    for (let i = 0; i < Math.min(flatTasks.length, 10); i++) {
-      const row = 3 + i;
-      const task = flatTasks[i];
-      cellMap[nameCol + row] = { v: task.name, t: 's' };
-      cellMap[pertCol + row] = { v: task.pertMean, t: 'n' };
-      for (let s = 0; s < 10; s++) {
-        cellMap[sampleCols[s] + row] = { v: task.samples[s], t: 'n' };
-      }
-    }
 
     return cellMap;
   }
 
-  /**
-   * Build cell injection map for VAA-NVAA sheet.
-   * Template layout: "BEFORE"/REFERENCE block occupies columns A-H, data rows 8-17.
-   *   Col A: station, Col B: pos code, Col C: TASK NAME, Col D: Time Assigned,
-   *   Col E: CT, Col F: MICRO TYPE (VN), Col G: MICRO TYPE (Eng), Col H: MACRO TYPE
-   */
   function buildVAANVAACellMap(stationMap, sortedStns) {
     const cellMap = {};
-    const nameCol     = 'C';  // Task name
-    const microVnCol  = 'F';  // Micro type (Vietnamese)
-    const macroCol    = 'H';  // Macro type
 
-    const flatTasks = [];
-    sortedStns.forEach(stnNum => {
-      stationMap[stnNum].slice(0, 10).forEach(task => {
-        flatTasks.push(task);
+    YAMAZUMI_EXPORT_BLOCK_KEYS.forEach(blockKey => {
+      const block = YAMAZUMI_VAA_BLOCKS[blockKey];
+      if (!block) return;
+
+      eachYamazumiTemplateRow((stationNumber, taskIndex) => {
+        cellMap[`${block.microCol}${getVAANVAARow(stationNumber, taskIndex)}`] = { clear: true };
+      });
+
+      getTemplateStationNumbers(sortedStns).forEach(stationNumber => {
+        const stationTasks = (stationMap[stationNumber] || []).slice(0, YAMAZUMI_TASKS_PER_STATION);
+        stationTasks.forEach((task, taskIndex) => {
+          const row = getVAANVAARow(stationNumber, taskIndex);
+          cellMap[`${block.microCol}${row}`] = { v: task.microTypeVi, t: 's' };
+        });
       });
     });
-
-    for (let i = 0; i < Math.min(flatTasks.length, 10); i++) {
-      const row = 8 + i;
-      const task = flatTasks[i];
-      cellMap[nameCol + row]    = { v: task.name, t: 's' };
-      cellMap[microVnCol + row] = { v: task.microTypeVi, t: 's' };
-      cellMap[macroCol + row]   = { v: task.macroType, t: 's' };
-    }
 
     return cellMap;
   }
 
-  /* ── OPTION B: System-Driven Export (Recommended) ── */
+  async function injectYamazumiIntoZip(zip, stationMap, sortedStns) {
+    const ptctPath = await getRequiredWorksheetPath(zip, YAMAZUMI_SHEETS.dataPTCT);
+    const vaaPath = await getRequiredWorksheetPath(zip, YAMAZUMI_SHEETS.vaaNVAA);
+
+    const ptctXml = await zip.file(ptctPath).async('string');
+    zip.file(ptctPath, injectCellsIntoSheetXML(ptctXml, buildDataPTCTCellMap(stationMap, sortedStns)));
+
+    const vaaXml = await zip.file(vaaPath).async('string');
+    zip.file(vaaPath, injectCellsIntoSheetXML(vaaXml, buildVAANVAACellMap(stationMap, sortedStns)));
+
+    await markWorkbookForRecalculation(zip);
+  }
+
+  function getYamazumiFilename() {
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '');
+    return `Yamazumi_Export_${stamp}.xlsx`;
+  }
+
   async function exportYamazumiOptionB() {
     if (typeof JSZip === 'undefined') {
-      alert("JSZip library not loaded. Check your internet connection and reload the page.");
+      alert('JSZip library not loaded. Check your internet connection and reload the page.');
       return;
     }
 
     const { stationMap, sortedStns, tasks } = resolveYamazumiExportData();
     if (!tasks.length) {
-      alert("No valid tasks to export. Add tasks with valid a ≤ m ≤ b time estimates first.");
+      alert('No valid tasks to export. Add tasks with valid a <= m <= b time estimates first.');
       return;
     }
 
     try {
-      // 1. Fetch the template
-      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const buf = await resp.arrayBuffer();
-
-      // 2. Open as ZIP with JSZip
+      const buf = await fetchFirstAvailableArrayBuffer(YAMAZUMI_TEMPLATE_URLS);
       const zip = await JSZip.loadAsync(buf);
-
-      // 3. Inject into Data PT-CT (sheet7.xml — rId7)
-      const ptctPath = 'xl/worksheets/sheet7.xml';
-      const ptctXml = await zip.file(ptctPath).async('string');
-      const ptctCellMap = buildDataPTCTCellMap(stationMap, sortedStns);
-      const updatedPTCT = injectCellsIntoSheetXML(ptctXml, ptctCellMap);
-      zip.file(ptctPath, updatedPTCT);
-
-      // 4. Inject into VAA-NVAA (sheet8.xml — rId8)
-      const vaaPath = 'xl/worksheets/sheet8.xml';
-      const vaaXml = await zip.file(vaaPath).async('string');
-      const vaaCellMap = buildVAANVAACellMap(stationMap, sortedStns);
-      const updatedVAA = injectCellsIntoSheetXML(vaaXml, vaaCellMap);
-      zip.file(vaaPath, updatedVAA);
-
-      // 5. Generate and download
-      const outBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(outBlob);
-      a.download = 'Yamazumi_Export.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
+      await injectYamazumiIntoZip(zip, stationMap, sortedStns);
+      const outBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: XLSX_MIME });
+      triggerBlobDownload(outBlob, getYamazumiFilename());
     } catch (err) {
-      alert("Export failed: " + err.message);
+      alert('Yamazumi export failed: ' + err.message);
     }
   }
 
-  /* ── OPTION A: User-Upload Template Export ── */
   function exportYamazumiOptionA(event) {
     if (typeof JSZip === 'undefined') {
-      alert("JSZip library not loaded. Check your internet connection and reload the page.");
+      alert('JSZip library not loaded. Check your internet connection and reload the page.');
       return;
     }
 
+    const input = event?.target;
     const { stationMap, sortedStns, tasks } = resolveYamazumiExportData();
     if (!tasks.length) {
-      alert("No valid tasks to export. Add tasks with valid a ≤ m ≤ b time estimates first.");
-      event.target.value = '';
+      alert('No valid tasks to export. Add tasks with valid a <= m <= b time estimates first.');
+      if (input) input.value = '';
       return;
     }
 
-    const file = event.target.files[0];
+    const file = input?.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = async function(e) {
       try {
         const zip = await JSZip.loadAsync(e.target.result);
-
-        // Determine which files are Data PT-CT and VAA-NVAA by reading workbook.xml.rels
-        const relsXml = await zip.file('xl/_rels/workbook.xml.rels').async('string');
-        const wbXml = await zip.file('xl/workbook.xml').async('string');
-        const nsPkg = 'http://schemas.openxmlformats.org/package/2006/relationships';
-        const nsMain = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
-
-        // Parse workbook to find sheet rIds
-        const wbParser = new DOMParser();
-        const wbDoc = wbParser.parseFromString(wbXml, 'text/xml');
-        const sheetMap = {}; // rId -> sheetName
-        wbDoc.querySelectorAll('sheet').forEach(s => {
-          const name = s.getAttribute('name');
-          const rId = s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
-          sheetMap[rId] = name;
-        });
-
-        // Parse rels to find rId -> file path
-        const relsDoc = wbParser.parseFromString(relsXml, 'text/xml');
-        const relMap = {}; // rId -> file path
-        relsDoc.querySelectorAll('Relationship').forEach(r => {
-          relMap[r.getAttribute('Id')] = r.getAttribute('Target');
-        });
-
-        // Find target files
-        let ptctFile = null, vaaFile = null;
-        for (const [rId, name] of Object.entries(sheetMap)) {
-          const path = 'xl/' + relMap[rId];
-          if (name === 'Data PT-CT') ptctFile = path;
-          if (name === 'VAA-NVAA') vaaFile = path;
-        }
-
-        if (!ptctFile) {
-          alert('Template validation issue:\n\n• Missing required sheet: "Data PT-CT".\n\nPlease use a valid Yamazumi template.');
-          event.target.value = '';
-          return;
-        }
-        if (!vaaFile) {
-          alert('Template validation issue:\n\n• Missing required sheet: "VAA-NVAA".\n\nPlease use a valid Yamazumi template.');
-          event.target.value = '';
-          return;
-        }
-
-        // Inject Data PT-CT
-        const ptctXml = await zip.file(ptctFile).async('string');
-        const ptctCellMap = buildDataPTCTCellMap(stationMap, sortedStns);
-        zip.file(ptctFile, injectCellsIntoSheetXML(ptctXml, ptctCellMap));
-
-        // Inject VAA-NVAA
-        const vaaXml = await zip.file(vaaFile).async('string');
-        const vaaCellMap = buildVAANVAACellMap(stationMap, sortedStns);
-        zip.file(vaaFile, injectCellsIntoSheetXML(vaaXml, vaaCellMap));
-
-        // Generate and download
-        const outBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(outBlob);
-        a.download = 'Yamazumi_Export.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
+        await injectYamazumiIntoZip(zip, stationMap, sortedStns);
+        const outBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: XLSX_MIME });
+        triggerBlobDownload(outBlob, getYamazumiFilename());
       } catch (err) {
-        alert("Could not process the template: " + err.message + "\n\nMake sure the file is a valid .xlsx Yamazumi template.");
+        alert('Could not process the template: ' + err.message + '\n\nUse a valid .xlsx Yamazumi template containing Data PT-CT and VAA-NVAA sheets.');
+      } finally {
+        if (input) input.value = '';
       }
     };
 
     reader.onerror = function() {
-      alert("Could not read the selected file. Make sure it is a valid .xlsx file.");
+      alert('Could not read the selected file. Make sure it is a valid .xlsx file.');
+      if (input) input.value = '';
     };
 
     reader.readAsArrayBuffer(file);
-    event.target.value = '';
   }
 
   function exportMegaCSV() {
