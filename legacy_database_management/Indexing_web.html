@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3393,8 +3393,7 @@
     // Theme toggle
     const html = document.documentElement;
     const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    const initialTheme = savedTheme || 'dark';
 
     html.setAttribute('data-theme', initialTheme);
     updateThemeToggle(initialTheme);
@@ -3417,7 +3416,7 @@
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
       if (!localStorage.getItem('theme')) {
-        const newTheme = e.matches ? 'dark' : 'light';
+        const newTheme = 'dark';
         html.setAttribute('data-theme', newTheme);
         updateThemeToggle(newTheme);
       }
@@ -3607,8 +3606,6 @@
     function detectLang() {
       const saved = localStorage.getItem('bomLang');
       if (saved && SUPP_LOCALES.includes(saved)) return saved;
-      const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
-      if (browserLang === 'vi') return 'vi';
       return 'en';
     }
 

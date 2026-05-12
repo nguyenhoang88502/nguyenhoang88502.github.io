@@ -763,8 +763,6 @@
     function detectLocale() {
       const saved = localStorage.getItem('bomLang');
       if (saved && SUPPORTED_LOCALES.includes(saved)) return saved;
-      const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
-      if (browserLang === 'vi') return 'vi';
       return 'en';
     }
 

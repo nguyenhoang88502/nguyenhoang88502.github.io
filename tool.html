@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -647,7 +647,7 @@
           <span class="meta-chip" data-i18n="opfMeta2">Cycle Time</span>
           <span class="meta-chip" data-i18n="opfMeta3">Optimization</span>
         </div>
-        <a class="button button-primary" href="OPF_sim/" data-i18n="launchTool">Launch Tool</a>
+        <a class="button button-primary" href="OPF_sim/tool.html" data-i18n="launchTool">Launch Tool</a>
       </article>
     </section>
 
@@ -762,8 +762,10 @@
     const emptyState = document.getElementById("emptyState");
     const themeToggle = document.getElementById("themeToggle");
     const langButtons = Array.from(document.querySelectorAll(".lang-button"));
+    const DEFAULT_LANG = "en";
+    const DEFAULT_THEME = "dark";
     let activeFilter = "all";
-    let currentLang = localStorage.getItem("npiToolLang") || "en";
+    let currentLang = localStorage.getItem("npiToolLang") || DEFAULT_LANG;
 
     function setTheme(theme) {
       root.dataset.theme = theme;
@@ -833,7 +835,7 @@
 
     searchInput.addEventListener("input", applyDirectoryFilters);
 
-    setTheme(localStorage.getItem("npiToolTheme") || "light");
+    setTheme(localStorage.getItem("npiToolTheme") || DEFAULT_THEME);
     setLanguage(currentLang);
   </script>
 </body>
