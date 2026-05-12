@@ -5,7 +5,9 @@
       "Bash(Select-Object FullName)",
       "PowerShell(Get-ChildItem -Recurse -Directory -Path \"C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\legacy_database_management\" | ForEach-Object { $_.FullName })",
       "Bash(python -m pip install -r requirements.txt --quiet)",
-      "Bash(Select-Object -Last 5)"
+      "Bash(Select-Object -Last 5)",
+      "PowerShell(Add-MpPreference *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\legacy_database_management\\\\desktop_app\\\\BOM Dataset Indexer v6\" | Select-Object Name, @{N='SizeMB';E={[math]::Round\\($_.Length/1MB, 1\\)}}, LastWriteTime)"
     ]
   }
 }
