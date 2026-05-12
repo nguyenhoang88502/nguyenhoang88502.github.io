@@ -582,6 +582,39 @@
     }
     .proj-arrow:hover { color: var(--gold); transform: translateX(3px) translateY(-3px); }
 
+    /* ══ NPI TOOL GATEWAY ══ */
+    #npi-tools { background: var(--navy3); }
+    .tool-gateway {
+      background: linear-gradient(135deg, rgba(16,28,46,.96), rgba(18,30,48,.92));
+      border: 1px solid rgba(200,146,42,.22);
+      border-radius: 8px;
+      padding: clamp(2rem, 4vw, 3rem);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 2rem;
+      align-items: center;
+      box-shadow: 0 24px 50px rgba(0,0,0,.24);
+      position: relative;
+      overflow: hidden;
+    }
+    .tool-gateway::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: .8;
+    }
+    .tool-gateway p {
+      color: var(--muted);
+      max-width: 680px;
+      margin-bottom: 0;
+      line-height: 1.75;
+    }
+    @media (max-width: 767px) {
+      .tool-gateway { grid-template-columns: 1fr; }
+    }
+
     /* ══ CONTACT ══ */
     #contact { background: var(--navy2); }
     .contact-link {
@@ -681,6 +714,7 @@
         <li class="nav-item"><a class="nav-link" href="#experience" data-section="experience">Experience</a></li>
         <li class="nav-item"><a class="nav-link" href="#extra" data-section="extra">Activities</a></li>
         <li class="nav-item"><a class="nav-link" href="#projects" data-section="projects">Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="#npi-tools" data-section="npi-tools">NPI Tools</a></li>
         <li class="nav-item"><a class="nav-link" href="#education" data-section="education">Education</a></li>
         <li class="nav-item"><a class="nav-link" href="#contact" data-section="contact">Contact</a></li>
       </ul>
@@ -938,10 +972,8 @@
       <div class="divider"></div>
     </div>
     <div class="project-grid">
-
-      
       <div class="project-card fade-up delay-1">
-        <div class="proj-num">02</div>
+        <div class="proj-num">01</div>
         <div class="proj-cat">Data Warehouse &amp; BI</div>
         <div class="proj-title"><a href="manufacturing-failure-analytics-pipeline/">Manufacturing Failure Analytics Pipeline</a></div>
         <p class="proj-desc">Built a complete analytics pipeline for AI4I machine failure data: preprocessing, PostgreSQL star schema, ETL, OLAP outputs, Streamlit dashboard, and an optional XGBoost prediction model.</p>
@@ -954,32 +986,47 @@
       </div>
 
       <div class="project-card fade-up delay-2">
-        <div class="proj-num">03</div>
+        <div class="proj-num">02</div>
         <div class="proj-cat">Data Analysis</div>
         <div class="proj-title"><a href="dashboard/">Data Visualization &amp; Dashboarding Projects</a></div>
         <p class="proj-desc">Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics, trends, and performance indicators for decision-making.</p>
         <div class="proj-footer">
           <span class="proj-badge">Dashboard Design</span>
-          <span class="proj-year">2025–2026</span>
+          <span class="proj-year">2025-2026</span>
           <a href="dashboard/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
       </div>
 
-
-<div class="project-card fade-up delay-2">
-  <div class="proj-num">01</div>
-  <div class="proj-cat">Simulation</div>
-  <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim">Trimmer Assembly Line Simulator</a></div>
-<p class="proj-desc">Engineered an end-to-end web simulator for the Trimmer assembly line at Wahl Vietnam. Integrates live time-study collection with Monte Carlo and Discrete Event Simulation (DES) to auto-generate Yamazumi charts, analyze VA/NVA ratios, and optimize shift capacity against customer demand.</p>  <div class="proj-footer">
-    <span class="proj-badge">Monte Carlo</span>
-    <span class="proj-badge">Time Study</span>
-    <span class="proj-year">2026</span>
-    <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
-  </div>
-</div>
+      <a href="legacy_database_management/" style="text-decoration: none; color: inherit;">
+        <div class="project-card fade-up delay-1">
+          <div class="proj-num">03</div>
+          <div class="proj-cat">Database Management</div>
+          <div class="proj-title">Legacy Database Management System</div>
+          <p class="proj-desc">Developed a comprehensive desktop application and indexing solution for managing legacy manufacturing Bill-of-Materials (BOM) datasets. Features advanced search, hierarchical indexing, full-text search capabilities, and integrated data validation with Excel export functionality. Streamlined BOM reconciliation across multiple product iterations and supplier configurations.</p>
+          <div class="proj-footer">
+            <span class="proj-badge">Desktop Application</span>
+            <span class="proj-badge">Database Indexing</span>
+            <span class="proj-year">2024-2025</span>
+            <i class="bi bi-arrow-up-right proj-arrow"></i>
+          </div>
+        </div>
+      </a>
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">04</div>
+        <div class="proj-cat">Simulation</div>
+        <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim">Trimmer Assembly Line Simulator</a></div>
+        <p class="proj-desc">Engineered an end-to-end web simulator for the Trimmer assembly line at Wahl Vietnam. Integrates live time-study collection with Monte Carlo and Discrete Event Simulation (DES) to auto-generate Yamazumi charts, analyze VA/NVA ratios, and optimize shift capacity against customer demand.</p>
+        <div class="proj-footer">
+          <span class="proj-badge">Monte Carlo</span>
+          <span class="proj-badge">Time Study</span>
+          <span class="proj-year">2026</span>
+          <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
+      </div>
+
+      <div class="project-card fade-up delay-2">
+        <div class="proj-num">05</div>
         <div class="proj-cat">Decision Analysis</div>
         <div class="proj-title"><a href="decisionanalysis/">AHP Customer Segmentation Analysis</a></div>
         <p class="proj-desc">Applied Analytic Hierarchy Process to evaluate core customer segments across revenue potential, market growth, customer loyalty, and strategic fit.</p>
@@ -989,22 +1036,6 @@
           <a href="decisionanalysis/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
       </div>
-
-
-      <a href="legacy_database_management/" style="text-decoration: none; color: inherit;">
-        <div class="project-card fade-up delay-1">
-          <div class="proj-num">05</div>
-          <div class="proj-cat">Database Management</div>
-          <div class="proj-title">Legacy Database Management System</div>
-          <p class="proj-desc">Developed a comprehensive desktop application and indexing solution for managing legacy manufacturing Bill-of-Materials (BOM) datasets. Features advanced search, hierarchical indexing, full-text search capabilities, and integrated data validation with Excel export functionality. Streamlined BOM reconciliation across multiple product iterations and supplier configurations.</p>
-          <div class="proj-footer">
-            <span class="proj-badge">Desktop Application</span>
-            <span class="proj-badge">Database Indexing</span>
-            <span class="proj-year">2024–2025</span>
-            <i class="bi bi-arrow-up-right proj-arrow"></i>
-          </div>
-        </div>
-      </a>
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">06</div>
@@ -1034,7 +1065,7 @@
         <div class="proj-num">08</div>
         <div class="proj-cat">Systems Engineering</div>
         <div class="proj-title"><a href="systemdesign/">Co-working Space Cafe System Design</a></div>
-        <p class="proj-desc">Designed a 24/7 café integrated with workspace functionality. System life-cycle analysis, pricing strategy (20k–60k VND), and operational process optimization.</p>
+        <p class="proj-desc">Designed a 24/7 cafe integrated with workspace functionality. System life-cycle analysis, pricing strategy (20k-60k VND), and operational process optimization.</p>
         <div class="proj-footer">
           <span class="proj-badge">Detail Design</span>
           <span class="proj-year">Nov 2025</span>
@@ -1053,9 +1084,23 @@
           <a href="BKFC/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
       </div>
+    </div>
+  </div>
+</section>
 
-  
-
+<!-- ══════════ NPI TOOLS ══════════ -->
+<section id="npi-tools">
+  <div class="container">
+    <div class="tool-gateway fade-up">
+      <div>
+        <span class="section-label">Wahl Clipper Vietnam</span>
+        <h2 class="section-title">NPI Tool Directory</h2>
+        <div class="divider"></div>
+        <p>
+          Centralized access point for the NPI workflow tools, including legacy database management, inspection standards, and process simulation resources.
+        </p>
+      </div>
+      <a href="tool.html" class="btn-gold">Open Tools <i class="bi bi-arrow-right"></i></a>
     </div>
   </div>
 </section>

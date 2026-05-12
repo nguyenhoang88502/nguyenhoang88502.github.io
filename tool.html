@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPI Tool Directory | Wahl Clipper Vietnam</title>
+  <meta name="description" content="Centralized NPI tool directory for Wahl Clipper Vietnam." />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef3f8;
+      --ink: #0b1220;
+      --muted: #66758a;
+      --line: #d9e2ec;
+      --navy: #0f2744;
+      --navy-2: #183a5f;
+      --accent: #1d70b8;
+      --accent-2: #0ea5e9;
+      --success: #0f766e;
+      --warning: #b7791f;
+      --shadow: 0 22px 58px rgba(15, 39, 68, 0.14);
+      --container: 1180px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #07111f;
+      --surface: #0d1a2b;
+      --surface-2: #12243a;
+      --ink: #e7eef8;
+      --muted: #9db0c7;
+      --line: rgba(148, 163, 184, 0.22);
+      --navy: #d9ebff;
+      --navy-2: #8fc7ff;
+      --accent: #38bdf8;
+      --accent-2: #67e8f9;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(29, 112, 184, 0.08), transparent 360px),
+        var(--bg);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(var(--container), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 74px;
+      gap: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      color: var(--navy);
+      font-weight: 900;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0f2744, #1d70b8);
+      color: #fff;
+      font-size: 0.74rem;
+      letter-spacing: 0.12em;
+      box-shadow: 0 12px 26px rgba(15, 39, 68, 0.22);
+      flex: 0 0 auto;
+    }
+
+    .nav-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .button,
+    .toggle-button,
+    .filter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 850;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .button:hover,
+    .button:focus-visible,
+    .toggle-button:hover,
+    .toggle-button:focus-visible,
+    .filter:hover,
+    .filter:focus-visible {
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .button {
+      padding: 10px 16px;
+    }
+
+    .button-primary {
+      color: #fff;
+      background: linear-gradient(135deg, #0f2744, #1d70b8);
+      box-shadow: 0 14px 30px rgba(15, 39, 68, 0.2);
+    }
+
+    .button-primary:hover,
+    .button-primary:focus-visible {
+      box-shadow: 0 18px 36px rgba(15, 39, 68, 0.28);
+    }
+
+    .button-ghost,
+    .toggle-button {
+      color: var(--ink);
+      border-color: var(--line);
+      background: var(--surface);
+    }
+
+    .button-ghost:hover,
+    .button-ghost:focus-visible,
+    .toggle-button:hover,
+    .toggle-button:focus-visible {
+      border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+      background: var(--surface-2);
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .segmented button {
+      min-height: 34px;
+      padding: 6px 11px;
+      border: 0;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .segmented button.active {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 64px 0 36px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(9, 25, 45, 0.98), rgba(23, 68, 106, 0.94)),
+        linear-gradient(90deg, transparent 31px, rgba(255, 255, 255, 0.08) 32px),
+        linear-gradient(0deg, transparent 31px, rgba(255, 255, 255, 0.08) 32px);
+      background-size: auto, 32px 32px, 32px 32px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -180px;
+      bottom: -220px;
+      width: 520px;
+      height: 520px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.34), transparent 66%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.38fr);
+      gap: 32px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      color: #bde2ff;
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 34px;
+      height: 2px;
+      background: #38bdf8;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 840px;
+      margin-bottom: 16px;
+      font-size: clamp(2.45rem, 5vw, 4.7rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero-copy {
+      max-width: 780px;
+      margin-bottom: 0;
+      color: #d8e6f1;
+      font-size: 1.05rem;
+    }
+
+    .status-panel {
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .status-row:last-child {
+      border-bottom: 0;
+    }
+
+    .status-label {
+      color: #c9ddec;
+      font-size: 0.84rem;
+    }
+
+    .status-value {
+      color: #fff;
+      font-weight: 900;
+    }
+
+    main {
+      padding: 34px 0 72px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .search {
+      width: 100%;
+      min-height: 50px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--surface);
+      box-shadow: 0 10px 24px rgba(15, 39, 68, 0.06);
+    }
+
+    .search:focus {
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+      outline: 3px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .filter {
+      min-height: 40px;
+      padding: 8px 12px;
+      color: var(--muted);
+      background: var(--surface);
+      border-color: var(--line);
+    }
+
+    .filter.active {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .directory-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .tool-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 360px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 12px 32px rgba(15, 39, 68, 0.08);
+      overflow: hidden;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .tool-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .tool-card:hover,
+    .tool-card:focus-within {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      box-shadow: var(--shadow);
+      transform: translateY(-5px);
+    }
+
+    .tool-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .tool-icon {
+      display: grid;
+      width: 52px;
+      height: 52px;
+      place-items: center;
+      border-radius: 8px;
+      color: var(--accent);
+      background: var(--surface-2);
+      font-weight: 950;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+      font-size: 0.76rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .tool-card h2 {
+      margin-bottom: 12px;
+      color: var(--navy);
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+
+    .tool-card p {
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .metadata {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: auto 0 22px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .meta-chip {
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--surface-2);
+      font-size: 0.76rem;
+      font-weight: 850;
+    }
+
+    .empty-state {
+      display: none;
+      margin-top: 18px;
+      padding: 28px;
+      border: 1px dashed color-mix(in srgb, var(--accent) 36%, var(--line));
+      border-radius: 8px;
+      color: var(--muted);
+      background: var(--surface);
+      text-align: center;
+    }
+
+    .empty-state.visible {
+      display: block;
+    }
+
+    .note {
+      margin-top: 22px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      color: var(--muted);
+      background: var(--surface);
+    }
+
+    .footer {
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 0.92rem;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .toolbar,
+      .directory-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(var(--container), calc(100% - 28px));
+      }
+
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 0;
+      }
+
+      .nav-actions {
+        justify-content: flex-start;
+      }
+
+      .button,
+      .toggle-button {
+        width: 100%;
+      }
+
+      .segmented {
+        width: 100%;
+      }
+
+      .segmented button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell nav">
+      <a class="brand" href="index.html" aria-label="Back to dashboard">
+        <span class="brand-mark">NPI</span>
+        <span class="nav-title" data-i18n="brand">NPI Tool Directory</span>
+      </a>
+      <div class="nav-actions">
+        <div class="segmented" aria-label="Language toggle">
+          <button type="button" class="lang-button active" data-lang="en">EN</button>
+          <button type="button" class="lang-button" data-lang="vi">VI</button>
+        </div>
+        <button type="button" class="toggle-button" id="themeToggle" data-i18n="darkMode">Dark Mode</button>
+        <a class="button button-ghost" href="index.html" data-i18n="back">Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div>
+        <div class="eyebrow" data-i18n="eyebrow">Wahl Clipper Vietnam</div>
+        <h1 data-i18n="heroTitle">NPI Tool Directory</h1>
+        <p class="hero-copy" data-i18n="heroCopy">
+          A controlled access point for NPI software, launch resources, quality documentation, and process simulation tools.
+        </p>
+      </div>
+      <aside class="status-panel" aria-label="Directory status">
+        <div class="status-row">
+          <span class="status-label" data-i18n="toolCountLabel">Available tools</span>
+          <span class="status-value">03</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label" data-i18n="scopeLabel">Workflow scope</span>
+          <span class="status-value" data-i18n="scopeValue">NPI</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label" data-i18n="modeLabel">Interface</span>
+          <span class="status-value" data-i18n="modeValue">Bilingual</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <main class="shell">
+    <div class="toolbar" aria-label="Tool directory controls">
+      <input class="search" id="toolSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search by tool name, workflow, or category..." aria-label="Search tools" />
+      <div class="filters" aria-label="Tool type filters">
+        <button class="filter active" type="button" data-filter="all" data-i18n="filterAll">All</button>
+        <button class="filter" type="button" data-filter="data" data-i18n="filterData">Data Management</button>
+        <button class="filter" type="button" data-filter="quality" data-i18n="filterQuality">Quality Control</button>
+        <button class="filter" type="button" data-filter="simulation" data-i18n="filterSimulation">Simulation</button>
+      </div>
+    </div>
+
+    <section class="directory-grid" id="toolGrid" aria-label="NPI tools">
+      <article class="tool-card" data-type="data" data-search="legacy database management bom indexer data integrity historical records quan ly du lieu co so du lieu bom">
+        <div class="tool-top">
+          <div class="tool-icon">01</div>
+          <span class="tag" data-i18n="tagData">Data Management</span>
+        </div>
+        <h2 data-i18n="legacyTitle">Legacy Database Management</h2>
+        <p data-i18n="legacyDesc">
+          BOM indexing and retrieval workspace for maintaining data integrity, searching historical records, and supporting revision-level reconciliation during NPI launches.
+        </p>
+        <div class="metadata">
+          <span class="meta-chip" data-i18n="legacyMeta1">BOM Records</span>
+          <span class="meta-chip" data-i18n="legacyMeta2">Indexing</span>
+          <span class="meta-chip" data-i18n="legacyMeta3">Historical Data</span>
+        </div>
+        <a class="button button-primary" href="legacy_database_management/" data-i18n="accessDatabase">Access Database</a>
+      </article>
+
+      <article class="tool-card" data-type="quality" data-search="inspection standards quality assurance compliance sample approval kiem tra chat luong tieu chuan">
+        <div class="tool-top">
+          <div class="tool-icon">02</div>
+          <span class="tag" data-i18n="tagQuality">Quality Control</span>
+        </div>
+        <h2 data-i18n="inspectionTitle">Inspection Standards</h2>
+        <p data-i18n="inspectionDesc">
+          Quality documentation tool for creating inspection-standard outputs, aligning sample checks with engineering requirements, and preparing customer-ready approval records.
+        </p>
+        <div class="metadata">
+          <span class="meta-chip" data-i18n="inspectionMeta1">QA</span>
+          <span class="meta-chip" data-i18n="inspectionMeta2">Compliance</span>
+          <span class="meta-chip" data-i18n="inspectionMeta3">Inspection</span>
+        </div>
+        <a class="button button-primary" href="inspection_standard_tool/" data-i18n="launchTool">Launch Tool</a>
+      </article>
+
+      <article class="tool-card" data-type="simulation" data-search="opf sim tool simulation process optimization cycle time capacity line balance mo phong toi uu chuyen san xuat">
+        <div class="tool-top">
+          <div class="tool-icon">03</div>
+          <span class="tag" data-i18n="tagSimulation">Simulation</span>
+        </div>
+        <h2 data-i18n="opfTitle">OPF SIM Tool</h2>
+        <p data-i18n="opfDesc">
+          Assembly process simulation environment for validating line capacity, comparing demand scenarios, and identifying bottlenecks before production launch decisions.
+        </p>
+        <div class="metadata">
+          <span class="meta-chip" data-i18n="opfMeta1">Capacity</span>
+          <span class="meta-chip" data-i18n="opfMeta2">Cycle Time</span>
+          <span class="meta-chip" data-i18n="opfMeta3">Optimization</span>
+        </div>
+        <a class="button button-primary" href="OPF_sim/" data-i18n="launchTool">Launch Tool</a>
+      </article>
+    </section>
+
+    <div class="empty-state" id="emptyState" data-i18n="emptyState">No tools match the current search or filter.</div>
+
+    <p class="note" data-i18n="note">
+      This directory is built for expansion. Additional NPI dashboards, work instructions, controlled templates, and launch resources can be added without changing the access pattern.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-row">
+      <span data-i18n="footerLeft">Wahl Clipper Vietnam NPI Tool Directory</span>
+      <span data-i18n="footerRight">Centralized access for manufacturing launch resources.</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        brand: "NPI Tool Directory",
+        darkMode: "Dark Mode",
+        lightMode: "Light Mode",
+        back: "Back to Dashboard",
+        eyebrow: "Wahl Clipper Vietnam",
+        heroTitle: "NPI Tool Directory",
+        heroCopy: "A controlled access point for NPI software, launch resources, quality documentation, and process simulation tools.",
+        toolCountLabel: "Available tools",
+        scopeLabel: "Workflow scope",
+        scopeValue: "NPI",
+        modeLabel: "Interface",
+        modeValue: "Bilingual",
+        searchPlaceholder: "Search by tool name, workflow, or category...",
+        filterAll: "All",
+        filterData: "Data Management",
+        filterQuality: "Quality Control",
+        filterSimulation: "Simulation",
+        tagData: "Data Management",
+        tagQuality: "Quality Control",
+        tagSimulation: "Simulation",
+        legacyTitle: "Legacy Database Management",
+        legacyDesc: "BOM indexing and retrieval workspace for maintaining data integrity, searching historical records, and supporting revision-level reconciliation during NPI launches.",
+        legacyMeta1: "BOM Records",
+        legacyMeta2: "Indexing",
+        legacyMeta3: "Historical Data",
+        inspectionTitle: "Inspection Standards",
+        inspectionDesc: "Quality documentation tool for creating inspection-standard outputs, aligning sample checks with engineering requirements, and preparing customer-ready approval records.",
+        inspectionMeta1: "QA",
+        inspectionMeta2: "Compliance",
+        inspectionMeta3: "Inspection",
+        opfTitle: "OPF SIM Tool",
+        opfDesc: "Assembly process simulation environment for validating line capacity, comparing demand scenarios, and identifying bottlenecks before production launch decisions.",
+        opfMeta1: "Capacity",
+        opfMeta2: "Cycle Time",
+        opfMeta3: "Optimization",
+        accessDatabase: "Access Database",
+        launchTool: "Launch Tool",
+        emptyState: "No tools match the current search or filter.",
+        note: "This directory is built for expansion. Additional NPI dashboards, work instructions, controlled templates, and launch resources can be added without changing the access pattern.",
+        footerLeft: "Wahl Clipper Vietnam NPI Tool Directory",
+        footerRight: "Centralized access for manufacturing launch resources."
+      },
+      vi: {
+        brand: "Thu Mục Công Cụ NPI",
+        darkMode: "Chế Độ Tối",
+        lightMode: "Chế Độ Sáng",
+        back: "Quay Lại Dashboard",
+        eyebrow: "Wahl Clipper Việt Nam",
+        heroTitle: "Thu Mục Công Cụ NPI",
+        heroCopy: "Điểm truy cập tập trung cho phần mềm NPI, tài nguyên triển khai sản phẩm, tài liệu chất lượng và công cụ mô phỏng quy trình.",
+        toolCountLabel: "Công cụ hiện có",
+        scopeLabel: "Phạm vi quy trình",
+        scopeValue: "NPI",
+        modeLabel: "Giao diện",
+        modeValue: "Song ngữ",
+        searchPlaceholder: "Tìm theo tên công cụ, quy trình hoặc phân loại...",
+        filterAll: "Tất Cả",
+        filterData: "Quản Lý Dữ Liệu",
+        filterQuality: "Kiểm Soát Chất Lượng",
+        filterSimulation: "Mô Phỏng",
+        tagData: "Quản Lý Dữ Liệu",
+        tagQuality: "Kiểm Soát Chất Lượng",
+        tagSimulation: "Mô Phỏng",
+        legacyTitle: "Quản Lý Cơ Sở Dữ Liệu Cũ",
+        legacyDesc: "Không gian lập chỉ mục và truy xuất BOM nhằm duy trì tính toàn vẹn dữ liệu, tìm kiếm hồ sơ lịch sử và hỗ trợ đối chiếu theo từng phiên bản trong quá trình NPI.",
+        legacyMeta1: "Hồ Sơ BOM",
+        legacyMeta2: "Lập Chỉ Mục",
+        legacyMeta3: "Dữ Liệu Lịch Sử",
+        inspectionTitle: "Tiêu Chuẩn Kiểm Tra",
+        inspectionDesc: "Công cụ tài liệu chất lượng dùng để tạo đầu ra tiêu chuẩn kiểm tra, liên kết kiểm tra mẫu với yêu cầu kỹ thuật và chuẩn bị hồ sơ phê duyệt cho khách hàng.",
+        inspectionMeta1: "QA",
+        inspectionMeta2: "Tuân Thủ",
+        inspectionMeta3: "Kiểm Tra",
+        opfTitle: "Công Cụ OPF SIM",
+        opfDesc: "Môi trường mô phỏng quy trình lắp ráp để xác nhận năng lực chuyền, so sánh các kịch bản nhu cầu và nhận diện điểm nghẽn trước quyết định triển khai sản xuất.",
+        opfMeta1: "Năng Lực",
+        opfMeta2: "Cycle Time",
+        opfMeta3: "Tối Ưu",
+        accessDatabase: "Mở Công Cụ",
+        launchTool: "Mở Công Cụ",
+        emptyState: "Không có công cụ phù hợp với tìm kiếm hoặc bộ lọc hiện tại.",
+        note: "Thư mục này được thiết kế để mở rộng. Có thể bổ sung dashboard NPI, hướng dẫn công việc, biểu mẫu kiểm soát và tài nguyên triển khai mà không cần thay đổi cấu trúc truy cập.",
+        footerLeft: "Thu Mục Công Cụ NPI Wahl Clipper Việt Nam",
+        footerRight: "Truy cập tập trung cho tài nguyên triển khai sản xuất."
+      }
+    };
+
+    const root = document.documentElement;
+    const searchInput = document.getElementById("toolSearch");
+    const filters = Array.from(document.querySelectorAll(".filter"));
+    const cards = Array.from(document.querySelectorAll(".tool-card"));
+    const emptyState = document.getElementById("emptyState");
+    const themeToggle = document.getElementById("themeToggle");
+    const langButtons = Array.from(document.querySelectorAll(".lang-button"));
+    let activeFilter = "all";
+    let currentLang = localStorage.getItem("npiToolLang") || "en";
+
+    function setTheme(theme) {
+      root.dataset.theme = theme;
+      localStorage.setItem("npiToolTheme", theme);
+      themeToggle.textContent = translations[currentLang][theme === "dark" ? "lightMode" : "darkMode"];
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem("npiToolLang", lang);
+      root.lang = lang;
+
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        const key = element.dataset.i18n;
+        if (translations[lang][key]) element.textContent = translations[lang][key];
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+        const key = element.dataset.i18nPlaceholder;
+        if (translations[lang][key]) element.placeholder = translations[lang][key];
+      });
+
+      langButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+
+      themeToggle.textContent = translations[lang][root.dataset.theme === "dark" ? "lightMode" : "darkMode"];
+      applyDirectoryFilters();
+    }
+
+    function normalize(value) {
+      return value.trim().toLowerCase();
+    }
+
+    function applyDirectoryFilters() {
+      const query = normalize(searchInput.value);
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const typeMatches = activeFilter === "all" || card.dataset.type === activeFilter;
+        const searchText = `${card.textContent} ${card.dataset.search}`.toLowerCase();
+        const queryMatches = !query || searchText.includes(query);
+        const visible = typeMatches && queryMatches;
+
+        card.hidden = !visible;
+        if (visible) visibleCount += 1;
+      });
+
+      emptyState.classList.toggle("visible", visibleCount === 0);
+    }
+
+    filters.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeFilter = button.dataset.filter;
+        filters.forEach((item) => item.classList.toggle("active", item === button));
+        applyDirectoryFilters();
+      });
+    });
+
+    langButtons.forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    });
+
+    themeToggle.addEventListener("click", () => {
+      setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    searchInput.addEventListener("input", applyDirectoryFilters);
+
+    setTheme(localStorage.getItem("npiToolTheme") || "light");
+    setLanguage(currentLang);
+  </script>
+</body>
+</html>
