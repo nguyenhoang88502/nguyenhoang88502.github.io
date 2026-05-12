@@ -506,8 +506,15 @@
 
           <button class="action-btn blue" id="print-report-btn" onclick="window.print()" style="display:none">PDF Report</button>
           <button class="action-btn green" id="export-results-btn" onclick="exportMegaCSV()" style="display:none">Report CSV</button>
-          <button class="action-btn" onclick="downloadRawTemplate()">Download Yamazumi Template (XLSX)</button>
-          <button class="action-btn green" onclick="exportToTemplateXLSX()">Data PT-CT, VAA-NVAA XLSX</button>
+
+          <input type="file" id="import-yamazumi-template" accept=".xlsx" style="display:none"
+                 onchange="exportYamazumiOptionA(event)">
+          <button class="action-btn" onclick="document.getElementById('import-yamazumi-template').click()">
+            Upload Template & Export
+          </button>
+          <button class="action-btn green" onclick="exportYamazumiOptionB()">
+            Export Yamazumi (Auto)
+          </button>
         </div>
       </div>
     </div>
@@ -541,6 +548,192 @@
   let flowSimResults = null;
   let yamazumiData  = null;
 
+  /* ── Unified Micro-Type Reference (single source of truth for export) ── */
+  const MICRO_TYPES_MASTER = [
+    { vi: 'Lắp ráp',            en: 'Assembling',                      macro: 'VAA',      note: 'Thao tác tạo ra giá trị trực tiếp / Direct value-add' },
+    { vi: 'Gia công / Xử lý',   en: 'Processing / Machining',          macro: 'VAA',      note: '' },
+    { vi: 'Kiểm tra chất lượng',en: 'Quality Inspection',              macro: 'VAA',      note: '' },
+    { vi: 'Chèn',                en: 'Inserting',                       macro: 'VAA',      note: '' },
+    { vi: 'Uốn',                 en: 'Bending',                         macro: 'VAA',      note: '' },
+    { vi: 'Hàn',                 en: 'Welding',                         macro: 'VAA',      note: '' },
+    { vi: 'Dán',                 en: 'Gluing',                          macro: 'VAA',      note: '' },
+    { vi: 'Áp dụng nhãn dán',   en: 'Applying sticker',                macro: 'VAA',      note: '' },
+    { vi: 'Vít',                 en: 'Screwing',                        macro: 'VAA',      note: '' },
+    { vi: 'Đóng gói',            en: 'Packing',                         macro: 'VAA',      note: '' },
+    { vi: 'Tham gia',            en: 'Joining',                         macro: 'VAA',      note: '' },
+    { vi: 'Lắp',                 en: 'Fitting',                         macro: 'VAA',      note: '' },
+    { vi: 'Giữ',                 en: 'Holding',                         macro: 'Semi VA',  note: 'Cần thiết nhưng không tạo giá trị / Necessary non-value-add' },
+    { vi: 'Lấy / Đặt lại',       en: 'Picking up / Placing back',       macro: 'Semi VA',  note: '' },
+    { vi: 'Định vị',             en: 'Positioning',                     macro: 'Semi VA',  note: '' },
+    { vi: 'Đặt cùng nhau',       en: 'Putting together',                macro: 'Semi VA',  note: '' },
+    { vi: 'Đập / Gõ',            en: 'Hammering',                       macro: 'Semi VA',  note: '' },
+    { vi: 'Nhấn',                en: 'Pressing',                        macro: 'Semi VA',  note: '' },
+    { vi: 'Siết / Bắn ốc',       en: 'Tightening / Fastening',          macro: 'Semi VA',  note: '' },
+    { vi: 'Bôi / Chấm mỡ',       en: 'Applying grease / lubricant',     macro: 'Semi VA',  note: '' },
+    { vi: 'Đang chờ đợi',        en: 'Waiting / Idle',                  macro: 'NVA',      note: 'Lãng phí – cần loại bỏ / Waste – eliminate' },
+    { vi: 'Đi bộ / Di chuyển',   en: 'Walking / Moving',                macro: 'NVA',      note: '' },
+    { vi: 'Vận chuyển / Chuyển', en: 'Transporting / Transferring',     macro: 'NVA',      note: '' },
+    { vi: 'Xoay / Lật',          en: 'Rotating / Turning',              macro: 'NVA',      note: '' },
+    { vi: 'Tìm kiếm',            en: 'Searching',                       macro: 'NVA',      note: '' },
+    { vi: 'Mở / Đóng',           en: 'Open / Close',                    macro: 'NVA',      note: '' },
+    { vi: 'Làm mờ / Tháo gỡ',    en: 'Pre-tightening / Unfastening',    macro: 'NVA',      note: '' },
+    { vi: 'Lấy ra / Lột bỏ',     en: 'Taking out / Peeling off',        macro: 'NVA',      note: '' },
+    { vi: 'Hoạt động chất lượng',en: 'Quality Operations (rework/inspect)', macro: 'NVA',  note: '' },
+    { vi: 'Dự kiến Trình',       en: 'Tentative Placement',             macro: 'NVA',      note: '' },
+    { vi: 'Sắp xếp / Tổ chức lại',en:'Sorting / Re-arranging',          macro: 'NVA',      note: '' },
+    { vi: 'Vệ sinh / Lau dọn',   en: 'Cleaning / Wiping',               macro: 'NVA',      note: '' },
+    { vi: 'Đếm',                 en: 'Counting',                        macro: 'NVA',      note: '' },
+    { vi: 'Đo lường',            en: 'Measuring',                       macro: 'NVA',      note: '' },
+    { vi: 'Nâng / Đặt xuống',    en: 'Lifting up / Putting down',        macro: 'NVA',      note: '' },
+    { vi: 'Đổi mẻ',              en: 'Batch Changing',                  macro: 'NVA',      note: '' },
+    { vi: 'Kéo / Đẩy',           en: 'Pulling / Pushing',               macro: 'NVA',      note: '' },
+    { vi: 'Cọc',                 en: 'Piling',                          macro: 'NVA',      note: '' },
+    { vi: 'Chọn',                en: 'Selecting',                       macro: 'NVA',      note: '' },
+  ];
+
+  const MACRO_TO_VI_LABEL = {
+    'VA':      'Lắp ráp',
+    'VAA':     'Lắp ráp',
+    'SVA':     'Giữ',
+    'Semi VA': 'Giữ',
+    'NVA':     'Đang chờ đợi',
+    'NVAA':    'Đang chờ đợi',
+  };
+
+  /* ── Yamazumi Export Cell Mapping ── */
+  const YAMAZUMI_CELL_MAP = {
+    dataPTCT: {
+      sheetName: 'Data PT-CT',
+      stationBlock: {
+        startRow: 2,         // 0-indexed: first station's first task row
+        rowHeight: 12,       // rows per station block
+        maxTasks: 10,
+        fields: [
+          { col: 0, key: 'seq',      type: 'number', label: 'Seq',   width: 8 },
+          { col: 1, key: 'station',   type: 'number', label: 'Stn',   width: 8 },
+          { col: 2, key: 'name',      type: 'string', label: 'Task Name', width: 55 },
+          { col: 3, key: 'type',      type: 'string', label: 'Type',  width: 10 },
+          { col: 4, key: 'pertMean',  type: 'number', label: 'PERT Mean (s)', width: 14 },
+          { col: 5, key: 'sample_0',  type: 'number', label: 'Sample 1', width: 10 },
+          { col: 6, key: 'sample_1',  type: 'number', label: 'Sample 2', width: 10 },
+          { col: 7, key: 'sample_2',  type: 'number', label: 'Sample 3', width: 10 },
+          { col: 8, key: 'sample_3',  type: 'number', label: 'Sample 4', width: 10 },
+          { col: 9, key: 'sample_4',  type: 'number', label: 'Sample 5', width: 10 },
+          { col: 10, key: 'sample_5', type: 'number', label: 'Sample 6', width: 10 },
+          { col: 11, key: 'sample_6', type: 'number', label: 'Sample 7', width: 10 },
+          { col: 12, key: 'sample_7', type: 'number', label: 'Sample 8', width: 10 },
+          { col: 13, key: 'sample_8', type: 'number', label: 'Sample 9', width: 10 },
+          { col: 14, key: 'sample_9', type: 'number', label: 'Sample 10',width: 10 },
+        ]
+      }
+    },
+    vaaNvaa: {
+      sheetName: 'VAA-NVAA',
+      stationBlock: {
+        startRow: 7,
+        rowHeight: 11,
+        maxTasks: 10,
+        fields: [
+          { col: 5, key: 'microTypeVi', type: 'string', label: 'Micro Type (VN)', width: 25 },
+        ]
+      }
+    }
+  };
+
+  /* ── Professional Styling (Option B – System-Generated Workbook) ── */
+  const YAMAZUMI_STYLES = {
+    headerCell: {
+      fill: { fgColor: { rgb: "FF1F4E79" } },
+      font: { name: "Calibri", sz: 11, bold: true, color: { rgb: "FFFFFFFF" } },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "FFB0B0B0" } },
+        bottom: { style: "thin", color: { rgb: "FFB0B0B0" } },
+        left: { style: "thin", color: { rgb: "FFB0B0B0" } },
+        right: { style: "thin", color: { rgb: "FFB0B0B0" } }
+      }
+    },
+    stationTitle: {
+      fill: { fgColor: { rgb: "FF2E75B6" } },
+      font: { name: "Calibri", sz: 13, bold: true, color: { rgb: "FFFFFFFF" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    },
+    dataCell: {
+      font: { name: "Calibri", sz: 10 },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        left: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        right: { style: "thin", color: { rgb: "FFD0D0D0" } }
+      }
+    },
+    taskNameCell: {
+      font: { name: "Calibri", sz: 10 },
+      alignment: { horizontal: "left", vertical: "center", wrapText: true },
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        left: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        right: { style: "thin", color: { rgb: "FFD0D0D0" } }
+      }
+    },
+    pertMeanCell: {
+      font: { name: "Calibri", sz: 10, bold: true },
+      alignment: { horizontal: "center", vertical: "center" },
+      numFmt: "0.00",
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        left: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        right: { style: "thin", color: { rgb: "FFD0D0D0" } }
+      }
+    },
+    sampleCell: {
+      font: { name: "Calibri", sz: 9, color: { rgb: "FF555555" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      numFmt: "0.00",
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFE8E8E8" } },
+        left: { style: "thin", color: { rgb: "FFE8E8E8" } },
+        right: { style: "thin", color: { rgb: "FFE8E8E8" } }
+      }
+    },
+    vaaCell: {
+      font: { name: "Calibri", sz: 10, color: { rgb: "FF006100" } },
+      fill: { fgColor: { rgb: "FFE2EFDA" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        left: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        right: { style: "thin", color: { rgb: "FFD0D0D0" } }
+      }
+    },
+    svaCell: {
+      font: { name: "Calibri", sz: 10, color: { rgb: "FF9C6500" } },
+      fill: { fgColor: { rgb: "FFFFF2CC" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        left: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        right: { style: "thin", color: { rgb: "FFD0D0D0" } }
+      }
+    },
+    nvaCell: {
+      font: { name: "Calibri", sz: 10, color: { rgb: "FF9C0006" } },
+      fill: { fgColor: { rgb: "FFFCE4EC" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        bottom: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        left: { style: "thin", color: { rgb: "FFD0D0D0" } },
+        right: { style: "thin", color: { rgb: "FFD0D0D0" } }
+      }
+    },
+    instructionsTitle: {
+      font: { name: "Calibri", sz: 16, bold: true, color: { rgb: "FF1F4E79" } }
+    },
+    instructionsBody: {
+      font: { name: "Calibri", sz: 11 }
+    }
+  };
+
   /* ── Init ── */
   window.onload = () => {
     const saved = JSON.parse(localStorage.getItem('projectTasks') || '[]');
@@ -548,6 +741,20 @@
       saved.forEach((t, i) => addTask(t.name, normalizeTaskType(t.type), t.a, t.m, t.b, t.meta, t.seq || (i+1), t.station || 1));
     }
     document.getElementById('print-date').textContent = "Generated: " + new Date().toLocaleString();
+
+    // Auto-export Yamazumi if triggered from data_collection.html
+    if (localStorage.getItem('autoExportYamazumi') === 'true') {
+      localStorage.removeItem('autoExportYamazumi');
+      // Wait for SheetJS CDN to load, then export
+      const waitForXLSX = setInterval(() => {
+        if (typeof XLSX !== 'undefined' && typeof exportYamazumiOptionB === 'function') {
+          clearInterval(waitForXLSX);
+          setTimeout(() => exportYamazumiOptionB(), 500);
+        }
+      }, 200);
+      // Timeout after 10 seconds if CDN fails
+      setTimeout(() => clearInterval(waitForXLSX), 10000);
+    }
   };
 
   /* ── Core Task Management ── */
@@ -1582,6 +1789,7 @@
     downloadCSV(rows, 'Tasks_Input.csv');
   }
 
+  /* ── Download Original Template (for users who want the reference file) ── */
   async function downloadRawTemplate() {
     try {
       const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
@@ -1600,146 +1808,382 @@
     }
   }
 
-  /* ── XLSX TEMPLATE INJECTION (SHEETJS) ── */
-  async function exportToTemplateXLSX() {
-    if (typeof XLSX === 'undefined') {
-      alert("SheetJS library not loaded."); return;
-    }
+  /* ── YAMAZUMI EXPORT: Helper Functions ── */
+  function setXLCell(ws, r, c, value, style) {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    if (value === null || value === undefined) { delete ws[addr]; return; }
+    const cell = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
+    if (style) cell.s = style;
+    ws[addr] = cell;
+  }
 
+  function setXLRange(ws, r1, c1, r2, c2) {
+    if (!ws['!ref']) { ws['!ref'] = XLSX.utils.encode_range({ s:{r:r1,c:c1}, e:{r:r2,c:c2} }); return; }
+    const cur = XLSX.utils.decode_range(ws['!ref']);
+    cur.s.r = Math.min(cur.s.r, r1); cur.s.c = Math.min(cur.s.c, c1);
+    cur.e.r = Math.max(cur.e.r, r2); cur.e.c = Math.max(cur.e.c, c2);
+    ws['!ref'] = XLSX.utils.encode_range(cur);
+  }
+
+  /* ── Central Data Resolver ── */
+  function resolveYamazumiExportData() {
     saveCurrentTasks();
     const tasks = JSON.parse(localStorage.getItem('projectTasks') || '[]');
     const validTasks = tasks.filter(t => !isNaN(t.a) && !isNaN(t.m) && !isNaN(t.b) && t.a <= t.m && t.m <= t.b);
-    if (!validTasks.length) { alert("No valid tasks to export."); return; }
+    if (!validTasks.length) return { stationMap: {}, sortedStns: [], tasks: [] };
 
     const stationMap = {};
     validTasks.forEach(t => {
       const stn = t.station || 1;
       if (!stationMap[stn]) stationMap[stn] = [];
-      stationMap[stn].push(t);
+      const pertMean = parseFloat(((t.a + 4 * t.m + t.b) / 6).toFixed(2));
+      const samples = [];
+      for (let i = 0; i < 10; i++) {
+        samples.push(parseFloat(triangular(t.a, t.m, t.b).toFixed(2)));
+      }
+      stationMap[stn].push({
+        seq:       t.seq,
+        station:   stn,
+        name:      t.name || 'Task',
+        type:      normalizeTaskType(t.type),
+        a:         t.a, m: t.m, b: t.b,
+        pertMean,
+        samples,
+        microTypeVi: MACRO_TO_VI_LABEL[normalizeTaskType(t.type)] || 'Lắp ráp',
+        meta:       t.meta || null,
+      });
     });
     const sortedStns = Object.keys(stationMap).map(Number).sort((a, b) => a - b);
+    return { stationMap, sortedStns, tasks: validTasks };
+  }
 
-    let wb;
-    try {
-      const resp = await fetch('https://nguyenhoang88502.github.io/OPF_sim/temp.xlsx', { cache: 'no-store' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const buf = await resp.arrayBuffer();
-      wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
-    } catch (err) {
-      alert("Could not load template: " + err.message); return;
-    }
+  /* ── Core Injection Engine ── */
+  function injectStationBlockData(ws, stationBlockMap, stationMap, sortedStns, hasStyles) {
+    const { startRow, rowHeight, maxTasks, fields } = stationBlockMap;
+    const maxCol = Math.max(...fields.map(f => f.col));
+    let lastRow = startRow;
 
-    function setCell(ws, r, c, value) {
-      const addr = XLSX.utils.encode_cell({ r, c });
-      if (value === null || value === undefined) { delete ws[addr]; return; }
-      ws[addr] = typeof value === 'string' ? { v: value, t: 's' } : { v: value, t: 'n' };
-    }
-    function setRange(ws, r1, c1, r2, c2) {
-      if (!ws['!ref']) { ws['!ref'] = XLSX.utils.encode_range({ s:{r:r1,c:c1}, e:{r:r2,c:c2} }); return; }
-      const cur = XLSX.utils.decode_range(ws['!ref']);
-      cur.s.r = Math.min(cur.s.r, r1); cur.s.c = Math.min(cur.s.c, c1);
-      cur.e.r = Math.max(cur.e.r, r2); cur.e.c = Math.max(cur.e.c, c2);
-      ws['!ref'] = XLSX.utils.encode_range(cur);
-    }
+    sortedStns.forEach((stnNum, si) => {
+      const blockStart = startRow + si * rowHeight;
+      const stnTasks = stationMap[stnNum].slice(0, maxTasks);
 
-    const wsPT = wb.Sheets['Data PT-CT'];
-    if (wsPT) {
-      sortedStns.forEach((stnNum, si) => {
-        const blockStart = 2 + si * 12;
-        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-          const ri = blockStart + ti;
-          setCell(wsPT, ri, 2, task.name);
-          setCell(wsPT, ri, 4, parseFloat(((task.a + 4 * task.m + task.b) / 6).toFixed(2)));
-          for (let i = 0; i < 10; i++) {
-            setCell(wsPT, ri, 5 + i, parseFloat(triangular(task.a, task.m, task.b).toFixed(2)));
+      stnTasks.forEach((task, ti) => {
+        const ri = blockStart + ti;
+        fields.forEach(field => {
+          let value;
+          if (field.key.startsWith('sample_')) {
+            const idx = parseInt(field.key.split('_')[1], 10);
+            value = (task.samples && task.samples[idx] !== undefined) ? task.samples[idx] : null;
+          } else {
+            value = task[field.key] !== undefined ? task[field.key] : null;
+          }
+
+          if (value !== undefined && value !== null) {
+            let style = null;
+            if (hasStyles) {
+              if (field.key === 'name') style = YAMAZUMI_STYLES.taskNameCell;
+              else if (field.key === 'pertMean') style = YAMAZUMI_STYLES.pertMeanCell;
+              else if (field.key.startsWith('sample_')) style = YAMAZUMI_STYLES.sampleCell;
+              else if (field.key === 'type') {
+                if (task.type === 'VAA') style = YAMAZUMI_STYLES.vaaCell;
+                else if (task.type === 'Semi VA') style = YAMAZUMI_STYLES.svaCell;
+                else style = YAMAZUMI_STYLES.nvaCell;
+              } else {
+                style = YAMAZUMI_STYLES.dataCell;
+              }
+            }
+            setXLCell(ws, ri, field.col, value, style);
           }
         });
+        lastRow = Math.max(lastRow, ri);
       });
-    }
-
-    const microTypeMap = { VAA: 'Lắp ráp', SVA: 'Giữ', NVA: 'Đang chờ đợi' };
-    const wsVAA = wb.Sheets['VAA-NVAA'];
-    if (wsVAA) {
-      sortedStns.forEach((stnNum, si) => {
-        const blockStart = 7 + si * 11;
-        stationMap[stnNum].slice(0, 10).forEach((task, ti) => {
-          const ri = blockStart + ti;
-          setCell(wsVAA, ri, 5, microTypeMap[taskTypeClass(task.type)] || 'Lắp ráp');
-        });
-      });
-    }
-
-    const DROPDOWN_DATA = [
-      ['MICRO TYPE (Tiếng Việt)', 'MICRO TYPE (English)', 'MACRO TYPE', 'Ghi chú / Note'],
-      ['Lắp ráp', 'Assembling', 'VAA', 'Thao tác tạo ra giá trị trực tiếp'],
-      ['Gia công / Xử lý', 'Processing / Machining', 'VAA', ''],
-      ['Kiểm tra chất lượng', 'Quality Inspection', 'VAA', ''],
-      ['Giữ', 'Holding', 'Semi VA', 'Cần thiết nhưng không tạo giá trị'],
-      ['Lấy / Đặt lại', 'Picking up / Placing back', 'Semi VA', ''],
-      ['Định vị', 'Positioning', 'Semi VA', ''],
-      ['Đặt cùng nhau', 'Putting together', 'Semi VA', ''],
-      ['Đập / Gõ', 'Hammering', 'Semi VA', ''],
-      ['Nhấn', 'Pressing', 'Semi VA', ''],
-      ['Siết / Bắn ốc', 'Tightening / Fastening', 'Semi VA', ''],
-      ['Bôi / Chấm mỡ', 'Applying grease / lubricant', 'Semi VA', ''],
-      ['Đang chờ đợi', 'Waiting / Idle', 'NVA', 'Lãng phí – cần loại bỏ'],
-      ['Đi bộ / Di chuyển', 'Walking / Moving', 'NVA', ''],
-      ['Vận chuyển / Chuyển', 'Transporting / Transferring', 'NVA', ''],
-      ['Xoay / Lật', 'Rotating / Turning', 'NVA', ''],
-      ['Tìm kiếm', 'Searching', 'NVA', ''],
-      ['Mở / Đóng', 'Open / Close', 'NVA', ''],
-      ['Làm mờ / Tháo gỡ', 'Pre-tightening / Unfastening', 'NVA', ''],
-      ['Lấy ra / Lột bỏ', 'Taking out / Peeling off', 'NVA', ''],
-      ['Hoạt động chất lượng', 'Quality Operations (rework/inspect)', 'NVA', ''],
-      ['Dự kiến Trình', 'Tentative Placement', 'NVA', ''],
-      ['Sắp xếp / Tổ chức lại', 'Sorting / Re-arranging', 'NVA', ''],
-      ['Vệ sinh / Lau dọn', 'Cleaning / Wiping', 'NVA', ''],
-    ];
-
-    let wsDL = wb.Sheets['Dropdown list'];
-    if (!wsDL) {
-      wsDL = {};
-      wb.SheetNames.push('Dropdown list');
-      wb.Sheets['Dropdown list'] = wsDL;
-    }
-    DROPDOWN_DATA.forEach((row, ri) => {
-      row.forEach((val, ci) => setCell(wsDL, ri, ci, val));
     });
-    setRange(wsDL, 0, 0, DROPDOWN_DATA.length - 1, 3);
 
-    const INSTR_SHEET = 'Instructions';
-    const HD_ROWS = [
-      ['=== HUONG DAN / HOW TO PASTE INTO YAMAZUMI TEMPLATE ==='],
-      [''],
-      ['FILE NAY CO 4 SHEET / THIS FILE HAS 4 SHEETS:'],
-      ['  1. Instructions  — Ban dang doc / You are here'],
-      ['  2. Data PT-CT    — Thoi gian tung thao tac theo tram (PERT mean + 10 samples)'],
-      ['  3. VAA-NVAA      — Phan loai VAA / Semi-VA / NVA cho tung thao tac'],
-      ['  4. Dropdown list — Danh muc day du cac loai micro-type (doi chieu)'],
-      [''],
-      ['Generated by Monte Carlo Simulator — ' + new Date().toLocaleString()],
-    ];
+    setXLRange(ws, startRow, 0, lastRow, maxCol);
+  }
 
-    const oldIdx = wb.SheetNames.indexOf(INSTR_SHEET);
+  function injectDropdownSheet(wb) {
+    const name = 'Dropdown list';
+    let ws = wb.Sheets[name];
+    if (!ws) {
+      ws = {};
+      wb.SheetNames.push(name);
+      wb.Sheets[name] = ws;
+    }
+
+    // Header row
+    setXLCell(ws, 0, 0, 'MICRO TYPE (Tiếng Việt)', YAMAZUMI_STYLES.headerCell);
+    setXLCell(ws, 0, 1, 'MICRO TYPE (English)', YAMAZUMI_STYLES.headerCell);
+    setXLCell(ws, 0, 2, 'MACRO TYPE', YAMAZUMI_STYLES.headerCell);
+    setXLCell(ws, 0, 3, 'Ghi chú / Note', YAMAZUMI_STYLES.headerCell);
+
+    MICRO_TYPES_MASTER.forEach((row, ri) => {
+      setXLCell(ws, ri + 1, 0, row.vi, YAMAZUMI_STYLES.dataCell);
+      setXLCell(ws, ri + 1, 1, row.en, YAMAZUMI_STYLES.dataCell);
+      setXLCell(ws, ri + 1, 2, row.macro, YAMAZUMI_STYLES.dataCell);
+      setXLCell(ws, ri + 1, 3, row.note, YAMAZUMI_STYLES.dataCell);
+    });
+
+    ws['!cols'] = [{ wch: 30 }, { wch: 42 }, { wch: 12 }, { wch: 55 }];
+    setXLRange(ws, 0, 0, MICRO_TYPES_MASTER.length, 3);
+  }
+
+  function injectInstructionsSheet(wb, timestamp) {
+    const name = 'Instructions';
+    const oldIdx = wb.SheetNames.indexOf(name);
     if (oldIdx !== -1) {
       wb.SheetNames.splice(oldIdx, 1);
-      delete wb.Sheets[INSTR_SHEET];
+      delete wb.Sheets[name];
     }
-    const wsHD = {};
-    HD_ROWS.forEach((row, ri) => {
-      const val = Array.isArray(row) ? row[0] : row;
-      if (val !== undefined && val !== '') setCell(wsHD, ri, 0, String(val));
-    });
-    wsHD['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:HD_ROWS.length-1,c:0} });
-    wsHD['!cols'] = [{ wch: 90 }];
-    wb.SheetNames.push(INSTR_SHEET);
-    wb.Sheets[INSTR_SHEET] = wsHD;
 
-    const VISIBLE = new Set(['Data PT-CT', 'VAA-NVAA', 'Dropdown list', INSTR_SHEET]);
+    const ws = {};
+    const rows = [
+      { text: 'YAMAZUMI EXPORT — HƯỚNG DẪN / HOW TO USE',   style: YAMAZUMI_STYLES.instructionsTitle },
+      { text: '',                                             style: YAMAZUMI_STYLES.instructionsBody },
+      { text: 'FILE NÀY CÓ 4 SHEET / THIS FILE HAS 4 SHEETS:', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '  1. Instructions  — Bạn đang đọc / You are here', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '  2. Data PT-CT    — Thời gian từng thao tác theo trạm (PERT mean + 10 Monte Carlo samples)', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '  3. VAA-NVAA      — Phân loại VAA / Semi-VA / NVA cho từng thao tác (Tiếng Việt)', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '  4. Dropdown list — Danh mục đầy đủ các loại micro-type (đối chiếu Việt-Anh)', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '',                                             style: YAMAZUMI_STYLES.instructionsBody },
+      { text: 'CÁCH DÙNG / HOW TO USE:',                     style: { font: { name: "Calibri", sz: 12, bold: true } } },
+      { text: '• Data PT-CT: Copy dữ liệu vào template Yamazumi chính của bạn. Mỗi trạm là 1 khối 12 dòng.', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '• VAA-NVAA: Phân loại từng thao tác để tô màu Yamazumi (Xanh=VAA, Vàng=Semi-VA, Đỏ=NVA).', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '• Cột F-O trong Data PT-CT chứa 10 mẫu Monte Carlo để phân tích độ biến thiên.', style: YAMAZUMI_STYLES.instructionsBody },
+      { text: '',                                             style: YAMAZUMI_STYLES.instructionsBody },
+      { text: `Generated: ${timestamp}`,                      style: { font: { name: "Calibri", sz: 10, italic: true, color: { rgb: "FF888888" } } } },
+      { text: 'Monte Carlo Yamazumi Simulator — OPF_sim',     style: { font: { name: "Calibri", sz: 10, color: { rgb: "FF1F4E79" } } } },
+    ];
+
+    rows.forEach((row, ri) => {
+      setXLCell(ws, ri, 0, row.text, row.style);
+    });
+
+    ws['!cols'] = [{ wch: 95 }];
+    ws['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rows.length-1,c:0} });
+    wb.SheetNames.push(name);
+    wb.Sheets[name] = ws;
+  }
+
+  /* ── Workbook Validation (Option A) ── */
+  function validateWorkbookForExport(wb, stationMap, sortedStns) {
+    const errors = [];
+    const requiredSheets = ['Data PT-CT', 'VAA-NVAA'];
+    requiredSheets.forEach(name => {
+      if (!wb.Sheets[name]) errors.push(`Missing required sheet: "${name}".`);
+    });
+
+    if (errors.length) return { valid: false, errors };
+
+    // Check template has enough rows for station count
+    const wsPT = wb.Sheets['Data PT-CT'];
+    const dataMap = YAMAZUMI_CELL_MAP.dataPTCT.stationBlock;
+    const totalStations = sortedStns.length;
+    const maxRowNeeded = dataMap.startRow + (totalStations - 1) * dataMap.rowHeight + dataMap.maxTasks - 1;
+    const range = wsPT['!ref'] ? XLSX.utils.decode_range(wsPT['!ref']) : null;
+    if (range && range.e.r < maxRowNeeded) {
+      errors.push(`Template supports ~${Math.floor((range.e.r - dataMap.startRow) / dataMap.rowHeight) + 1} stations but data has ${totalStations}. Use "Export Yamazumi (Auto)" instead.`);
+    }
+
+    // Warn about tasks-per-station overflow
+    const overflowStns = [];
+    sortedStns.forEach(stnNum => {
+      if (stationMap[stnNum].length > dataMap.maxTasks) {
+        overflowStns.push(`Station ${stnNum} (${stationMap[stnNum].length} tasks, max ${dataMap.maxTasks})`);
+      }
+    });
+    if (overflowStns.length) {
+      errors.push(`Template limited to ${dataMap.maxTasks} tasks/station. Overflow: ${overflowStns.join(', ')}. Extra tasks will be skipped.`);
+    }
+
+    return { valid: errors.length === 0 || errors.every(e => e.includes('will be skipped')), errors };
+  }
+
+  /* ── OPTION B: System-Generated Professional Workbook ── */
+  function buildSystemWorkbook(stationMap, sortedStns) {
+    const wb = XLSX.utils.book_new();
+
+    // ── Sheet 1: Data PT-CT ──
+    const wsPT = {};
+    const stnMap = YAMAZUMI_CELL_MAP.dataPTCT.stationBlock;
+    const maxCol = Math.max(...stnMap.fields.map(f => f.col));
+
+    // Header row
+    stnMap.fields.forEach(f => {
+      setXLCell(wsPT, 0, f.col, f.label, YAMAZUMI_STYLES.headerCell);
+    });
+    // Station grouping label in row 1
+    setXLCell(wsPT, 1, 0, 'Station Data Blocks ↓', YAMAZUMI_STYLES.stationTitle);
+
+    injectStationBlockData(wsPT, stnMap, stationMap, sortedStns, true);
+
+    // Column widths
+    wsPT['!cols'] = stnMap.fields.map(f => ({ wch: f.width }));
+    setXLRange(wsPT, 0, 0, 1 + sortedStns.length * stnMap.rowHeight, maxCol);
+    XLSX.utils.book_append_sheet(wb, wsPT, 'Data PT-CT');
+
+    // ── Sheet 2: VAA-NVAA ──
+    const wsVAA = {};
+    const vaaMap = YAMAZUMI_CELL_MAP.vaaNvaa.stationBlock;
+
+    // Header rows
+    for (let r = 0; r < vaaMap.startRow; r++) {
+      setXLCell(wsVAA, r, 0, r === 0 ? 'Micro-Type Classification' : '', r === 0 ? YAMAZUMI_STYLES.stationTitle : {});
+    }
+    vaaMap.fields.forEach(f => {
+      setXLCell(wsVAA, vaaMap.startRow - 1, f.col, f.label, YAMAZUMI_STYLES.headerCell);
+    });
+
+    sortedStns.forEach((stnNum, si) => {
+      const blockStart = vaaMap.startRow + si * vaaMap.rowHeight;
+      const stnTasks = stationMap[stnNum].slice(0, vaaMap.maxTasks);
+
+      // Station title row
+      setXLCell(wsVAA, blockStart, 0, `Station ${stnNum}`, YAMAZUMI_STYLES.stationTitle);
+
+      stnTasks.forEach((task, ti) => {
+        const ri = blockStart + 1 + ti;
+        setXLCell(wsVAA, ri, 0, task.name, YAMAZUMI_STYLES.taskNameCell);
+        const viLabel = MACRO_TO_VI_LABEL[task.type] || 'Lắp ráp';
+        let typeStyle;
+        if (task.type === 'VAA') typeStyle = YAMAZUMI_STYLES.vaaCell;
+        else if (task.type === 'Semi VA') typeStyle = YAMAZUMI_STYLES.svaCell;
+        else typeStyle = YAMAZUMI_STYLES.nvaCell;
+        setXLCell(wsVAA, ri, 5, viLabel, typeStyle);
+      });
+    });
+
+    wsVAA['!cols'] = [{ wch: 35 }, { wch: 0 }, { wch: 0 }, { wch: 0 }, { wch: 0 }, { wch: 25 }];
+    setXLRange(wsVAA, 0, 0, vaaMap.startRow + sortedStns.length * vaaMap.rowHeight, 5);
+    XLSX.utils.book_append_sheet(wb, wsVAA, 'VAA-NVAA');
+
+    // ── Sheet 3 & 4: Dropdown list + Instructions ──
+    injectDropdownSheet(wb);
+    injectInstructionsSheet(wb, new Date().toLocaleString());
+
+    // ── Workbook-level metadata ──
+    const VISIBLE = new Set(['Data PT-CT', 'VAA-NVAA', 'Dropdown list', 'Instructions']);
     if (!wb.Workbook) wb.Workbook = {};
     wb.Workbook.Sheets = wb.SheetNames.map(n => ({ name: n, Hidden: VISIBLE.has(n) ? 0 : 2 }));
 
-    XLSX.writeFile(wb, 'Temp_Simulated.xlsx');
+    return wb;
+  }
+
+  /* ── OPTION B: System-Driven Export (Recommended) ── */
+  function exportYamazumiOptionB() {
+    if (typeof XLSX === 'undefined') {
+      alert("SheetJS library not loaded. Check your internet connection and reload the page.");
+      return;
+    }
+
+    const { stationMap, sortedStns, tasks } = resolveYamazumiExportData();
+    if (!tasks.length) {
+      alert("No valid tasks to export. Add tasks with valid a ≤ m ≤ b time estimates first.");
+      return;
+    }
+
+    try {
+      const wb = buildSystemWorkbook(stationMap, sortedStns);
+      XLSX.writeFile(wb, 'Yamazumi_Export.xlsx');
+    } catch (err) {
+      alert("Export failed: " + err.message);
+    }
+  }
+
+  /* ── OPTION A: User-Upload Template Export ── */
+  function exportYamazumiOptionA(event) {
+    if (typeof XLSX === 'undefined') {
+      alert("SheetJS library not loaded. Check your internet connection and reload the page.");
+      return;
+    }
+
+    const { stationMap, sortedStns, tasks } = resolveYamazumiExportData();
+    if (!tasks.length) {
+      alert("No valid tasks to export. Add tasks with valid a ≤ m ≤ b time estimates first.");
+      event.target.value = '';
+      return;
+    }
+
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const buf = e.target.result;
+        const wb = XLSX.read(buf, { type: 'array', cellFormula: true, cellStyles: true });
+
+        const validation = validateWorkbookForExport(wb, stationMap, sortedStns);
+        if (validation.errors.length) {
+          const allWarnings = validation.errors.every(err => err.includes('will be skipped'));
+          if (!allWarnings || validation.errors.length > 2) {
+            alert("Template validation issue:\n\n• " + validation.errors.join('\n• '));
+            if (!validation.valid) {
+              event.target.value = '';
+              return;
+            }
+          }
+        }
+
+        // Inject data into Data PT-CT
+        const wsPT = wb.Sheets['Data PT-CT'];
+        if (wsPT) {
+          const dataMap = YAMAZUMI_CELL_MAP.dataPTCT.stationBlock;
+          sortedStns.forEach((stnNum, si) => {
+            const blockStart = dataMap.startRow + si * dataMap.rowHeight;
+            stationMap[stnNum].slice(0, dataMap.maxTasks).forEach((task, ti) => {
+              const ri = blockStart + ti;
+              dataMap.fields.forEach(field => {
+                let value;
+                if (field.key.startsWith('sample_')) {
+                  const idx = parseInt(field.key.split('_')[1], 10);
+                  value = (task.samples && task.samples[idx] !== undefined) ? task.samples[idx] : null;
+                } else {
+                  value = task[field.key] !== undefined ? task[field.key] : null;
+                }
+                // Only modify cell values (preserve template styles)
+                if (value !== undefined && value !== null) {
+                  const addr = XLSX.utils.encode_cell({ r: ri, c: field.col });
+                  wsPT[addr] = typeof value === 'string'
+                    ? { v: value, t: 's' }
+                    : { v: value, t: 'n' };
+                }
+              });
+            });
+          });
+        }
+
+        // Inject data into VAA-NVAA
+        const wsVAA = wb.Sheets['VAA-NVAA'];
+        if (wsVAA) {
+          const vaaMap = YAMAZUMI_CELL_MAP.vaaNvaa.stationBlock;
+          sortedStns.forEach((stnNum, si) => {
+            const blockStart = vaaMap.startRow + si * vaaMap.rowHeight;
+            stationMap[stnNum].slice(0, vaaMap.maxTasks).forEach((task, ti) => {
+              const ri = blockStart + 1 + ti;
+              const viLabel = MACRO_TO_VI_LABEL[task.type] || 'Lắp ráp';
+              const addr = XLSX.utils.encode_cell({ r: ri, c: 5 });
+              wsVAA[addr] = { v: viLabel, t: 's' };
+            });
+          });
+        }
+
+        // Refresh dropdown + instructions with unified data
+        injectDropdownSheet(wb);
+        injectInstructionsSheet(wb, new Date().toLocaleString());
+
+        XLSX.writeFile(wb, 'Yamazumi_Export.xlsx');
+      } catch (err) {
+        alert("Could not process the template: " + err.message + "\n\nMake sure the file is a valid .xlsx Yamazumi template.");
+      }
+    };
+
+    reader.onerror = function() {
+      alert("Could not read the selected file. Make sure it is a valid .xlsx file.");
+    };
+
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
   }
 
   function exportMegaCSV() {

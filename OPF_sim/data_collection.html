@@ -534,6 +534,8 @@
   <button class="export-btn" style="background:var(--blue); color:white;" onclick="document.getElementById('import-readings').click()" title="Import CSV">Import CSV</button>
   
   <button class="export-btn" onclick="exportCSV()" title="Export CSV">Export</button>
+
+  <button class="export-btn" style="background:var(--green); color:white;" onclick="autoExportYamazumi()" title="Export Yamazumi XLSX">Yamazumi XLSX</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -949,6 +951,11 @@
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function autoExportYamazumi() {
+    localStorage.setItem('autoExportYamazumi', 'true');
+    window.location.href = 'tool.html';
   }
 </script>
 </body>
