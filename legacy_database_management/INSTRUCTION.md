@@ -1,4 +1,4 @@
-# BOM Dataset Indexer — Hướng Dẫn Cho Quản Lý
+# BOM Dataset Indexer
 
 ## Dành cho bộ phận NPI — Wahl Clipper Việt Nam
 
