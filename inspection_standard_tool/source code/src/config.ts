@@ -104,9 +104,18 @@ export const TEMPLATE_SLOTS: TemplateSlot[] = [
     "packaging"
   ),
   slot(
+    "colorbox_left_right",
+    "colorbox_left & colorbox_right",
+    "BX17:CN42",
+    "Colorbox Left & Right",
+    "Merged colorbox left and right images.",
+    ["colorbox_left", "colorbox_right"],
+    "packaging"
+  ),
+  slot(
     "label",
     "label",
-    "BX17:CN30",
+    "CO17:DE30",
     "Label",
     "Product label image.",
     ["label"],
@@ -115,7 +124,7 @@ export const TEMPLATE_SLOTS: TemplateSlot[] = [
   slot(
     "top_view_inside",
     "top_view_inside",
-    "CO17:DE42",
+    "DF17:DV42",
     "Top View Inside",
     "Inside packaging top-view image.",
     ["top_view_inside"],
@@ -124,7 +133,7 @@ export const TEMPLATE_SLOTS: TemplateSlot[] = [
   slot(
     "how_to_fold_1",
     "how_to_fold_1",
-    "DF17:DV42",
+    "DW17:EM42",
     "How To Fold 1",
     "First folding instruction image.",
     ["how_to_fold_1"],
@@ -133,7 +142,7 @@ export const TEMPLATE_SLOTS: TemplateSlot[] = [
   slot(
     "how_to_fold_2",
     "how_to_fold_2",
-    "DW17:EM42",
+    "EN17:FD42",
     "How To Fold 2",
     "Second folding instruction image.",
     ["how_to_fold_2"],
@@ -142,7 +151,7 @@ export const TEMPLATE_SLOTS: TemplateSlot[] = [
   slot(
     "how_to_fold_3",
     "how_to_fold_3",
-    "EN17:FD42",
+    "FE17:FU42",
     "How To Fold 3",
     "Third folding instruction image.",
     ["how_to_fold_3"],
@@ -151,7 +160,7 @@ export const TEMPLATE_SLOTS: TemplateSlot[] = [
   slot(
     "colorbox_nom_label",
     "colorbox_nom_label",
-    "BX31:CN42",
+    "CO31:DE42",
     "Colorbox NOM Label",
     "Colorbox NOM label image.",
     ["colorbox_nom_label"],
