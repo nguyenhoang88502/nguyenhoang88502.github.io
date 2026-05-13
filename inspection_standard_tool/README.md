@@ -1,281 +1,473 @@
-# NPI BOM Material Extraction Pipeline
+# Inspection Standard Image Inserter
 
-## 1. Executive Summary & Business Value
+**Document Version:** 1.0  
+**Prepared for:** IT Security & Architecture Review  
+**Last Updated:** 2026-05-13
 
-The NPI BOM Material Extraction Pipeline is a low-code data integration solution built on Microsoft Power Automate that automates the extraction and weight-calculation of multi-level Bill of Materials (BOM) data from Dynamics 365 Finance & Operations. It serves the New Product Introduction (NPI) team by answering a recurring operational need: for any given item, what is the total raw material consumption — specifically ABS resin and Colorant — across all levels of its manufacturing BOM?
+---
 
-**Problem statement.** Prior to this solution, NPI engineers performed manual BOM explosion in Excel, traversing three levels of sub-assemblies by hand to aggregate material weights. This process was error-prone, time-consuming (approximately 45 minutes per item), and introduced version-control risk: engineers occasionally worked from stale BOM snapshots captured days or weeks earlier.
+## 1. Executive Summary & Business Purpose
 
-**Solution.** The pipeline queries D365 F&O via its native OData endpoint, applies server-side filters to retrieve only active, approved BOM versions, recursively traverses the BOM tree to a depth of three levels, computes cumulative ABS and Colorant weights, and persists the fully materialized result set to a SharePoint List for consumption by the NPI team.
+### 1.1 Overview
 
-**Business value.**
+The Inspection Standard Image Inserter is a browser-based, client-side tool that enables the NPI (New Product Introduction) and Quality Assurance teams to produce finalized inspection standard workbooks. The tool maps product, packaging, marking, folding-instruction, and sample images into predefined cell regions of a master Excel template (`template.xlsx`), then generates a completed `.xlsx` file ready for distribution to manufacturing partners and inspection stations.
 
-| Metric | Before | After |
+### 1.2 Business Problem Solved
+
+Prior to this tool, QA engineers manually inserted images into Excel inspection sheets — a process that required:
+
+- Manually resizing images to fit target cell regions.
+- Copy-pasting images one at a time into 27 distinct worksheet regions.
+- Handling four merged-image slots (colorbox front/back, left/right, top/bottom; trimmer front/back) by combining images in an external image editor before insertion.
+- Risking misalignment, skipped slots, or wrong images placed in critical inspection positions.
+
+This manual workflow consumed approximately 60–90 minutes per inspection standard workbook and introduced human error into a quality-assurance artifact used as a contractual reference by manufacturing partners.
+
+### 1.3 Solution
+
+The tool provides a drag-and-drop, slot-based assignment interface. Users upload source images, assign each to its named slot in the template, and click **Generate** to produce the completed Excel file. Merged-image slots automatically combine two source images side-by-side before insertion. The tool runs entirely in the user's browser with no server-side component, no network calls during operation, and no data egress.
+
+### 1.4 Key Metrics
+
+| Metric | Before (Manual) | After (Tool) |
 |---|---|---|
-| Time per item | ~45 min (manual) | < 30 sec (automated) |
-| Data freshness | Snapshot (point-in-time extract) | Live query against D365 at execution time |
-| Error rate | Human transcription risk | Zero — direct API-to-target writes |
-| Audit trail | Individual Excel files on network drives | SharePoint List with version history and row-level timestamps |
-| ERP load | Full BOM form loads in D365 client | Lightweight OData calls with `$select` and `$filter` |
-
-**IT governance alignment.** The solution uses only standard Microsoft 365 services under the organization's existing tenant. It operates entirely within the Microsoft Entra ID identity boundary, inheriting D365's native Role-Based Access Control (RBAC). No third-party connectors, no custom middleware, and no data egress outside the Microsoft 365 compliance envelope.
+| Time per inspection standard | 60–90 minutes | 5–10 minutes |
+| Merged-image handling | External editor required | Automatic side-by-side merge in-browser |
+| Slot completeness verification | Manual checklist | Visual dashboard with assignment status |
+| Data persistence | None (single-session Excel work) | Automatic localStorage save/restore across sessions |
+| Image format handling | Manual conversion | 15+ formats auto-accepted; rendered to PNG on insertion |
 
 ---
 
 ## 2. System Architecture & Data Flow
 
-### 2.1 High-Level Component Diagram
+### 2.1 Architecture Diagram
 
 ```
-┌─────────────────────┐     OData (HTTPS)      ┌──────────────────────┐     REST API      ┌─────────────────────┐
-│  Dynamics 365 F&O   │ ◄────────────────────── │   Power Automate     │ ─────────────────► │   SharePoint Online  │
-│                     │                         │                      │                    │                     │
-│  BOM data entities  │                         │  Scheduled / manual  │                    │  NPI_MaterialUsage  │
-│  (OData endpoint)   │                         │  trigger             │                    │  List               │
-└─────────────────────┘                         └──────────────────────┘                    └─────────────────────┘
-                                                          │
-                                                          │ Reads connector identity
-                                                          ▼
-                                                 ┌──────────────────────┐
-                                                 │  Microsoft Entra ID  │
-                                                 │  (OAuth 2.0 / SAML)  │
-                                                 └──────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    User's Browser                        │
+│                                                         │
+│  ┌──────────┐    ┌──────────────┐    ┌───────────────┐  │
+│  │  React   │    │  ExcelJS     │    │    JSZip      │  │
+│  │   UI     │───►│  (template   │───►│  (.xlsx       │  │
+│  │  Layer   │    │   read/write)│    │   packaging)  │  │
+│  └──────────┘    └──────────────┘    └───────────────┘  │
+│        │                │                    │          │
+│        ▼                ▼                    ▼          │
+│  ┌──────────┐    ┌──────────────┐    ┌───────────────┐  │
+│  │ Canvas   │    │  FileReader  │    │  localStorage │  │
+│  │ (merge,  │    │  (image      │    │  (assignment  │  │
+│  │  resize) │    │   decode)    │    │   persistence)│  │
+│  └──────────┘    └──────────────┘    └───────────────┘  │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │              template.xlsx (static asset)         │   │
+│  │  Pre-configured with named image placeholders in  │   │
+│  │  the COVER worksheet at defined cell ranges       │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+
+    Note: No server-side component. No network requests during
+    operation. The only external dependency is the initial page
+    load (static HTML/JS/CSS served from GitHub Pages or a CDN).
 ```
 
-### 2.2 Step-by-Step Data Flow
+### 2.2 Technology Stack
 
-1. **Trigger.** The flow is invoked either on-demand (manual trigger by an NPI engineer via the Power Automate portal) or on a scheduled recurrence (e.g., nightly). The trigger payload includes the parent item number(s) to process.
-
-2. **Authentication.** Power Automate presents its configured connection identity to the D365 OData endpoint. The identity is a service principal or designated service account registered in Microsoft Entra ID, subject to the same D365 security role assignments as any interactive user.
-
-3. **Level-1 BOM Retrieval.** The flow issues an OData `GET` request to `BOMBillOfMaterialsVersionV2Entity` filtered by `ProductNumber` and `IsActive=Microsoft.Dynamics.DataEntities.Yes`. The response returns the active BOM version header.
-
-4. **Level-1 Line Expansion.** Using the `BOMId` from step 3, the flow queries `BOMBillOfMaterialsLineV2Entity` with `$filter=BOMId eq '{value}'` and `$select` restricted to `ItemNumber`, `BOMQty`, `BOMUnitId`, and `LineType`.
-
-5. **Material Classification.** Each line item is evaluated:
-   - If `ItemNumber` matches an ABS resin item group → record the quantity × unit weight factor.
-   - If `ItemNumber` matches a Colorant item group → record the quantity × unit weight factor.
-   - If the line item is itself a sub-assembly (`LineType = BOM`), the flow recurses to step 3 for that child item, up to a maximum depth of **three levels**.
-
-6. **Weight Aggregation.** At each level, the calculated weights are summed into a running total keyed by the top-level parent item. The final payload contains:
-   - Parent item number
-   - Total ABS weight (kg)
-   - Total Colorant weight (kg)
-   - Timestamp of extraction
-   - Source BOM version ID (for traceability)
-
-7. **Write to SharePoint.** The aggregated result is upserted into the `NPI_MaterialUsage` SharePoint List. A unique constraint on `ParentItemNumber` ensures one row per item; subsequent runs update the existing row rather than creating duplicates.
-
-### 2.3 Component Inventory
-
-| Component | Purpose | License Requirement |
+| Layer | Technology | Version / Notes |
 |---|---|---|
-| Power Automate (flow) | Orchestration and transformation logic | Microsoft 365 E3/E5 or Power Automate per-user |
-| Dynamics 365 F&O OData endpoint | Source system — BOM data | Existing D365 license (no additional cost) |
-| SharePoint Online List | Target data store | Microsoft 365 E3/E5 |
-| Microsoft Entra ID | Identity provider | Included with Microsoft 365 |
+| UI Framework | React (functional components + hooks) | Bundled via Vite; single-page application |
+| Excel Read/Write | ExcelJS | Open-source (MIT); reads `template.xlsx`, inserts images, writes final workbook |
+| XLSX Packaging | JSZip v3.10.1 | Open-source (MIT); packages the final `.xlsx` as a ZIP-compressed OOXML archive |
+| Image Processing | HTML5 Canvas API | Client-side only; used for merged-image pair combination and resize-to-fit |
+| File I/O | FileReader API, URL.createObjectURL | Standard browser APIs; no filesystem access required |
+| State Persistence | localStorage | Assignment state survives page reload; cleared on Generate or explicit reset |
+| Styling | CSS custom properties (variables) | Light/dark theme via `data-theme` attribute toggle; responsive layout |
+| Internationalization | Custom i18n (React context) | English (default) and Vietnamese (Tiếng Việt) |
 
-No additional Azure subscriptions, integration runtimes, or on-premises data gateways are required.
+### 2.3 Data Flow (Step-by-Step)
+
+1. **Page Load.** The browser loads `index.html`, which mounts the React application. The app renders the workspace UI with 27 empty image slots organized into 5 sections: Product, Packaging, Marking, Folding Instructions, and Sample.
+
+2. **Image Ingestion.** The user adds source images via:
+   - **File drop** on the dropzone area.
+   - **File picker** (clicking the dropzone or its button).
+   - **Clipboard paste** (Ctrl+V anywhere in the app).
+   
+   Each image is read via `FileReader` or the Clipboard API, decoded by the browser's native image decoder (with `decoding="async"`), and rendered as a thumbnail in the unassigned-image pool.
+
+3. **Slot Assignment.** The user drags a thumbnail from the image pool onto a named slot, or drags an image between slots. For merged slots (4 of 27 slots), two source images are required; the app displays two sub-targets within the merged slot. Assignment state is persisted to `localStorage` after each change.
+
+4. **Template Loading.** On clicking **Generate**, the app fetches `template.xlsx` via an HTTP `GET` request, then opens it with ExcelJS. The template contains a `COVER` worksheet with named image shapes or placeholder regions at predefined cell ranges.
+
+5. **Image Processing.** For each assigned slot:
+   - **Single-image slots:** The source image is resized to fit the target cell range's aspect ratio and dimensions.
+   - **Merged-image slots:** Two source images are drawn side-by-side on an offscreen HTML5 Canvas, then exported as a single merged PNG. The merged image is then resized to fit the target range.
+
+6. **Excel Insertion.** ExcelJS inserts each processed image as an embedded PNG at the exact cell range defined in the slot configuration. Images are embedded directly in the workbook (not linked externally).
+
+7. **Export.** The modified workbook is serialized to an OOXML buffer via ExcelJS, packaged into a `.xlsx` ZIP archive by JSZip, and offered to the user as a browser download with the filename `Inspection Standard - {ItemName}.xlsx`.
+
+8. **Reset.** After successful export, the user can optionally clear all assignments and the image pool to start a new item.
+
+### 2.4 Deployment Model
+
+The application is deployed as a **static website** — a single `index.html` referencing bundled JavaScript and CSS assets. It can be hosted on:
+
+- GitHub Pages (current deployment)
+- Any static file server or CDN
+- A local filesystem (opened via `file://` protocol, though some browser features may be limited)
+
+**No application server, no database, no API endpoints, no authentication service.**
 
 ---
 
-## 3. Data Entities Used
+## 3. Template & Slot Configuration
 
-### 3.1 `BOMBillOfMaterialsVersionV2Entity`
+### 3.1 Template File (`template.xlsx`)
 
-**Purpose.** Represents the header of an approved, versioned Bill of Materials. Each row corresponds to one version of a BOM for a specific manufactured item.
+The file `template.xlsx` is the canonical master template for inspection standard workbooks. It contains a worksheet named `COVER` with pre-defined cell regions where images are to be placed. Each region corresponds to a **template key** — a named identifier that the tool uses to locate the insertion point.
 
-**Key fields accessed by the pipeline:**
+**Template maintenance workflow:**
+1. The NPI/QA lead updates `template.xlsx` as inspection requirements evolve.
+2. The updated template replaces the existing file in the deployment assets.
+3. If cell ranges change, the slot configuration in the source code must be updated to match (see Section 6).
 
-| Field | Type | Usage |
-|---|---|---|
-| `BOMId` | String (PK) | Primary key; used as foreign key in line queries |
-| `ProductNumber` | String | The manufactured item; input parameter to the flow |
-| `IsActive` | Enum (`Yes`/`No`) | Filter criterion — only active BOM versions are processed |
-| `Approver` | Int64 (RecId) | Not read by flow; available for audit queries |
-| `ValidFrom` / `ValidTo` | DateTime | Date-effectivity bounds; flow filters on `IsActive` only |
+### 3.2 Complete Slot Inventory
 
-**OData endpoint URL pattern:**
-```
-https://{org}.operations.dynamics.com/data/BOMBillOfMaterialsVersionV2Entity
-```
+The tool defines **27 image slots** organized into **5 sections**. Each slot is configured with a unique ID, a template key (matching the placeholder name in `template.xlsx`), a cell range, a human-readable label, and a processing role.
 
-### 3.2 `BOMBillOfMaterialsLineV2Entity`
+#### Section 1: Product (9 slots)
 
-**Purpose.** Represents a single line within a BOM version — a component item, its quantity, unit of measure, and line type (item or sub-BOM).
+| Slot ID | Template Key | Cell Range | Label | Role |
+|---|---|---|---|---|
+| `ib_safety` | `ib_safety` | AP2:BF16 | IB Safety | Direct insert |
+| `trimmer_hdpe` | `trimmer_hdpe` | BG2:BW16 | Trimmer HDPE | Direct insert |
+| `accessory_1` | `acessory_1` (*) | BX2:CN16 | Accessory 1 | Direct insert |
+| `accessory_2` | `accessory_2` | CO2:DF16 | Accessory 2 | Direct insert |
+| `accessory_3` | `accessory_3` | DG2:DX16 | Accessory 3 | Direct insert |
+| `accessory_4` | `accessory_4` | DY2:EP16 | Accessory 4 | Direct insert |
+| `accessory_5` | `accessory_5` | EQ2:FH16 | Accessory 5 | Direct insert |
+| `accessory_6` | `accessory_6` | FI2:FZ16 | Accessory 6 | Direct insert |
+| `accessory_7` | `accessory_7` | GA2:GR16 | Accessory 7 | Direct insert |
 
-**Key fields accessed by the pipeline:**
+> **(*)** Note: The template key for Accessory 1 is deliberately spelled `acessory_1` (one 'c') in the template file. The tool's slot ID uses the correct spelling (`accessory_1`), but maps to the misspelled template key for backward compatibility. A future template update may correct this.
 
-| Field | Type | Usage |
-|---|---|---|
-| `BOMId` | String (FK) | Links the line to its parent BOM version header |
-| `LineNumber` | Decimal | Line position; used for deterministic ordering |
-| `ItemNumber` | String | Component item; evaluated against material group membership |
-| `BOMQty` | Decimal | Quantity per assembly; multiplied by unit weight for mass calculation |
-| `BOMUnitId` | String | Unit of measure (e.g., `kg`, `g`, `lb`); used for unit conversion |
-| `LineType` | Enum (`BOM` / `Item`) | Determines whether the flow recurses into a sub-BOM |
-| `PositionNumber` | String | Logical position in BOM tree; used for debugging |
+#### Section 2: Packaging (5 slots)
 
-**OData endpoint URL pattern:**
-```
-https://{org}.operations.dynamics.com/data/BOMBillOfMaterialsLineV2Entity
-```
+| Slot ID | Template Key | Cell Range | Label | Role |
+|---|---|---|---|---|
+| `colorbox_front_back` | `colorbox_front` & `colorbox_back` | AP17:BF42 | Colorbox Front & Back | **Merged** (2 source images) |
+| `colorbox_top_bottom` | `colorbox_top` & `colorbox_bottom` | BG17:BW42 | Colorbox Top & Bottom | **Merged** (2 source images) |
+| `colorbox_left_right` | `colorbox_left` & `colorbox_right` | BX17:CN42 | Colorbox Left & Right | **Merged** (2 source images) |
+| `top_view_inside` | `top_view_inside` | DF17:DV42 | Top View Inside | Direct insert |
+| `actual_inside_carton` | `actual_inside_carton` | AQ47:BE57 | Actual Inside Carton | Direct insert |
 
-### 3.3 Data Classification
+#### Section 3: Marking (6 slots)
 
-All fields accessed are classified as **Internal — Business Operational Data** under the organization's data governance framework. The pipeline does not read or transmit personally identifiable information (PII), financial data, or customer data. No data is persisted outside the Microsoft 365 tenant boundary.
+| Slot ID | Template Key | Cell Range | Label | Role |
+|---|---|---|---|---|
+| `label` | `label` | CO17:DE30 | Label | Direct insert |
+| `colorbox_nom_label` | `colorbox_nom_label` | CO31:DE42 | Colorbox NOM Label | Direct insert |
+| `lazer_actual` | `lazer_actual` | Y8:AM19 | Laser Actual | Direct insert |
+| `lazer_drawing` | `lazer_drawing` | Y20:AM29 | Laser Drawing | Direct insert |
+| `nom_lable` | `nom_lable` (*) | Y30:AM40 | NOM Label | Direct insert |
+| `mastercarton_label_drawing` | `mastercarton_label_drawing` | BS58:CR69 | Mastercarton Label Drawing | Direct insert |
+
+> **(*)** Note: The template key for NOM Label is deliberately spelled `nom_lable` in the template file. The tool maps the correct ID `nom_lable` to this key. A future template update may correct this.
+
+#### Section 4: Folding Instructions (5 slots)
+
+| Slot ID | Template Key | Cell Range | Label | Role |
+|---|---|---|---|---|
+| `how_to_fold_1` | `how_to_fold_1` | DW17:EM42 | How To Fold 1 | Direct insert |
+| `how_to_fold_2` | `how_to_fold_2` | EN17:FD42 | How To Fold 2 | Direct insert |
+| `how_to_fold_3` | `how_to_fold_3` | FE17:FU42 | How To Fold 3 | Direct insert |
+| `how_to_fold_4` | `how_to_fold_4` | FV17:GL42 | How To Fold 4 | Direct insert |
+| `how_to_fold_5` | `how_to_fold_5` | GM17:HC42 | How To Fold 5 | Direct insert |
+
+#### Section 5: Sample (2 slots)
+
+| Slot ID | Template Key | Cell Range | Label | Role |
+|---|---|---|---|---|
+| `fg_colorbox_front` | `fg_colorbox_front` | C13:M40 | FG Colorbox Front | Direct insert |
+| `trimmer_front_back` | `trimmer_front` & `trimmer_back` | N13:X40 | Trimmer Front & Back | **Merged** (2 source images) |
+
+### 3.3 Merged-Image Slot Behavior
+
+Four slots accept two source images and combine them before insertion:
+
+| Merged Slot | Left Source | Right Source | Output |
+|---|---|---|---|
+| `colorbox_front_back` | `colorbox_front` | `colorbox_back` | Side-by-side PNG → range AP17:BF42 |
+| `colorbox_left_right` | `colorbox_left` | `colorbox_right` | Side-by-side PNG → range BX17:CN42 |
+| `colorbox_top_bottom` | `colorbox_top` | `colorbox_bottom` | Side-by-side PNG → range BG17:BW42 |
+| `trimmer_front_back` | `trimmer_front` | `trimmer_back` | Side-by-side PNG → range N13:X40 |
+
+The merge operation uses an offscreen HTML5 Canvas. Both source images are drawn at equal width, adjacent to each other, then the combined canvas is exported as a single PNG via `canvas.toDataURL("image/png")`.
+
+### 3.4 Supported Image Formats
+
+The tool accepts any image format supported by the user's browser for decoding. Verified formats include:
+
+`image/png`, `image/jpeg`, `image/gif`, `image/bmp`, `image/webp`, `image/avif`, `image/heic`, `image/heif`, `image/apng`, `image/svg+xml`, `image/tiff`, `image/emf`
+
+Final output is always **PNG** (embedded in the `.xlsx`).
 
 ---
 
 ## 4. Security & Authentication
 
-### 4.1 Identity Model
+### 4.1 Architecture & Threat Surface
 
-The pipeline operates under a **delegated identity model**. The Power Automate connection to Dynamics 365 F&O is configured with a service account or designated functional account registered in Microsoft Entra ID. Every OData call made by the flow carries an OAuth 2.0 access token bound to that identity.
+The tool runs **entirely client-side**. It has:
 
-### 4.2 Role-Based Access Control (RBAC)
+- **No server-side component.** No backend, no API, no database.
+- **No authentication mechanism.** No login, no session, no token.
+- **No network requests during operation** (except the initial page load and the fetch of `template.xlsx`, both of which are static file GETs).
+- **No data transmission.** Images and assignment data never leave the user's browser.
+- **No third-party analytics, telemetry, or tracking scripts.**
 
-The pipeline does **not** bypass or elevate D365 security. The service account is assigned standard D365 security roles in the same manner as any human user. The following roles are the minimum required:
+### 4.2 Data-at-Rest Considerations
 
-| D365 Security Role | Justification |
-|---|---|
-| `BOMManager` or equivalent | Read access to `BOMBillOfMaterialsVersionV2Entity` and `BOMBillOfMaterialsLineV2Entity` |
-| `ProductDesigner` (read-only) | Read access to released products for material group classification |
-
-**Principle of least privilege.** The service account is granted **read-only** access to D365. It cannot create, update, or delete BOM records. The only write operation in the entire pipeline is to the SharePoint List, which resides outside the D365 boundary.
-
-### 4.3 SharePoint List Security
-
-The `NPI_MaterialUsage` SharePoint List is secured via the standard SharePoint permissions model:
-- **NPI Engineering Group** — Contribute (read/write items)
-- **Power Automate service account** — Contribute (required for upsert)
-- **IT Operations** — Full Control (for schema changes and troubleshooting)
-- **All other principals** — No access (broken permission inheritance from parent site, if required by policy)
-
-### 4.4 Network & Transport Security
-
-- All communication between components uses **HTTPS (TLS 1.2 or higher)**.
-- No on-premises data gateway is involved; all traffic is cloud-to-cloud within Microsoft Azure regions.
-- The D365 OData endpoint is accessed via the public internet but protected by Entra ID authentication. If the organization enforces D365 IP allow-listing, the Power Automate outbound IP ranges must be included (see [Microsoft documentation](https://learn.microsoft.com/en-us/power-automate/ip-address-configuration) for the current regional IP ranges).
-
-### 4.5 Audit & Compliance
-
-- Power Automate maintains a **28-day run history** with per-execution details (trigger time, duration, success/failure, connector calls).
-- SharePoint List version history captures every data change at the row level, including the identity of the updating principal and the timestamp.
-- D365 OData access is logged in the D365 **User Log** and **OData Request Log**, providing end-to-end traceability from the Power Automate execution back to the individual D365 entity read.
-
----
-
-## 5. Performance & API Impact
-
-### 5.1 API Consumption Model
-
-Dynamics 365 F&O applies OData API throttling at the tenant level. The pipeline is designed to minimize API consumption through four complementary strategies:
-
-**Server-side filtering.** All filtering logic is pushed to the D365 OData endpoint using `$filter` query parameters. The pipeline never retrieves full entity sets and filters client-side.
-
-```
-// Example: Level-1 BOM header query (server-side filter)
-GET .../BOMBillOfMaterialsVersionV2Entity?
-    $filter=ProductNumber eq 'ITEM-001' and IsActive eq 'Yes'
-    &$select=BOMId,ProductNumber,Approver
-    &$top=1
-```
-
-**Column projection (`$select`).** Only the fields listed in Section 3 are requested. The pipeline does not use `$expand` for navigation properties that would trigger N+1 queries; instead, it issues targeted follow-up queries using the primary key from the header response.
-
-**Result-set limiting (`$top`).** Queries that expect a single result (e.g., active BOM version lookup) include `$top=1` to instruct the server to stop enumerating after the first match.
-
-**Idempotent write patterns.** The SharePoint upsert uses a unique constraint on `ParentItemNumber` so that repeated executions of the same item do not create duplicate rows, keeping the list size proportional to the item catalog, not the execution frequency.
-
-### 5.2 Estimated API Call Volume
-
-For a single-item BOM extraction (worst-case: three-level BOM with 50 lines per level):
-
-| Operation | OData Calls | Notes |
+| Storage Mechanism | Data Stored | Security Implication |
 |---|---|---|
-| BOM version header lookup | 1 | `$top=1`, `$filter` by ProductNumber |
-| Level-1 line retrieval | 1 | Paginated if > 250 lines |
-| Level-2 sub-BOM lookups | ≤ 50 | One per BOM-type line at level 1 |
-| Level-3 sub-BOM lookups | ≤ 250 | One per BOM-type line at level 2 |
-| SharePoint write | 1 | REST call to SharePoint API |
-| **Total (worst case)** | **~302** | Typical items average 15-30 calls |
+| `localStorage` | Slot assignment mappings (image name → slot ID), image data as base64 data URIs | Data resides in the browser's local storage sandbox, scoped to the origin domain. Accessible only to JavaScript running on the same origin. |
+| In-memory (browser RAM) | Decoded image buffers, Canvas state, ExcelJS workbook | Volatile; cleared when the tab is closed or navigated away. |
+| Browser download | Generated `.xlsx` file | Saved to the user's local downloads folder. No different from any other file download from a web page. |
 
-At 30 seconds per item, the sustained load on the D365 OData endpoint is approximately 10 requests per second — well within the standard throttling envelope of 600 requests per minute per tenant (documented by Microsoft).
+### 4.3 Risk Assessment
 
-### 5.3 Scheduling & Throttling Considerations
+| Risk | Classification | Mitigation |
+|---|---|---|
+| Sensitive inspection images stored in `localStorage` | Low | `localStorage` is origin-scoped. Users should clear browser data if the machine is shared. A future enhancement could encrypt localStorage entries. |
+| XSS via malicious image filename or metadata | Low | Image content is processed through the browser's native image decoder; filenames are rendered as text, not HTML. The React framework's JSX escaping mitigates injection. |
+| Template tampering (malicious `.xlsx`) | Low | `template.xlsx` is a static asset deployed alongside the application. Its integrity is governed by the hosting platform's access controls (GitHub repository permissions). |
+| Supply chain risk (npm dependencies) | Medium | Dependencies (ExcelJS, JSZip) are bundled at build time. Use `npm audit` and Dependabot / Snyk scanning in CI/CD. Pin versions in `package-lock.json`. |
+| Man-in-the-middle (MITM) on page load | Low | Deploy over HTTPS (enforced by GitHub Pages and all major CDNs). |
 
-- Scheduled runs should be staggered outside D365 business-critical hours (e.g., 02:00–04:00 local time) if the NPI item catalog exceeds 100 items.
-- The flow includes a configurable **delay between sub-BOM queries** (default: 200 ms) to avoid burst-load on the OData endpoint.
-- Power Automate's built-in retry policy handles transient 429 (Too Many Requests) responses with exponential backoff.
+### 4.4 Compliance Posture
+
+- **GDPR / Data Privacy:** The tool does not collect, process, or transmit personal data. Inspection images are product photographs — not PII.
+- **SOX / ITGC:** The tool is not a system of record. The source of truth is the generated `.xlsx` file, which is managed by the end-user per their department's document control procedures.
+- **Internal Audit:** The tool qualifies as an **end-user computing (EUC) application**. Organizations may require it to be listed in the EUC inventory with a documented owner, purpose, and risk classification.
+
+### 4.5 Recommended Deployment Controls
+
+For IT-governed deployments:
+
+1. Serve over **HTTPS only** (enforced by default on GitHub Pages).
+2. Add a **Content Security Policy (CSP)** header restricting script sources to the deployment origin.
+3. Pin dependency versions in the build pipeline; run `npm audit` on each PR.
+4. Store `template.xlsx` in a repository with branch protection and code-review requirements.
+5. Consider adding a **file-size limit** and **image-count cap** to prevent browser OOM from accidental bulk uploads.
 
 ---
 
-## 6. Maintenance & Troubleshooting
+## 5. Performance & Resource Impact
+
+### 5.1 Application Characteristics
+
+| Metric | Typical Value | Notes |
+|---|---|---|
+| Initial page load size | ~1.1 MB (JS bundle) + ~10 KB (CSS) + ~2 KB (HTML) | One-time load; cached by browser on subsequent visits |
+| `template.xlsx` size | Variable (depends on template complexity) | Loaded only on Generate click |
+| Memory usage (idle) | ~10–20 MB | React DOM + unassigned image thumbnails |
+| Memory usage (generating) | ~50–150 MB | Depends on image count, resolution, and merged-image canvas operations |
+| Generate time | 2–10 seconds | Depends on image count and resolution |
+| localStorage usage | ~5–50 MB | Depends on number and size of assigned images (base64-encoded) |
+
+### 5.2 Browser Compatibility
+
+The tool requires modern browser APIs:
+
+| API | Minimum Browser Version |
+|---|---|
+| FileReader | Chrome 6+, Firefox 3.6+, Edge 12+, Safari 6+ |
+| Canvas 2D | Chrome 1+, Firefox 1.5+, Edge 12+, Safari 2+ |
+| `URL.createObjectURL` | Chrome 8+, Firefox 4+, Edge 12+, Safari 6+ |
+| `localStorage` | All modern browsers (minimum ~5 MB quota per origin) |
+| `Image.decoding = "async"` | Chrome 65+, Firefox 133+, Edge 79+, Safari 16.4+ |
+
+**Recommended browsers:** Chrome 90+, Edge 90+, Firefox 133+.
+
+### 5.3 Resource Limits & Safeguards
+
+- **localStorage quota:** Browsers typically enforce a 5–10 MB per-origin limit. The tool stores images as base64 data URIs, which inflates size by ~33% compared to binary. Users with many high-resolution images may exceed the quota. In this case, older assignments are dropped (the tool does not currently implement LRU eviction, but writes are wrapped in a try/catch that silently discards overflow data).
+- **Canvas size limit:** Browsers impose maximum canvas dimensions (typically 16,384 × 16,384 px). Merged-image slots should not exceed this; the tool resizes images to fit the target cell range before canvas operations.
+- **File size limit:** No explicit limit is enforced on individual image uploads. IT teams may recommend a guideline of < 20 MB per image to prevent excessive memory consumption.
+
+---
+
+## 6. Maintenance & Configuration
 
 ### 6.1 Operational Ownership
 
-| Responsibility | Owner |
+| Responsibility | Recommended Owner |
 |---|---|
-| Power Automate flow health monitoring | IT Integration Team |
-| D365 security role maintenance | D365 System Administrator |
-| SharePoint List schema changes | IT Collaboration Team |
-| Material group / weight factor updates | NPI Engineering Lead |
-| Service account credential rotation | IT Identity & Access Management |
+| Application source code | IT Development / Digital Solutions Team |
+| Template file (`template.xlsx`) | NPI / QA Engineering Lead |
+| Slot configuration (cell ranges, labels) | NPI / QA Engineering Lead (proposes) + IT (implements in source) |
+| Dependency updates & CVE monitoring | IT Development Team |
+| End-user training & documentation | NPI / QA Team Lead |
+| EUC inventory registration | IT Governance / Compliance |
 
-### 6.2 Common Failure Modes
+### 6.2 Template Update Procedure
+
+When the inspection standard requirements change (e.g., a new image slot is added, an existing range is resized, or an image region is removed):
+
+1. **NPI/QA Lead** modifies `template.xlsx` in the appropriate worksheet (typically `COVER`).
+2. **NPI/QA Lead** communicates the changes — specifically, the affected template keys and their new cell ranges — to the IT Development Team.
+3. **IT Developer** updates the slot definition array in the source code (`Vd` constant) to reflect the new keys or ranges.
+4. **IT Developer** runs the build pipeline, validates the output against a sample set of images, and deploys the updated bundle alongside the new `template.xlsx`.
+5. **NPI/QA Lead** smoke-tests the deployed version with a known-good item.
+
+### 6.3 Adding a New Image Slot
+
+To add a new slot to the configuration, modify the `Vd` array in the application source. Each entry follows the schema:
+
+```
+{
+  id: string;           // Unique slot identifier (camelCase)
+  templateKey: string;  // Name of the placeholder/shape in template.xlsx
+  sheet: string;        // Worksheet name (default: "COVER")
+  range: string;        // Target cell range in Excel notation (e.g., "A1:B10")
+  cell: string;         // Starting cell column letter(s), derived from range
+  label: string;        // Human-readable label displayed in the UI
+  role: string;         // "direct" for single-image, "merged" for two-image merge
+  assetKeys: string[];  // 1 element for direct, 2 for merged (the sub-slot names)
+  section: string;      // Grouping section: "product", "packaging", "marking", "folding", "sample"
+}
+```
+
+Ensure the `templateKey` matches exactly the image name or shape name defined in `template.xlsx`.
+
+### 6.4 Dependency Inventory
+
+| Package | License | Purpose |
+|---|---|---|
+| `react` | MIT | UI component framework |
+| `react-dom` | MIT | DOM rendering |
+| `exceljs` | MIT | Excel workbook read/write, image insertion |
+| `jszip` | MIT | OOXML / ZIP packaging for `.xlsx` output |
+
+### 6.5 Build & Deployment
+
+The application is built with **Vite** (inferred from the ES module bundle structure). Typical build pipeline:
+
+```
+npm install
+npm run build
+# Output: dist/ directory containing index.html + assets/
+```
+
+Deployment is a static file copy to the web server, CDN, or GitHub Pages `main` branch.
+
+---
+
+## 7. Troubleshooting & Known Issues
+
+### 7.1 Common Failure Modes
 
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
-| Flow fails with `401 Unauthorized` | Service account password expired or Entra ID token issue | Rotate service account credentials; update Power Automate connection; verify Entra ID Conditional Access policy |
-| Flow fails with `403 Forbidden` from D365 OData | Insufficient D365 security role; user deprovisioned | Verify `BOMManager` role assignment; check D365 User Log for access denial details |
-| Flow returns zero lines for a known BOM | BOM version not active (`IsActive = No`); date effectivity window expired | Check BOM version status in D365; ensure `IsActive = Yes`; review `ValidFrom`/`ValidTo` dates |
-| Missing sub-BOM data (shallow traversal) | `LineType` not mapped correctly in the flow condition | Verify the flow's condition logic distinguishes `BOM` from `Item` line types |
-| SharePoint list grows unbounded | Upsert logic not working; unique constraint missing | Verify the `ParentItemNumber` column has a unique index enforced; audit flow logic for insert-vs-update branching |
-| Weight totals inconsistent with D365 | Stale unit weight factors in flow configuration; unit conversion error | Cross-reference flow weight factors against D365 released product attributes; validate unit-of-measure conversion logic |
+| "Failed to load template" error | `template.xlsx` not found at the expected path; CORS blocking the fetch | Verify `template.xlsx` is deployed alongside `index.html`; check browser console for network errors |
+| Images not appearing in generated Excel | Slot template key mismatch between source code and `template.xlsx` | Cross-reference the `templateKey` values in the slot definitions with the actual named ranges/shapes in the template |
+| Merged image looks stretched or distorted | Source images have incompatible aspect ratios | Resize source images to similar dimensions before assignment, or update the merge logic to letterbox instead of stretch |
+| localStorage quota exceeded | Too many large images assigned; base64 inflation | Reduce image resolution before uploading; clear previous assignments via the UI reset button |
+| Page blank or "Application error" | JavaScript bundle failed to load; browser too old | Verify browser compatibility (Section 5.2); check console for specific errors |
+| Generate takes > 30 seconds | Very large source images; many merged slots | Resize images to no larger than the target cell dimensions (typically < 2000 px per side) before uploading |
+| Downloaded file named "Inspection Standard - .xlsx" | No item name entered in the export filename field | Enter an item/part number in the filename field before clicking Generate |
+| Accessory 1 image appears in wrong position | Template key misspelled as `acessory_1` in template | This is a known template artifact; the tool accounts for it. If it breaks, verify the source code maps `accessory_1` → `acessory_1` |
 
-### 6.3 Monitoring & Alerting
+### 7.2 Diagnostic Information
 
-- **Power Automate built-in analytics.** The Power Platform Admin Center provides run history, error rates, and average duration. Configure a daily digest email for flow failures.
-- **SharePoint List alerts.** Configure a SharePoint alert on the `NPI_MaterialUsage` List to notify the NPI team when new rows are added or existing rows are modified.
-- **D365 OData telemetry.** D365 F&O administrators can query the `SysODataRequestLog` table to audit OData request volume, latency, and error responses originating from the pipeline's service account.
+When troubleshooting, collect the following from the affected user's browser:
 
-### 6.4 Recovery Procedures
+1. **Browser console output** (F12 → Console tab) — any errors or warnings.
+2. **Network tab** (F12 → Network) — verify `template.xlsx` loads with HTTP 200.
+3. **Application state** (F12 → Application → Local Storage → the app's origin) — inspect assignment data.
+4. **Browser version and OS** (navigator.userAgent).
+5. **Screenshot of the workspace** showing which slots are assigned and which are empty.
 
-**Flow execution failure.** Re-run the flow from the Power Automate portal. The upsert pattern is idempotent — partial writes from a failed run will be overwritten, not duplicated.
+### 7.3 Recovery Procedures
 
-**SharePoint List corruption.** Restore from the SharePoint recycle bin (first-stage or second-stage) or from a documented backup. The pipeline can fully rebuild the list by executing a bulk run against all active items.
+**Corrupted assignment state.** Open the browser's Developer Tools (F12), navigate to Application → Local Storage, and delete the entry for the app's origin. Reload the page. All assignments will be cleared, and the image pool will be empty.
 
-**D365 OData endpoint unavailability.** The flow will fail gracefully and can be re-triggered. No data loss occurs because the pipeline is read-only with respect to D365. If the outage exceeds the SLA window, escalate via the standard D365 support channel.
+**Failed template load.** Ensure `template.xlsx` is present in the same directory as `index.html`. If the app is hosted on a different origin from the template, verify CORS headers allow cross-origin requests.
 
-### 6.5 Configuration Parameters
+**Browser tab unresponsive.** Close the tab, reopen the application URL. If images were assigned, they may be recovered from localStorage (assignments are saved after each change). If the tab crash corrupted localStorage, start fresh.
 
-The following parameters are maintained within the Power Automate flow definition and should be documented in the organization's configuration management database (CMDB):
+---
 
-| Parameter | Default | Description |
+## 8. Change Management
+
+Any modification to the following requires review per the organization's change control policy:
+
+- **Source code** (slot configuration, image processing logic, merge behavior)
+- **`template.xlsx`** (cell ranges, new/removed slots, worksheet structure)
+- **Dependencies** (ExcelJS, JSZip, React version upgrades)
+- **Deployment target** (hosting platform, domain, CDN configuration)
+- **Build tooling** (Vite configuration, bundling settings)
+
+### 8.1 Pre-Deployment Testing Checklist
+
+Before promoting a new version to production:
+
+- [ ] `npm audit` returns zero critical/high vulnerabilities.
+- [ ] Template loads successfully in Chrome, Edge, and Firefox.
+- [ ] All 27 slots accept image assignment (23 direct + 4 merged).
+- [ ] Merged-image slots correctly combine two source images side-by-side.
+- [ ] Generated `.xlsx` opens without errors in Microsoft Excel (desktop) and Excel Online.
+- [ ] Slot completeness counter shows correct assigned/total count.
+- [ ] localStorage save/restore works: assign images, reload page, confirm assignments persist.
+- [ ] Reset button clears all state.
+- [ ] Vietnamese locale renders all labels, instructions, and UI text correctly (if i18n is maintained).
+- [ ] Dark theme renders all UI elements with sufficient contrast.
+
+---
+
+## Appendix A: File Inventory
+
+| File | Purpose | Format |
 |---|---|---|
-| `MaxBOMDepth` | 3 | Maximum recursion depth for sub-BOM traversal |
-| `ABSItemGroup` | `ABS_RAW` | D365 item group identifier for ABS resin materials |
-| `ColorantItemGroup` | `COLORANT` | D365 item group identifier for colorant materials |
-| `ODataTopThreshold` | 250 | Page size for OData line queries |
-| `SubBOMDelayMs` | 200 | Delay between sequential sub-BOM queries (throttling control) |
-| `SharePointSiteUrl` | (tenant-specific) | Base URL of the SharePoint site hosting the target list |
-| `SharePointListName` | `NPI_MaterialUsage` | Display name of the target SharePoint List |
+| `index.html` | Application entry point; mounts React root | HTML5 |
+| `assets/index-C4crLsSL.js` | Bundled application code (React + ExcelJS + JSZip + app logic) | JavaScript (ES modules) |
+| `assets/index-Ddfo1yrU.css` | Application stylesheet (light/dark theme, responsive layout) | CSS |
+| `template.xlsx` | Master inspection standard template with named image placeholders | Excel OOXML (.xlsx) |
+| `README.md` | This document | Markdown |
+
+## Appendix B: Slot Quick-Reference Card
+
+```
+Section: Product (9)
+  ib_safety ................ AP2:BF16
+  trimmer_hdpe ............. BG2:BW16
+  accessory_1–7 ............ BX2:GR16 (sequential)
+
+Section: Packaging (5)
+  colorbox_front_back ...... AP17:BF42  [MERGED: 2 src]
+  colorbox_top_bottom ...... BG17:BW42  [MERGED: 2 src]
+  colorbox_left_right ...... BX17:CN42  [MERGED: 2 src]
+  top_view_inside .......... DF17:DV42
+  actual_inside_carton ..... AQ47:BE57
+
+Section: Marking (6)
+  label .................... CO17:DE30
+  colorbox_nom_label ....... CO31:DE42
+  lazer_actual ............. Y8:AM19
+  lazer_drawing ............ Y20:AM29
+  nom_lable ................ Y30:AM40
+  mastercarton_label_drawing BS58:CR69
+
+Section: Folding (5)
+  how_to_fold_1–5 .......... DW17:HC42 (sequential)
+
+Section: Sample (2)
+  fg_colorbox_front ........ C13:M40
+  trimmer_front_back ....... N13:X40  [MERGED: 2 src]
+```
 
 ---
 
-## 7. Change Management
-
-Any modification to the Power Automate flow, SharePoint List schema, or D365 security role assignments must follow the organization's standard change control process. Specific triggers for change review include:
-
-- Addition of new material types beyond ABS and Colorant
-- Change to the maximum BOM traversal depth
-- Modification of the OData query patterns (e.g., adding `$expand`)
-- Service account credential rotation
-- SharePoint List column additions or data type changes
-
-All changes should be tested in a non-production D365 environment (UAT or Sandbox) before promotion to production.
-
----
-
-*Document version: 1.0 | Prepared for IT Security & Architecture Review | Last updated: 2026-05-13*
+*End of document. Prepared for IT security and architecture review.*
