@@ -166,6 +166,7 @@ class BOMIndexerGUI:
             sg.Button(t("select_folder"), key="-SELECT_FOLDER-", size=(18, 1)),
             sg.Button(t("select_files"), key="-SELECT_FILES-", size=(14, 1)),
             sg.Button(t("load_cache"), key="-LOAD_CACHE-", size=(12, 1), button_color=('white', '#0066cc')),
+            sg.Button(t("refresh_cache"), key="-REFRESH_CACHE-", size=(12, 1), button_color=('white', '#e65100')),
             sg.Button(t("export_csv"), key="-EXPORT_CSV-", size=(12, 1), disabled=True, button_color=('black', '#cccccc')),
             sg.Button(t("open_selected_file"), key="-OPEN_SELECTED_FILE-", size=(16, 1), disabled=True),
             sg.Push(),
@@ -492,24 +493,58 @@ class BOMIndexerGUI:
             return
         self.state.busy = True
         self.window["-EXPORT_CSV-"].update(disabled=True)
-        self._update_status(self._t("msg_cache_validating"), "#0066cc")
+        self.window["-PROGRESS-"].update(0)
+        self._update_status(self._t("msg_loading_cache"), "#0066cc")
         thread = threading.Thread(target=self._load_cache_worker, daemon=True)
         thread.start()
 
-    def _load_cache_worker(self):
-        """Background worker: load cache entries and validate timestamps."""
-        try:
-            # Load entries from partitioned cache first, fallback to legacy
-            entries = None
-            cache_source = "partitioned"
-            if self.state.partitioned_cache_manager:
-                entries = self.state.partitioned_cache_manager.load_entries()
-            if not entries:
-                entries = self.state.cache_manager.load_entries()
-                cache_source = "legacy"
-                if entries and self.state.cache_manager.count_records() == 0:
-                    self.state.cache_manager.rebuild_records_index(list(entries.values()))
+    def _handle_refresh_cache(self):
+        if self.state.busy:
+            sg.popup(self._t("msg_busy"))
+            return
+        self.state.busy = True
+        self.window["-EXPORT_CSV-"].update(disabled=True)
+        self.window["-PROGRESS-"].update(0)
+        self._update_status(self._t("msg_cache_validating"), "#0066cc")
+        thread = threading.Thread(target=self._refresh_cache_worker, daemon=True)
+        thread.start()
 
+    def _read_cached_entries(self):
+        """Load cache entries, preferring partitioned cache with legacy fallback."""
+        entries = None
+        cache_source = "partitioned"
+        if self.state.partitioned_cache_manager:
+            entries = self.state.partitioned_cache_manager.load_entries()
+        if not entries:
+            entries = self.state.cache_manager.load_entries()
+            cache_source = "legacy"
+            if entries and self.state.cache_manager.count_records() == 0:
+                self.state.cache_manager.rebuild_records_index(list(entries.values()))
+        return entries, cache_source
+
+    def _load_cache_worker(self):
+        """Background worker: load cached entries without filesystem validation."""
+        try:
+            entries, cache_source = self._read_cached_entries()
+            if not entries:
+                self.state.result_queue.put(('status', self._t("msg_cache_failed", "no entries found"), "#d32f2f"))
+                self.state.result_queue.put(('done',))
+                return
+
+            self.state.result_queue.put(('progress', 100))
+            msg_key = "msg_cache_loaded" if cache_source == "partitioned" else "msg_legacy_loaded"
+            self.state.result_queue.put(('cache_result', list(entries.values()),
+                                        self._t(msg_key, len(entries)), cache_source))
+            self.state.result_queue.put(('done',))
+
+        except Exception as e:
+            self.state.result_queue.put(('error', str(e)))
+            self.state.result_queue.put(('done',))
+
+    def _refresh_cache_worker(self):
+        """Background worker: validate cached timestamps and rescan stale files."""
+        try:
+            entries, cache_source = self._read_cached_entries()
             if not entries:
                 self.state.result_queue.put(('status', self._t("msg_cache_failed", "no entries found"), "#d32f2f"))
                 self.state.result_queue.put(('done',))
@@ -1350,6 +1385,9 @@ class BOMIndexerGUI:
 
             elif event == "-LOAD_CACHE-":
                 self._handle_load_cache()
+
+            elif event == "-REFRESH_CACHE-":
+                self._handle_refresh_cache()
 
             elif event == "-EXPORT_CSV-":
                 self._handle_export_csv()
