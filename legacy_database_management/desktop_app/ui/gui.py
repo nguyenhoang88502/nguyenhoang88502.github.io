@@ -1329,6 +1329,25 @@ class BOMIndexerGUI:
         mode_key = mode_map.get(self.state.batch_mode, "batch_single")
         self.window["-BATCH_MODE-"].update(self._t(mode_key))
 
+    def _shutdown(self):
+        """Close UI and cache handles, then terminate the process."""
+        try:
+            if self.window:
+                self.window.close()
+        except Exception:
+            pass
+        try:
+            if self.state.partitioned_cache_manager:
+                self.state.partitioned_cache_manager.close()
+        except Exception:
+            pass
+        try:
+            if self.state.cache_manager:
+                self.state.cache_manager.close()
+        except Exception:
+            pass
+        os._exit(0)
+
     # ============ Main event loop ============
 
     def run(self, initial_folder: Optional[str] = None):
@@ -1375,7 +1394,7 @@ class BOMIndexerGUI:
                     self._perform_lookup()
 
             if event == sg.WIN_CLOSED:
-                break
+                self._shutdown()
 
             if event in ("-SELECT_FOLDER-", "-FOLDER-"):
                 self._handle_select_folder()
@@ -1448,7 +1467,7 @@ class BOMIndexerGUI:
                 self.state.lang = "vi" if self.state.lang == "en" else "en"
                 self._rebuild_window()
 
-        self.window.close()
+        self._shutdown()
 
 
 def run_gui(initial_folder: Optional[str] = None):
