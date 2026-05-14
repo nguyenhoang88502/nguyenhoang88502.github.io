@@ -27,19 +27,31 @@ def codeValue(value: Any) -> str:
 
 # ============ BOM/FG Detection Logic ============
 
+MOLD_CODE_RE = re.compile(
+    r'\b(?:CAP\d+[A-Z]+|MDE\s*\d+(?:\.\d+)?|MOLD-\d+|TD\d{4,}[A-Z]?)\b',
+    re.IGNORECASE
+)
+
 BOM_CODE_PATTERNS = {
     'versioned': re.compile(r'^3\d{6}V\d{2}$', re.IGNORECASE),
-    'mold': re.compile(r'^TD\d{4}A?$', re.IGNORECASE),
+    'mold': re.compile(r'^(?:CAP\d+[A-Z]+|MDE\s*\d+(?:\.\d+)?|MOLD-\d+|TD\d{4,}[A-Z]?)$', re.IGNORECASE),
     'old': re.compile(r'^1\d{6}$'),
     'new': re.compile(r'^3\d{6}$'),
-    'family': re.compile(r'^\d{4}$'),
+    'family': re.compile(r'^(?:\d{4}|\d+-\d+)$'),
     'bom': re.compile(r'^BOM\d{4,}$', re.IGNORECASE)
 }
 
 FG_PATTERNS = [
     (r'^(19|20)\d{2}$', None),  # Year-like patterns are NOT FG
+    (r'^[13]\d{6}$', 'fg'),
     (r'^\d{4,5}-[A-Z0-9]{2,5}[A-Z]?$', 'fg'),
     (r'^\d{4,5}[A-Z]?$', 'fg')
+]
+
+ITEM_PATTERNS = [
+    re.compile(r'^[13]\d{6}$'),
+    re.compile(r'^\d{5}$'),
+    re.compile(r'^\d+-\d+[A-Z]?$', re.IGNORECASE),
 ]
 
 
@@ -75,8 +87,80 @@ def isFgLike(value: str) -> bool:
 
 def fgMatchesInText(value: str) -> List[str]:
     """Extract all FG codes from text"""
-    matches = re.findall(r'\b\d{4,5}(?:-[A-Z0-9]{2,5})?[A-Z]?\b', str(value or ""), re.IGNORECASE)
+    matches = re.findall(r'\b(?:[13]\d{6}|\d{4,5}(?:-[A-Z0-9]{2,5})?[A-Z]?)\b', str(value or ""), re.IGNORECASE)
     return unique([codeValue(m) for m in matches if isFgLike(m)])
+
+
+def moldMatchesInText(value: str) -> List[str]:
+    """Extract mold/tooling codes from free text."""
+    return unique([re.sub(r'\s+', ' ', codeValue(m)) for m in MOLD_CODE_RE.findall(str(value or ""))])
+
+
+def isUniversalNoise(value: str) -> bool:
+    """Exclude status/date/code cells when guessing descriptions from Universal rows."""
+    val = text(value)
+    norm = normalize(val)
+    if not val or norm in {"n/a", "na", "none", "no", "yes", "null", "-"}:
+        return True
+    if re.match(r'^\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?$', val):
+        return True
+    if re.match(r'^[13]\d{6}$', val) or bomKind(val) or isItem(val):
+        return True
+    if moldMatchesInText(val):
+        return True
+    return False
+
+
+def isLikelyDescription(value: str) -> bool:
+    """Check whether a cell looks like a human-readable product/component description."""
+    val = text(value)
+    if isUniversalNoise(val):
+        return False
+    if not re.search(r'[A-Za-z]', val):
+        return False
+    return len(val) >= 4
+
+
+def extractUniversalRowFields(values: List[str]) -> Dict[str, str]:
+    """
+    Infer core manufacturing fields from a raw Universal-mode row.
+
+    Common legacy exports place data as:
+    Item | Mold | FG | Product name | Component item | Component name | ...
+    """
+    clean_values = [text(v) for v in values if text(v)]
+    id_cells = [
+        (idx, codeValue(v))
+        for idx, v in enumerate(clean_values)
+        if re.match(r'^[13]\d{6}$', text(v))
+    ]
+    item = id_cells[0][1] if id_cells else ""
+    fg_item = id_cells[1][1] if len(id_cells) > 1 else ""
+    fg_index = id_cells[1][0] if len(id_cells) > 1 else -1
+
+    product_name = ""
+    if fg_index >= 0:
+        for value in clean_values[fg_index + 1:]:
+            if isLikelyDescription(value):
+                product_name = value
+                break
+    if not product_name:
+        for value in clean_values:
+            if isLikelyDescription(value):
+                product_name = value
+                break
+
+    molds = []
+    for value in clean_values:
+        molds.extend(moldMatchesInText(value))
+
+    return {
+        'item': item,
+        'fgItem': fg_item,
+        'fgName': '',
+        'productName': product_name,
+        'mold': ", ".join(unique(molds)),
+    }
 
 
 def isBomCodeInContext(value: str, context: str = "") -> bool:
@@ -95,7 +179,7 @@ def isBomCodeInContext(value: str, context: str = "") -> bool:
 def bomMatchesInText(value: str, context: Optional[str] = None) -> List[str]:
     """Extract all BOM codes from text, filtered by context"""
     ctx = context if context is not None else value
-    pattern = r'\b(?:3\d{6}V\d{2}|TD\d{4}A?|BOM\d{4,}|[13]\d{6}|\d{4})\b'
+    pattern = r'\b(?:3\d{6}V\d{2}|CAP\d+[A-Z]+|MDE\s*\d+(?:\.\d+)?|MOLD-\d+|TD\d{4,}[A-Z]?|BOM\d{4,}|[13]\d{6}|\d{4}|\d+-\d+)\b'
     matches = re.findall(pattern, str(value or ""), re.IGNORECASE)
     result = []
     for m in matches:
@@ -115,8 +199,9 @@ def bomValuesByTarget(values: List[str], target: str, context: Optional[Any] = N
 
 
 def isItem(value: str) -> bool:
-    """Check if value looks like an item number (4+ digits)"""
-    return bool(re.match(r'^\d{4,}$', text(value)))
+    """Check if value looks like a component/raw-material item number."""
+    code = codeValue(value)
+    return any(pattern.match(code) for pattern in ITEM_PATTERNS)
 
 
 # ============ Header Aliases (Multi-language) ============
@@ -130,16 +215,20 @@ HEADER_ALIASES = {
     'fgName': [
         "fg name", "fg product name", "finished good name",
         "finished goods name", "finished good product name",
+        "finished good description", "fg description",
         "parent fg name", "parent name"
     ],
     'itemNumber': [
         "item number", "item no", "item", "item code", "part number",
-        "component", "component item",
+        "component", "component item", "component number", "component code",
+        "raw material", "raw material number", "raw material code",
         "ma hang", "ma vat tu", "ma linh kien", "mã hàng", "mã vật tư", "mã linh kiện",
         "物料编码", "物料编号", "物料号", "料号", "品号", "项目编号"
     ],
     'productName': [
         "product name", "item name", "product", "description", "name",
+        "component description", "component name", "raw material description",
+        "raw material name", "material description", "material name",
         "ten hang", "ten vat tu", "ten san pham", "tên hàng", "tên vật tư", "tên sản phẩm",
         "品名", "物料名称", "产品名称", "名称", "描述"
     ],
@@ -161,6 +250,7 @@ HEADER_ALIASES = {
     ],
     'bom': [
         "bom", "bom number", "bom no", "bom id",
+        "bom family", "bom version", "versioned bom",
         "ma bom", "mã bom", "bom编号", "bom号", "物料清单号", "清单号"
     ],
     'bomName': [
@@ -220,13 +310,42 @@ def aliases(key_or_names) -> List[str]:
     return [normalize(name) for name in result]
 
 
+def normalizeHeader(value: Any) -> str:
+    """Normalize an Excel header while tolerating explanatory notes."""
+    normalized = normalize(value)
+    normalized = re.sub(r'\([^)]*\)', '', normalized)
+    normalized = re.sub(r'[\r\n\t_/\\:;,\-.]+', ' ', normalized)
+    normalized = re.sub(r'\s+', ' ', normalized).strip()
+    return normalized
+
+
+def headerMatchesAlias(cell: Any, target_names: List[str]) -> bool:
+    """Return True if a header cell matches one of the canonical aliases."""
+    raw = normalize(cell)
+    clean = normalizeHeader(cell)
+    if raw in target_names or clean in target_names:
+        return True
+
+    for target in target_names:
+        target_clean = normalizeHeader(target)
+        if not target_clean:
+            continue
+        if clean == target_clean:
+            return True
+        if " " in target_clean and (
+            clean.startswith(target_clean + " ") or
+            clean.endswith(" " + target_clean)
+        ):
+            return True
+    return False
+
+
 def hasHeader(row: List[str], key_or_names) -> bool:
     """Check if row contains a header matching the given field names"""
     if not row or not isinstance(row, list):
         return False
-    normalized = [normalize(cell) for cell in row if cell]
     target_names = aliases(key_or_names)
-    return any(cell in target_names for cell in normalized)
+    return any(headerMatchesAlias(cell, target_names) for cell in row if cell)
 
 
 def hasAnyHeader(rows: List[List[str]], key_or_names) -> bool:
@@ -269,17 +388,16 @@ def findHeaderRows(rows: List[List[str]]) -> List[Dict]:
 
 def headerColumn(headers: List[str], names) -> int:
     """Find column index for a given header name/alias"""
-    normalized = [normalize(h) for h in headers if h]
     target_names = aliases(names)
     
     # Direct match
-    for target in target_names:
-        if target in normalized:
-            return normalized.index(target)
+    for i, cell in enumerate(headers):
+        if headerMatchesAlias(cell, target_names):
+            return i
     
     # Loose match for "item number" variations
     if "item number" in target_names:
-        for i, cell in enumerate(normalized):
+        for i, cell in enumerate([normalizeHeader(h) for h in headers]):
             if cell.startswith("item nu") or cell.startswith("item num"):
                 return i
     
@@ -307,18 +425,17 @@ def extractStructuredRows(file_summary: Dict, sheet_name: str, rows: List[List[s
     start_row = header_match['rowIndex'] + 1
     for row_idx in range(start_row, len(rows)):
         row = rows[row_idx]
-        item = text(row[item_col]) if item_col >= 0 else ""
-        fg_item_raw = text(row[fg_col]) if fg_col >= 0 else ""
-        fg_item = fg_item_raw if fg_item_raw else (item if isFgLike(item) else "")
-        fg_name = text(row[fgname_col]) if fgname_col >= 0 else ""
-        product_name = text(row[product_col]) if product_col >= 0 else ""
-        warehouse = text(row[wh_col]) if wh_col >= 0 else ""
-        quantity = text(row[qty_col]) if qty_col >= 0 else ""
-        per_series = text(row[per_col]) if per_col >= 0 else ""
-        unit_val = text(row[unit_col]) if unit_col >= 0 else ""
-        bom_raw = row[bom_col] if bom_col >= 0 else None
-        bom = codeValue(bom_raw) if bom_col >= 0 else ""
-        bom_name = text(row[bomname_col]) if bomname_col >= 0 else ""
+        item = valueAt(row, item_col) if item_col >= 0 else ""
+        fg_item_raw = valueAt(row, fg_col) if fg_col >= 0 else ""
+        fg_item = fg_item_raw
+        fg_name = valueAt(row, fgname_col) if fgname_col >= 0 else ""
+        product_name = valueAt(row, product_col) if product_col >= 0 else ""
+        warehouse = valueAt(row, wh_col) if wh_col >= 0 else ""
+        quantity = valueAt(row, qty_col) if qty_col >= 0 else ""
+        per_series = valueAt(row, per_col) if per_col >= 0 else ""
+        unit_val = valueAt(row, unit_col) if unit_col >= 0 else ""
+        bom = codeValue(valueAt(row, bom_col)) if bom_col >= 0 else ""
+        bom_name = valueAt(row, bomname_col) if bomname_col >= 0 else ""
 
         line_text = " | ".join(filter(None, [text(c) for c in row]))
 
@@ -344,6 +461,7 @@ def extractStructuredRows(file_summary: Dict, sheet_name: str, rows: List[List[s
         record = {
             'file': file_summary['file'],
             'path': file_summary['path'],
+            'modified': file_summary.get('modified', ''),
             'sheet': sheet_name,
             'row': row_idx + 1,
             'item': item,
@@ -356,6 +474,8 @@ def extractStructuredRows(file_summary: Dict, sheet_name: str, rows: List[List[s
             'unit': unit_val,
             'bom': bom,
             'bomName': bom_name,
+            'itemIsFg': False,
+            'bomFromColumn': bom_col >= 0,
             'text': line_text,
             'searchText': searchText([
                 file_summary['file'], file_summary['path'], sheet_name,
@@ -479,11 +599,29 @@ def extractItemsAndBoms(rows: List[List[str]]) -> Dict:
             mold_boms.add(code)
         return True
 
+    active_item_col = -1
+    active_fg_col = -1
+
     for row in rows:
+        if hasHeader(row, "itemNumber") or hasHeader(row, "fgItem"):
+            active_item_col = headerColumn(row, ["itemNumber"])
+            active_fg_col = headerColumn(row, ["fgItem"])
+            continue
+
         row_context = " | ".join([text(c) for c in row])
-        for cell in row:
+        for col_idx, cell in enumerate(row):
             val = text(cell)
             if not val:
+                continue
+
+            if active_item_col >= 0 and col_idx == active_item_col:
+                if isItem(val):
+                    items.add(codeValue(val))
+                continue
+
+            if active_fg_col >= 0 and col_idx == active_fg_col:
+                if isFgLike(val):
+                    fg_items.add(codeValue(val))
                 continue
 
             # Extract BOM codes
@@ -492,14 +630,14 @@ def extractItemsAndBoms(rows: List[List[str]]) -> Dict:
 
             # Extract FG items (not in BOM context)
             for fg_code in fgMatchesInText(val):
-                if not isBomCodeInContext(fg_code, row_context):
+                if not isBomCodeInContext(fg_code, row_context) and re.search(r'\bfg\b|finished good', row_context, re.IGNORECASE):
                     fg_items.add(fg_code)
 
             # Extract generic items (alphanumeric codes that are not BOMs)
             item_matches = re.findall(r'\b[A-Z0-9][A-Z0-9-]{2,}[A-Z0-9]\b', val, re.IGNORECASE)
             for match in item_matches:
                 code = codeValue(match)
-                if not isBomCodeInContext(code, row_context):
+                if not isBomCodeInContext(code, row_context) and (isItem(code) or re.search(r'[A-Z]', code)):
                     items.add(code)
 
     return {

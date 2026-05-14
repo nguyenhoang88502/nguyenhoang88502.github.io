@@ -3,11 +3,13 @@
 from typing import Dict, List, Any
 from pathlib import Path
 import sys
+from datetime import datetime
 
 from logic.bom_classifier import (
     normalize, text, hasKeyValues, isRepeatedKeyHeader, codeValue,
-    bomKind, isBomLike, fgKind, isFgLike, fgMatchesInText,
-    containsBomTitle, bomMatchesInText, hasHeader, hasAnyHeader,
+    bomKind, isBomLike, fgKind, isFgLike, fgMatchesInText, isBomCodeInContext,
+    containsBomTitle, bomMatchesInText, extractUniversalRowFields,
+    hasHeader, hasAnyHeader,
     findHeaderRows, headerColumn, searchText,
     detectType, extractStructuredRows, extractBomVersions, extractItemsAndBoms,
     BOM_TITLE_TERMS, aliases
@@ -17,6 +19,35 @@ from logic.utils import unique, isFractional, valueAt
 
 
 # ============ Workbook Summarization ============
+
+def format_modified(value: Any) -> str:
+    """Format file modified timestamp for display/export."""
+    try:
+        timestamp = float(value or 0)
+        if timestamp <= 0:
+            return ""
+        return datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y")
+    except (TypeError, ValueError, OSError):
+        return str(value or "")
+
+
+def add_bom_code(summary: Dict[str, Any], code: str):
+    """Add a BOM code to summary-level buckets."""
+    if not code:
+        return
+    code = codeValue(code)
+    summary['boms'].append(code)
+    kind = bomKind(code)
+    if kind == 'family':
+        summary['bomFamilies'].append(code)
+    elif kind == 'old':
+        summary['oldBoms'].append(code)
+    elif kind == 'new':
+        summary['newBoms'].append(code)
+    elif kind == 'versioned':
+        summary['versionedBoms'].append(code)
+    elif kind == 'mold':
+        summary['molds'].append(code)
 
 def summarize_workbook(filepath: str, file_meta: Dict[str, Any] = None) -> Dict[str, Any]:
     """
@@ -31,7 +62,7 @@ def summarize_workbook(filepath: str, file_meta: Dict[str, Any] = None) -> Dict[
         'file': filename,
         'path': file_meta.get('relative_path') or file_meta['path'],
         'size': file_meta['size'],
-        'modified': str(file_meta.get('modified', 0)),
+        'modified': format_modified(file_meta.get('modified', 0)),
         'type': 'Unknown',
         'sheetCount': 0,
         'sheets': [],
@@ -108,15 +139,13 @@ def summarize_workbook(filepath: str, file_meta: Dict[str, Any] = None) -> Dict[
                 for rec in records:
                     if rec['item']:
                         summary['items'].append(rec['item'])
-                    if rec['item'] and isFgLike(rec['item']):
-                        summary['fgItems'].append(codeValue(rec['item']))
                     if rec['fgItem']:
                         summary['fgItems'].append(codeValue(rec['fgItem']))
                     if rec['fgName']:
                         summary['fgNames'].append(rec['fgName'])
                     # BOM in record may be ambiguous: only count if in proper context
-                    if rec['bom'] and isBomCodeInContext(rec['bom'], rec['text']):
-                        summary['boms'].append(rec['bom'].upper())
+                    if rec['bom'] and (rec.get('bomFromColumn') or isBomCodeInContext(rec['bom'], rec['text'])):
+                        add_bom_code(summary, rec['bom'])
                     elif rec['bom'] and not isBomCodeInContext(rec['bom'], rec['text']):
                         # Not a BOM, might be an item
                         summary['items'].append(rec['bom'])
@@ -134,7 +163,7 @@ def summarize_workbook(filepath: str, file_meta: Dict[str, Any] = None) -> Dict[
                 if ver['isFg'] and ver['parentName']:
                     summary['fgNames'].append(ver['parentName'])
                 if ver['bom']:
-                    summary['boms'].append(ver['bom'])
+                    add_bom_code(summary, ver['bom'])
                 if ver['parentName']:
                     summary['productNames'].append(ver['parentName'])
                 if ver['bomName']:
@@ -199,7 +228,7 @@ def summarize_workbook_universal(filepath: str, file_meta: Dict[str, Any] = None
         'file': filename,
         'path': file_meta.get('relative_path') or file_meta['path'],
         'size': file_meta['size'],
-        'modified': str(file_meta.get('modified', 0)),
+        'modified': format_modified(file_meta.get('modified', 0)),
         'type': 'Universal',
         'sheetCount': 0,
         'sheets': [],
@@ -241,16 +270,29 @@ def summarize_workbook_universal(filepath: str, file_meta: Dict[str, Any] = None
                 if not line_text:
                     continue
                 non_empty_rows += 1
+                extracted = extractUniversalRowFields(visible_values)
+                mold_value = extracted.get('mold', '')
+                if extracted.get('item'):
+                    summary['items'].append(extracted['item'])
+                if extracted.get('fgItem'):
+                    summary['fgItems'].append(extracted['fgItem'])
+                if extracted.get('productName'):
+                    summary['productNames'].append(extracted['productName'])
+                if mold_value:
+                    summary['molds'].extend([m.strip() for m in mold_value.split(",") if m.strip()])
+
                 summary['records'].append({
                     'file': summary['file'],
                     'path': summary['path'],
+                    'modified': summary.get('modified', ''),
                     'sheet': sheet_name,
                     'row': row_idx + 1,
                     'column': '',
-                    'item': '',
-                    'fgItem': '',
-                    'fgName': '',
-                    'productName': line_text[:200],
+                    'item': extracted.get('item', ''),
+                    'fgItem': extracted.get('fgItem', ''),
+                    'fgName': extracted.get('fgName', ''),
+                    'productName': extracted.get('productName', '') or line_text[:200],
+                    'mold': mold_value,
                     'warehouse': '',
                     'quantity': '',
                     'perSeries': '',
@@ -259,7 +301,11 @@ def summarize_workbook_universal(filepath: str, file_meta: Dict[str, Any] = None
                     'bomName': '',
                     'text': line_text,
                     'cellIndexText': "\t".join(indexed_cells),
-                    'searchText': searchText([summary['file'], summary['path'], sheet_name, line_text])
+                    'searchText': searchText([
+                        summary['file'], summary['path'], sheet_name, line_text,
+                        extracted.get('item', ''), extracted.get('fgItem', ''),
+                        extracted.get('productName', ''), mold_value
+                    ])
                 })
 
             summary['sheets'].append({
@@ -272,6 +318,10 @@ def summarize_workbook_universal(filepath: str, file_meta: Dict[str, Any] = None
                 'nonEmptyRows': non_empty_rows
             })
 
+        summary['items'] = unique(summary['items'])
+        summary['fgItems'] = unique(summary['fgItems'])
+        summary['molds'] = unique(summary['molds'])
+        summary['productNames'] = unique(summary['productNames'])
         summary['fractionalCount'] = sum(1 for r in summary['records'] if isFractional(r.get('quantity', '')))
         summary['sample'] = " | ".join([r.get('text', '') for r in summary['records'][:10] if r.get('text')])
 

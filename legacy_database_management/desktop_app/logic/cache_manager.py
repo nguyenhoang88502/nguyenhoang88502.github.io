@@ -8,6 +8,17 @@ from datetime import datetime
 from pathlib import Path
 
 
+def modified_from_signature(signature: str) -> str:
+    parts = (signature or "").split("|")
+    try:
+        mtime_ms = int(parts[2]) if len(parts) >= 3 else 0
+        if mtime_ms <= 0:
+            return ""
+        return datetime.fromtimestamp(mtime_ms / 1000).strftime("%d/%m/%Y")
+    except (TypeError, ValueError, OSError):
+        return ""
+
+
 class CacheManager:
     """Manages SQLite cache for BOM dataset indexes"""
 
@@ -128,7 +139,7 @@ class CacheManager:
                 continue
         return entries
 
-    def save_entries(self, entries: List[Dict[str, Any]], version: int = 8):
+    def save_entries(self, entries: List[Dict[str, Any]], version: int = 10):
         """Save list of entries to cache (replaces all entries atomically)"""
         if not self.conn:
             raise RuntimeError("Database not connected. Call connect() first.")
@@ -234,9 +245,10 @@ class CacheManager:
         try:
             rows = self.conn.execute(
                 """
-                SELECT r.path, r.sheet, r.row_no, r.col_no, r.row_text
+                SELECT r.path, r.sheet, r.row_no, r.col_no, r.row_text, e.file_signature
                 FROM cache_records_fts f
                 JOIN cache_records r ON r.id = f.rowid
+                LEFT JOIN cache_entries e ON e.path = r.path
                 WHERE f.row_search_text MATCH ?
                 ORDER BY bm25(cache_records_fts), r.path, r.sheet, r.row_no
                 LIMIT ?
@@ -248,27 +260,38 @@ class CacheManager:
             like_term = f"%{(term or '').strip().lower()}%"
             rows = self.conn.execute(
                 """
-                SELECT path, sheet, row_no, col_no, row_text
-                FROM cache_records
-                WHERE lower(row_search_text) LIKE ?
-                ORDER BY path, sheet, row_no
+                SELECT r.path, r.sheet, r.row_no, r.col_no, r.row_text, e.file_signature
+                FROM cache_records r
+                LEFT JOIN cache_entries e ON e.path = r.path
+                WHERE lower(r.row_search_text) LIKE ?
+                ORDER BY r.path, r.sheet, r.row_no
                 LIMIT ?
                 """,
                 (like_term, int(limit))
             ).fetchall()
 
-        return [
-            {
+        from logic.bom_classifier import extractUniversalRowFields
+
+        results = []
+        for row in rows:
+            row_text = row['row_text'] or ''
+            extracted = extractUniversalRowFields([part.strip() for part in row_text.split('|')])
+            results.append({
                 'path': row['path'],
+                'modified': modified_from_signature(row['file_signature'] or ''),
                 'sheet': row['sheet'],
                 'row': row['row_no'],
                 'column': row['col_no'] or '',
-                'text': row['row_text'] or '',
-                'searchText': (row['row_text'] or '').lower(),
+                'item': extracted.get('item', ''),
+                'fgItem': extracted.get('fgItem', ''),
+                'fgName': extracted.get('fgName', ''),
+                'productName': extracted.get('productName', '') or row_text[:200],
+                'mold': extracted.get('mold', ''),
+                'text': row_text,
+                'searchText': row_text.lower(),
                 'file': Path(row['path']).name if row['path'] else ''
-            }
-            for row in rows
-        ]
+            })
+        return results
 
     def get_manifest(self) -> Optional[Dict[str, Any]]:
         """Get current cache manifest info"""

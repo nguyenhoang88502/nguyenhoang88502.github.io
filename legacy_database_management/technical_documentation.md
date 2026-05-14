@@ -15,7 +15,7 @@ The system ships in two forms:
 | Platform | Entry Point | Storage |
 |----------|-------------|---------|
 | **Web PWA** | `Indexing_web.html` | IndexedDB (browser) |
-| **Desktop .exe** | `BOM Dataset Indexer v6/BOM Dataset Indexer.exe` | SQLite (local) |
+| **Desktop .exe** | `BOM Dataset Indexer v7/BOM Dataset Indexer.exe` | SQLite (local) |
 
 Both versions run entirely offline with zero server upload. The desktop application is the recommended daily driver for the NPI team due to multi-threaded performance and persistent SQLite caching.
 
@@ -107,7 +107,8 @@ legacy_database_management/
 │   ├── BOM Dataset Indexer v3/   # v3 release executable
 │   ├── BOM Dataset Indexer v4/   # v4 release executable
 │   ├── BOM Dataset Indexer v5/   # v5 release executable
-│   ├── BOM Dataset Indexer v6/   # v6 release executable (current)
+│   ├── BOM Dataset Indexer v6/   # v6 release executable
+│   ├── BOM Dataset Indexer v7/   # v7 release executable (current)
 │   ├── build/                    # PyInstaller intermediate artifacts (gitignored)
 │   └── dist/                     # PyInstaller output (gitignored)
 │
@@ -143,7 +144,7 @@ As of v6, Universal Mode is the default and all workbooks are always processed r
 
 ### Running the Desktop App (End Users)
 
-No setup required. Download `BOM Dataset Indexer.exe` from the v6 release directory and double-click. Everything is bundled inside the executable.
+No setup required. Download `BOM Dataset Indexer.exe` from the v7 release directory and double-click. Everything is bundled inside the executable.
 
 ### Development Setup
 
@@ -181,7 +182,7 @@ pyinstaller --onefile --windowed --name "BOM Dataset Indexer" --clean app.py
 - Set `upx=False` in `app.spec` (produces a ~0.5 MB larger file)
 - Or add the output directory to Windows Defender exclusions: `Add-MpPreference -ExclusionPath "<path>"`
 
-The output is `dist/BOM Dataset Indexer.exe`. Copy to a versioned release directory (e.g., `BOM Dataset Indexer v6/`).
+The output is `dist/BOM Dataset Indexer.exe`. Copy to a versioned release directory (e.g., `BOM Dataset Indexer v7/`).
 
 ### Running the Web App
 
@@ -209,6 +210,12 @@ Open `Indexing_web.html` in any modern browser (Chrome, Edge, or Firefox). No se
 - **Web asset sync** — CLI flags `--sync-web` and `--sync-html` for updating cached web assets
 - **Version control** — Schema `v3.2.0`, Data Index `latest-v8`, backward compatible to `v2.0.0+`
 - **Zero-server architecture** — all processing is local; no data ever leaves the machine
+
+### Recent changes (v7, May 2026)
+
+- Universal desktop indexing still displays only path, sheet, and row, but each row now stores inferred item, FG, product name, and mold metadata so the user can toggle into BOM-focused views without rescanning.
+- Recognition now covers standard 7-digit item and FG IDs starting with 1 or 3, explanatory headers such as `Item number (The Component / Raw Material)`, BOM families in `1234` and `1234-02` format, versioned BOMs such as `3023881V01`, and mold codes such as `CAP2001019WHL`, `MDE 229.18`, `MDE02020`, `MOLD-0347`, and `TD14034C`.
+- Desktop cache signatures were bumped so v7 refreshes older parsed results instead of reusing v6 records.
 
 ### Recent changes (v6, May 2026)
 
@@ -279,7 +286,7 @@ pyinstaller --onefile --windowed --name "BOM Dataset Indexer" --clean app.py
 pyinstaller app.spec --clean --noconfirm
 
 # Build to a specific output directory
-pyinstaller app.spec --clean --noconfirm --distpath "../BOM Dataset Indexer v6"
+pyinstaller app.spec --clean --noconfirm --distpath "../BOM Dataset Indexer v7"
 ```
 
 ### Web

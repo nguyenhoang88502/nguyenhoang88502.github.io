@@ -27,10 +27,15 @@ from ui.i18n import get_text
 
 # Application constants
 APP_TITLE_KEY = "app_title"
-CACHE_VERSION = 8
+CACHE_VERSION = 10
+PARSER_SIGNATURE_VERSION = "bom-parser-v7-universal-fields"
 THEME = "SystemDefault"
 MAX_RENDER_ROWS = 2000
 QUERY_DEBOUNCE_SEC = 0.35
+
+
+def parser_signature(signature: str) -> str:
+    return f"{signature}|{PARSER_SIGNATURE_VERSION}"
 
 
 class AppState:
@@ -77,6 +82,7 @@ def make_table_row(record: Dict) -> List[str]:
         record.get('fgItem', ''),
         record.get('fgName', ''),
         record.get('productName', ''),
+        record.get('modified', ''),
         record.get('file', ''),
         record.get('sheet', ''),
         str(record.get('row', '')),
@@ -89,6 +95,7 @@ def get_table_headings(lang: str = "en") -> List[str]:
         get_text("table_fg", lang),
         get_text("table_fg_name", lang),
         get_text("table_product", lang),
+        get_text("table_modified", lang),
         get_text("table_file", lang),
         get_text("table_sheet", lang),
         get_text("table_row", lang),
@@ -100,7 +107,7 @@ def get_universal_table_headings(lang: str = "en") -> List[str]:
         get_text("table_uni_path", lang),
         get_text("table_uni_sheet", lang),
         get_text("table_uni_row", lang),
-        get_text("table_uni_column", lang),
+        get_text("table_modified", lang),
     ]
 
 
@@ -271,7 +278,7 @@ class BOMIndexerGUI:
                 headings=get_universal_table_headings(self.state.lang),
                 display_row_numbers=False,
                 auto_size_columns=False,
-                col_widths=[90, 20, 8],
+                col_widths=[90, 20, 8, 20],
                 justification='left',
                 num_rows=18,
                 key="-TABLE_UNI-",
@@ -288,20 +295,6 @@ class BOMIndexerGUI:
             [sg.Text(t("details_title"), font=("Arial", 10, "bold"), key="-DETAILS_TITLE-")],
             [sg.Multiline("", size=(40, 15), key="-DETAILS-", disabled=True, expand_x=True, expand_y=True)]
         ]
-
-        # Version table with scroll
-        version_table = [[sg.Table(
-            values=[],
-            headings=get_version_headings(self.state.lang),
-            display_row_numbers=False,
-            auto_size_columns=True,
-            justification='left',
-            num_rows=8,
-            key="-VERSION_TABLE-",
-            enable_events=True,
-            expand_x=True,
-            vertical_scroll_only=False
-        )]]
 
         # Create the full layout with scrollable main area
         layout = [
@@ -321,7 +314,6 @@ class BOMIndexerGUI:
                 sg.VerticalSeparator(key="-DETAILS_SEP-"),
                 sg.Column(details_col, expand_x=False, expand_y=True, pad=(0, 0), key="-DETAILS_COL-")
             ],
-            [sg.Frame(t("version_frame"), version_table, expand_x=True, key="-VERSION_FRAME-")],
         ]
 
         return layout
@@ -370,7 +362,7 @@ class BOMIndexerGUI:
         filter_options = [
             "", "Has item numbers", "Has finished goods", "Has BOM numbers",
             "BOM family (4 digits)", "Old BOM (1xxxxxx)", "New BOM (3xxxxxx)",
-            "Versioned BOM (3xxxxxxV01)", "Mold (TDxxxx/TDxxxxA)",
+            "Versioned BOM (3xxxxxxV01)", "Mold codes",
             "Has fractional qty", "Has parse errors"
         ]
         self.window["-RECORD_FILTER-"].update(values=filter_options)
@@ -379,7 +371,7 @@ class BOMIndexerGUI:
         self.state.selected_row = None
         self.window["-OPEN_SELECTED_FILE-"].update(disabled=True)
         if self.state.index_mode == "universal":
-            table_data = [[r.get('path', ''), r.get('sheet', ''), str(r.get('row', '')), str(r.get('column', ''))]
+            table_data = [[r.get('path', ''), r.get('sheet', ''), str(r.get('row', '')), r.get('modified', '')]
                           for r in self.state.filtered_rows[:MAX_RENDER_ROWS]]
             self.window["-TABLE-"].update(values=[], visible=False)
             self.window["-TABLE_UNI-"].update(values=table_data, visible=True)
@@ -389,15 +381,7 @@ class BOMIndexerGUI:
             self.window["-TABLE-"].update(values=table_data, visible=True)
 
     def _refresh_version_table(self):
-        if self.state.index_mode == "universal":
-            self.window["-VERSION_TABLE-"].update(values=[])
-            return
-        if self.state.lookup_text:
-            source = self.state.filtered_versions
-        else:
-            source = self.state.all_versions
-        vrows = [make_version_table_row(v) for v in source[:MAX_RENDER_ROWS]]
-        self.window["-VERSION_TABLE-"].update(values=vrows)
+        return
 
     def _update_mode_ui(self):
         universal = self.state.index_mode == "universal"
@@ -405,7 +389,6 @@ class BOMIndexerGUI:
             value=self.state.bom_only if not universal else False,
             disabled=universal
         )
-        self.window["-VERSION_FRAME-"].update(visible=not universal)
         self.window["-DETAILS_SEP-"].update(visible=True)
         self.window["-DETAILS_COL-"].update(visible=True)
         if universal:
@@ -419,6 +402,8 @@ class BOMIndexerGUI:
                 rows = self.state.cache_manager.search_records_fts(term, exact=False, limit=50000)
             else:
                 rows = self.state.all_records
+            if self.state.record_filter:
+                rows = self._filter_by_record_type(rows, self.state.record_filter)
             self.state.filtered_rows = rows
             self._refresh_table()
             return
@@ -454,8 +439,8 @@ class BOMIndexerGUI:
             return [r for r in records if r.get('bom') and bomKind(r['bom']) == 'new']
         elif filter_type == "Versioned BOM (3xxxxxxV01)":
             return [r for r in records if r.get('bom') and bomKind(r['bom']) == 'versioned']
-        elif filter_type == "Mold (TDxxxx/TDxxxxA)":
-            return [r for r in records if r.get('bom') and bomKind(r['bom']) == 'mold']
+        elif filter_type == "Mold codes":
+            return [r for r in records if r.get('mold') or (r.get('bom') and bomKind(r['bom']) == 'mold')]
         elif filter_type == "Has fractional qty":
             return [r for r in records if isFractional(r.get('quantity', ''))]
         else:
@@ -465,7 +450,10 @@ class BOMIndexerGUI:
         self.state.all_records = []
         self.state.all_versions = []
         for entry in self.state.entries.values():
-            self.state.all_records.extend(entry.get('records', []))
+            for record in entry.get('records', []):
+                if not record.get('modified'):
+                    record['modified'] = entry.get('modified', '')
+                self.state.all_records.append(record)
             self.state.all_versions.extend(entry.get('bomVersions', []))
 
     # ============ Event Handlers ============
@@ -566,12 +554,14 @@ class BOMIndexerGUI:
                         stat = os.stat(path)
                         current_mtime = int(stat.st_mtime * 1000)
                         current_size = stat.st_size
-                        # Parse cached signature: filepath|size|mtime
+                        # Parse cached signature: filepath|size|mtime|parser-version
                         sig_parts = sig.split('|')
                         cached_mtime = int(sig_parts[2]) if len(sig_parts) >= 3 and sig_parts[2].isdigit() else 0
                         cached_size = int(sig_parts[1]) if len(sig_parts) >= 2 and sig_parts[1].isdigit() else 0
+                        cached_parser = sig_parts[3] if len(sig_parts) >= 4 else ""
 
-                        if current_mtime != cached_mtime or current_size != cached_size:
+                        if (current_mtime != cached_mtime or current_size != cached_size or
+                            cached_parser != PARSER_SIGNATURE_VERSION):
                             stale_paths.append(path)
                         else:
                             valid_entries[path] = entry
@@ -612,11 +602,11 @@ class BOMIndexerGUI:
                     # Build signature for cache manager
                     sig_mgr = (self.state.partitioned_cache_manager or self.state.cache_manager)
                     if sig_mgr:
-                        entry['signature'] = sig_mgr.file_signature(
+                        entry['signature'] = parser_signature(sig_mgr.file_signature(
                             path,
                             file_meta['size'],
                             int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
-                        )
+                        ))
                     valid_entries[path] = entry
                     refreshed += 1
                 except Exception:
@@ -703,6 +693,7 @@ class BOMIndexerGUI:
                 f"path: {record.get('path', '')}",
                 f"sheet: {record.get('sheet', '')}",
                 f"row: {record.get('row', '')}",
+                f"modified: {record.get('modified', '')}",
                 f"column: {record.get('column', '')}",
             ]
             raw_text = record.get('text', '') or record.get('productName', '')
@@ -875,14 +866,7 @@ class BOMIndexerGUI:
 
         elif target == "fg":
             for r in self.state.all_records:
-                vals = []
-                item = r.get('item','')
-                bom = r.get('bom','')
-                if isFgLike(item):
-                    vals.append(item)
-                if bom and not isBomCodeInContext(bom, r.get('text','')) and isFgLike(bom):
-                    vals.append(bom)
-                vals.extend([r.get('fgItem',''), r.get('fgName',''), r.get('productName','')])
+                vals = [r.get('fgItem',''), r.get('fgName','')]
                 if exact:
                     if any(term_norm == normalize(v) for v in vals if v):
                         record_matches.append(r)
@@ -893,6 +877,7 @@ class BOMIndexerGUI:
         elif target in ("bom","family","old","new","versioned","mold"):
             for r in self.state.all_records:
                 bom = r.get('bom','')
+                mold = r.get('mold', '')
                 kind = bomKind(bom)
                 ok = False
                 if target == "bom":
@@ -906,13 +891,13 @@ class BOMIndexerGUI:
                 elif target == "versioned":
                     ok = kind == "versioned"
                 elif target == "mold":
-                    ok = kind == "mold"
+                    ok = kind == "mold" or bool(mold)
                 if ok:
                     if exact:
-                        if term_norm == normalize(bom):
+                        if term_norm == normalize(bom) or term_norm == normalize(mold):
                             record_matches.append(r)
                     else:
-                        if term_norm in normalize(bom):
+                        if term_norm in normalize(bom) or term_norm in normalize(mold):
                             record_matches.append(r)
 
         # --- Version matching ---
@@ -1051,6 +1036,7 @@ class BOMIndexerGUI:
                         file_meta['size'],
                         int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
                     )
+                    signature = parser_signature(signature)
 
                     # Check if file has changed
                     if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
@@ -1099,6 +1085,7 @@ class BOMIndexerGUI:
                         file_meta['size'],
                         int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
                     )
+                    signature = parser_signature(signature)
 
                     if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
                         entry = cached_entries[filepath]
@@ -1151,6 +1138,7 @@ class BOMIndexerGUI:
                         file_meta['size'],
                         int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
                     )
+                    signature = parser_signature(signature)
 
                     if fp in cached_entries and cached_entries[fp].get('signature') == signature:
                         entry = cached_entries[fp]
@@ -1187,6 +1175,7 @@ class BOMIndexerGUI:
                         file_meta['size'],
                         int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
                     )
+                    signature = parser_signature(signature)
 
                     if fp in cached_entries and cached_entries[fp].get('signature') == signature:
                         entry = cached_entries[fp]
