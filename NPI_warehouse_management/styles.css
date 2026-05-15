@@ -571,7 +571,7 @@ pre {
 @media (max-width: 760px) {
   .main,
   .sidebar {
-    padding: 18px;
+    padding: 14px;
   }
 
   .topbar,
@@ -582,16 +582,33 @@ pre {
   }
 
   .topbar h2 {
-    font-size: 28px;
+    font-size: 22px;
   }
 
   .metrics-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .metric {
+    min-height: 86px;
+    padding: 12px;
   }
 
   .nav-list {
     width: 100%;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .nav-item svg {
+    display: none;
   }
 
   .webhook-status {
@@ -612,5 +629,40 @@ pre {
   .primary-button,
   .secondary-button {
     width: 100%;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .adjustment-panel {
+    order: -1;
+  }
+
+  .inventory-panel {
+    order: 1;
+  }
+
+  .payload-preview {
+    display: none;
+  }
+
+  .topbar {
+    margin: -14px -14px 14px;
+    padding: 12px 14px;
+  }
+
+  .topbar-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .topbar-actions .icon-button {
+    width: 100%;
+  }
+
+  table {
+    min-width: 980px;
   }
 }

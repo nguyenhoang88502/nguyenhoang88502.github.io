@@ -1,9 +1,8 @@
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbx0ucg3vn1V8LU9jLOIvLdpU1Bo9I1wfuKdUegltOHjyh00SAI1A4zVFGFjX3bQlwcn/exec";
+  "https://script.google.com/macros/s/AKfycbzFhlGH7E2Qxbd-NKCQBn7WnPFSm0dq28IyLRjI0ENDLOeLQDrFfHx4ypOHuUBBLYXP/exec";
 
-const STORAGE_KEY = "npiWarehouseInventory.v1";
+const STORAGE_KEY = "npiWarehouseTotal.v2";
 const HISTORY_KEY = "npiWarehouseHistory.v1";
-const LOW_STOCK_LEVEL = 50;
 
 const state = {
   inventory: loadJson(STORAGE_KEY, []),
@@ -11,7 +10,6 @@ const state = {
   stockStatus: "Loading stock...",
   stockSource: "live stock",
   search: "",
-  fgFilter: "All",
 };
 
 const elements = {
@@ -21,15 +19,13 @@ const elements = {
   copyPayloadBtn: document.querySelector("#copyPayloadBtn"),
   exportBtn: document.querySelector("#exportBtn"),
   refreshBtn: document.querySelector("#refreshBtn"),
-  fgFilter: document.querySelector("#fgFilter"),
   historyList: document.querySelector("#historyList"),
   inventoryBody: document.querySelector("#inventoryBody"),
   payloadPreview: document.querySelector("#payloadPreview"),
   searchInput: document.querySelector("#searchInput"),
   skuCount: document.querySelector("#skuCount"),
-  fgCount: document.querySelector("#fgCount"),
   unitCount: document.querySelector("#unitCount"),
-  lowStockCount: document.querySelector("#lowStockCount"),
+  familyCount: document.querySelector("#familyCount"),
   stockSource: document.querySelector("#stockSource"),
   submitBtn: document.querySelector("#submitBtn"),
   submitStatus: document.querySelector("#submitStatus"),
@@ -66,12 +62,18 @@ function setStatus(message, type = "") {
 }
 
 function normalizeStockRow(item) {
+  const quantity = Number(item.quantity ?? item.quantily ?? 0) || 0;
+  const total = Number(item.total ?? quantity) || 0;
+
   return {
+    stt: String(item.stt ?? "").trim(),
     itemNumber: String(item.itemNumber || "").trim(),
-    fg: String(item.fg || "").trim() || "No",
-    fgName: String(item.fgName || "").trim(),
     productName: String(item.productName || "").trim(),
-    quantity: Number(item.quantity) || 0,
+    quantity,
+    location: String(item.location ?? "").trim(),
+    shelf: String(item.shelf ?? "").trim(),
+    total,
+    family: String(item.family ?? "").trim(),
   };
 }
 
@@ -148,7 +150,8 @@ function fetchStockJsonp() {
 }
 
 function applyStockPayload(data, source) {
-  const stock = Array.isArray(data.stock) ? data.stock.map(normalizeStockRow) : [];
+  const sourceRows = Array.isArray(data.total) ? data.total : data.stock;
+  const stock = Array.isArray(sourceRows) ? sourceRows.map(normalizeStockRow) : [];
 
   if (!data.ok) {
     throw new Error(data.error || "Stock endpoint returned an error.");
@@ -159,7 +162,7 @@ function applyStockPayload(data, source) {
   state.stockStatus = stock.length ? "" : "Connected to the stock endpoint, but no stock rows were returned.";
   saveState();
   render();
-  setStatus(stock.length ? "Read-only stock loaded from the Google Sheet." : state.stockStatus, "success");
+  setStatus(stock.length ? "Total sheet loaded from the Google Sheet." : state.stockStatus, "success");
 }
 
 function formatNumber(value) {
@@ -167,45 +170,43 @@ function formatNumber(value) {
 }
 
 function renderMetrics() {
-  const totalUnits = state.inventory.reduce((sum, item) => sum + Number(item.quantity), 0);
-  const fgTotal = state.inventory.filter((item) => item.fg === "Yes").length;
-  const lowStockTotal = state.inventory.filter((item) => item.quantity < LOW_STOCK_LEVEL).length;
+  const totalUnits = state.inventory.reduce((sum, item) => sum + Number(item.total || item.quantity), 0);
+  const familyTotal = new Set(state.inventory.map((item) => item.family).filter(Boolean)).size;
 
   elements.skuCount.textContent = formatNumber(state.inventory.length);
-  elements.fgCount.textContent = `${formatNumber(fgTotal)} finished goods`;
   elements.unitCount.textContent = formatNumber(totalUnits);
-  elements.lowStockCount.textContent = formatNumber(lowStockTotal);
+  elements.familyCount.textContent = formatNumber(familyTotal);
   elements.stockSource.textContent = state.stockSource;
 }
 
 function renderInventory() {
   const query = state.search.toLowerCase();
   const filteredInventory = state.inventory.filter((item) => {
-    const searchableText = `${item.itemNumber} ${item.fgName} ${item.productName}`.toLowerCase();
-    const matchesQuery = searchableText.includes(query);
-    const matchesFg = state.fgFilter === "All" || item.fg === state.fgFilter;
-    return matchesQuery && matchesFg;
+    const searchableText =
+      `${item.stt} ${item.itemNumber} ${item.productName} ${item.location} ${item.shelf} ${item.family}`.toLowerCase();
+    return searchableText.includes(query);
   });
 
   elements.inventoryBody.innerHTML = "";
 
   if (!filteredInventory.length) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="6">${state.stockStatus || "No stock records match the current view."}</td>`;
+    row.innerHTML = `<td colspan="8">${state.stockStatus || "No Total sheet rows match the current view."}</td>`;
     elements.inventoryBody.append(row);
     return;
   }
 
   filteredInventory.forEach((item) => {
-    const isLow = item.quantity < LOW_STOCK_LEVEL;
     const row = document.createElement("tr");
     row.innerHTML = `
+      <td>${item.stt}</td>
       <td><span class="item-code">${item.itemNumber}</span></td>
-      <td><span class="pill ${item.fg === "No" ? "no" : ""}">${item.fg}</span></td>
-      <td>${item.fgName}</td>
       <td>${item.productName}</td>
       <td><strong>${formatNumber(item.quantity)}</strong></td>
-      <td><span class="stock-status ${isLow ? "low" : ""}">${isLow ? "Low" : "Healthy"}</span></td>
+      <td>${item.location}</td>
+      <td>${item.shelf}</td>
+      <td><strong>${formatNumber(item.total)}</strong></td>
+      <td>${item.family ? `<span class="pill">${item.family}</span>` : ""}</td>
     `;
     elements.inventoryBody.append(row);
   });
@@ -321,7 +322,7 @@ function clearForm() {
 }
 
 function exportInventoryCsv() {
-  const header = ["itemNumber", "fg", "fgName", "productName", "quantity"];
+  const header = ["stt", "itemNumber", "productName", "quantity", "location", "shelf", "total", "family"];
   const rows = state.inventory.map((item) =>
     header.map((key) => `"${String(item[key]).replaceAll('"', '""')}"`).join(","),
   );
@@ -330,7 +331,7 @@ function exportInventoryCsv() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `npi-inventory-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `npi-total-stock-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -352,10 +353,6 @@ elements.clearHistoryBtn.addEventListener("click", () => {
 });
 elements.searchInput.addEventListener("input", (event) => {
   state.search = event.target.value;
-  renderInventory();
-});
-elements.fgFilter.addEventListener("change", (event) => {
-  state.fgFilter = event.target.value;
   renderInventory();
 });
 
