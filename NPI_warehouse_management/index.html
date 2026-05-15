@@ -6,51 +6,26 @@
     <title>NPI Warehouse Management</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar" aria-label="Warehouse navigation">
-        <div class="brand">
-          <div class="brand-mark">NPI</div>
-          <div>
-            <h1>Warehouse</h1>
-            <p>Inventory control</p>
-          </div>
-        </div>
-
-        <nav class="nav-list" aria-label="Primary">
-          <a class="nav-item active" href="#dashboard">
-            <i data-lucide="layout-dashboard" aria-hidden="true"></i>
-            Total stock
-          </a>
-          <a class="nav-item" href="#adjustment-panel">
-            <i data-lucide="package-plus" aria-hidden="true"></i>
-            Outbound
-          </a>
-          <a class="nav-item" href="#history-panel">
-            <i data-lucide="history" aria-hidden="true"></i>
-            Activity
-          </a>
-        </nav>
-
-        <div class="webhook-status" aria-label="Webhook endpoint">
-          <span class="status-dot"></span>
-          <span>Webhook connected</span>
-        </div>
-      </aside>
-
       <main class="main" id="dashboard">
         <header class="topbar">
-          <div>
-            <p class="eyebrow">NPI warehouse management</p>
-            <h2>Total stock</h2>
+          <div class="brand-row">
+            <div class="brand-mark">NPI</div>
+            <div>
+              <p class="eyebrow">NPI warehouse management</p>
+              <h2>Total stock</h2>
+            </div>
           </div>
           <div class="topbar-actions">
             <button class="secondary-button" type="button" id="refreshBtn">
               <i data-lucide="refresh-cw" aria-hidden="true"></i>
               Refresh stock
             </button>
+            <span class="refresh-meta" id="refreshMeta">Auto-refresh every 10s</span>
             <button class="icon-button" type="button" id="exportBtn" title="Export inventory CSV" aria-label="Export inventory CSV">
               <i data-lucide="download" aria-hidden="true"></i>
             </button>
@@ -61,21 +36,51 @@
           <article class="metric">
             <span class="metric-label">Total SKUs</span>
             <strong id="skuCount">0</strong>
-            <span>from Total sheet</span>
+            <span>non-zero SKUs</span>
           </article>
           <article class="metric">
             <span class="metric-label">Units on hand</span>
             <strong id="unitCount">0</strong>
-            <span id="stockSource">read-only stock</span>
+            <span id="stockSource">finished goods total</span>
           </article>
           <article class="metric attention">
-            <span class="metric-label">Families</span>
-            <strong id="familyCount">0</strong>
-            <span>unique product families</span>
+            <span class="metric-label">Ordered last week</span>
+            <strong id="orderedLastWeek">0</strong>
+            <span>outbound quantity</span>
           </article>
         </section>
 
-        <section class="workspace">
+        <section class="operations-grid" aria-label="Warehouse actions">
+          <section class="inbound-upload-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Inbound</p>
+                <h3>XLSX drop-in</h3>
+              </div>
+              <span class="badge">Item number + Quantity</span>
+            </div>
+            <label class="drop-zone" id="xlsxDropZone">
+              <input id="xlsxInput" type="file" accept=".xlsx,.xls" />
+              <i data-lucide="upload-cloud" aria-hidden="true"></i>
+              <strong>Drop inbound workbook here</strong>
+              <span>or click to choose an .xlsx file</span>
+            </label>
+            <div class="upload-preview" id="uploadPreview">
+              <span class="muted-line">Waiting for workbook.</span>
+            </div>
+            <div class="form-actions">
+              <button class="secondary-button" type="button" id="clearUploadBtn">
+                <i data-lucide="x" aria-hidden="true"></i>
+                Clear upload
+              </button>
+              <button class="primary-button" type="button" id="sendInboundBtn" disabled>
+                <i data-lucide="send" aria-hidden="true"></i>
+                Send inbound
+              </button>
+            </div>
+            <div id="uploadStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </section>
+
           <div class="inventory-panel">
             <div class="section-heading">
               <div>
@@ -97,7 +102,8 @@
                     <th scope="col">Stt</th>
                     <th scope="col">Item number</th>
                     <th scope="col">Product name</th>
-                    <th scope="col">Quantily</th>
+                    <th scope="col">On hand</th>
+                    <th scope="col">Sheet qty</th>
                     <th scope="col">Location</th>
                     <th scope="col">Shelf</th>
                     <th scope="col">Total</th>
@@ -112,17 +118,19 @@
           <aside class="adjustment-panel" id="adjustment-panel">
             <div class="section-heading compact">
               <div>
-                <p class="eyebrow">Webhook submit</p>
-                <h3>Outbound adjustment</h3>
+                <p class="eyebrow">Outbound</p>
+                <h3>Adjustment</h3>
               </div>
               <span class="badge">POST JSON</span>
             </div>
 
-            <form id="adjustmentForm" class="form-grid">
+            <form id="adjustmentForm" class="form-grid" autocomplete="off">
               <label>
                 Item number
-                <input id="itemNumber" name="itemNumber" required placeholder="NPI-1001" />
+                <input id="itemNumber" name="itemNumber" required placeholder="NPI-1001" autocomplete="off" />
               </label>
+
+              <div id="itemLookup" class="item-lookup" aria-live="polite"></div>
 
               <label>
                 Finished good
@@ -134,17 +142,17 @@
 
               <label>
                 FG name
-                <input id="fgName" name="fgName" required placeholder="Widget A" />
+                <input id="fgName" name="fgName" required placeholder="Widget A" autocomplete="off" />
               </label>
 
               <label>
                 Product name
-                <input id="productName" name="productName" required placeholder="Alpha Series" />
+                <input id="productName" name="productName" required placeholder="Alpha Series" autocomplete="off" />
               </label>
 
               <label>
                 Quantity
-                <input id="quantity" name="quantity" type="number" min="0" step="1" required placeholder="150" />
+                <input id="quantity" name="quantity" type="number" min="0" step="1" required placeholder="150" autocomplete="off" />
               </label>
 
               <div class="form-actions">
@@ -159,17 +167,93 @@
               </div>
             </form>
 
-            <div class="payload-preview" aria-live="polite">
-              <div class="preview-heading">
-                <span>Payload</span>
-                <button class="icon-button small" type="button" id="copyPayloadBtn" title="Copy payload" aria-label="Copy payload">
-                  <i data-lucide="copy" aria-hidden="true"></i>
-                </button>
+            <div id="submitStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </aside>
+
+          <section class="week-panel" aria-label="Weekly inbound and outbound index">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Week index</p>
+                <h3>Inbound and outbound</h3>
               </div>
-              <pre id="payloadPreview"></pre>
+              <div class="table-tools">
+                <select id="weekSelect" aria-label="Select week"></select>
+              </div>
+            </div>
+            <div class="week-summary">
+              <div>
+                <span>Inbound</span>
+                <strong id="weekInboundQty">0</strong>
+              </div>
+              <div>
+                <span>Outbound</span>
+                <strong id="weekOutboundQty">0</strong>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Flow</th>
+                    <th scope="col">Item number</th>
+                    <th scope="col">Product name</th>
+                    <th scope="col">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody id="weekBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="stock-check-panel" id="stock-check-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Cycle count</p>
+                <h3>Check Actual Stocking Quantity</h3>
+              </div>
+              <span class="badge">Inbound + shelf</span>
             </div>
 
-            <div id="submitStatus" class="submit-status" role="status" aria-live="polite"></div>
+            <form id="stockCheckForm" class="form-grid" autocomplete="off">
+              <label>
+                Item number
+                <input id="checkItemNumber" name="itemNumber" required placeholder="1000014" autocomplete="off" />
+              </label>
+
+              <label>
+                Product name
+                <input id="checkProductName" name="productName" required placeholder="Housing Bottom Black 9307" autocomplete="off" />
+              </label>
+
+              <label>
+                Quantity
+                <input id="checkQuantity" name="quantity" type="number" min="0" step="1" required placeholder="15" autocomplete="off" />
+              </label>
+
+              <label>
+                Location
+                <input id="checkLocation" name="location" required placeholder="1" autocomplete="off" />
+              </label>
+
+              <label>
+                Shelf
+                <input id="checkShelf" name="shelf" required placeholder="C1" autocomplete="off" />
+              </label>
+
+              <div class="form-actions">
+                <button class="secondary-button" type="button" id="clearCheckBtn">
+                  <i data-lucide="eraser" aria-hidden="true"></i>
+                  Clear
+                </button>
+                <button class="primary-button" type="submit" id="sendCheckBtn">
+                  <i data-lucide="send" aria-hidden="true"></i>
+                  Send check
+                </button>
+              </div>
+            </form>
+
+            <div id="checkStatus" class="submit-status" role="status" aria-live="polite"></div>
           </aside>
         </section>
 
