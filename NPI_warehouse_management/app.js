@@ -91,7 +91,7 @@ function setPanelStatus(element, message, type = "") {
 }
 
 function normalizeStockRow(item) {
-  const quantity = Number(item.quantity ?? item.quantily ?? 0) || 0;
+  const quantity = Number(item.quantity ?? item.quantity ?? 0) || 0;
   const total = Number(item.total ?? quantity) || 0;
 
   return {
