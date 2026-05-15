@@ -1,5 +1,5 @@
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbzfxhR77lgY3BlPqm501_vxk0lPAM_EUyj_m4ztB9gBF53KWhM1mL-wTztvPi3AaY7k/exec";
+  "https://script.google.com/macros/s/AKfycbxkZj6WmuDQgg-xZiXN_3qyHn3dl0xFA0OwJoTOlHInozatQCdVUGTTLxmLXGBRK0Yj/exec";
 
 const STORAGE_KEY = "npiWarehouseTotal.v2";
 const HISTORY_KEY = "npiWarehouseHistory.v1";
@@ -269,7 +269,7 @@ function renderInventory() {
 
   if (!filteredInventory.length) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="9">${state.stockStatus || "No Total sheet rows match the current view."}</td>`;
+    row.innerHTML = `<td colspan="7">${state.stockStatus || "No Total sheet rows match the current view."}</td>`;
     elements.inventoryBody.append(row);
     return;
   }
@@ -281,10 +281,8 @@ function renderInventory() {
       <td><button class="item-code" type="button" data-item-number="${item.itemNumber}">${item.itemNumber}</button></td>
       <td>${item.productName}</td>
       <td><strong>${formatNumber(stockOnHand(item))}</strong></td>
-      <td><strong>${formatNumber(item.quantity)}</strong></td>
       <td>${item.location}</td>
       <td>${item.shelf}</td>
-      <td><strong>${formatNumber(item.total)}</strong></td>
       <td>${item.family ? `<span class="pill">${item.family}</span>` : ""}</td>
     `;
     elements.inventoryBody.append(row);
@@ -537,6 +535,8 @@ function clearForm() {
 
 function getStockCheckPayload() {
   const formData = new FormData(elements.stockCheckForm);
+  fillStockCheckFromItem();
+
   return {
     action: "stockCheck",
     itemNumber: String(formData.get("itemNumber") || "").trim(),
@@ -555,7 +555,6 @@ async function handleStockCheckSubmit(event) {
 
   if (
     !payload.itemNumber ||
-    !payload.productName ||
     Number.isNaN(payload.quantity) ||
     !payload.location ||
     !payload.shelf
@@ -597,13 +596,15 @@ function fillStockCheckFromItem() {
   const item = itemNumber ? findStockItem(itemNumber) : null;
 
   if (!item) {
+    if (itemNumber) {
+      setPanelStatus(elements.checkStatus, "No matching item found yet. Refresh stock, then scan again.", "error");
+    }
     return;
   }
 
   elements.checkProductName.value = item.productName;
   elements.checkFinishGoodId.value = item.finishGoodId || "";
-  elements.stockCheckForm.location.value = item.location || "";
-  elements.stockCheckForm.shelf.value = item.shelf || "";
+  setPanelStatus(elements.checkStatus, `${item.itemNumber}: ${item.productName || "matched item"} / FG ${item.finishGoodId || "-"}.`);
 }
 
 function renderInboundUploadPreview() {
@@ -764,6 +765,7 @@ elements.adjustmentForm.addEventListener("input", renderItemLookup);
 elements.adjustmentForm.addEventListener("change", renderItemLookup);
 elements.adjustmentForm.addEventListener("submit", handleSubmit);
 elements.stockCheckForm.addEventListener("submit", handleStockCheckSubmit);
+elements.checkItemNumber.addEventListener("input", fillStockCheckFromItem);
 elements.checkItemNumber.addEventListener("change", fillStockCheckFromItem);
 elements.checkItemNumber.addEventListener("blur", fillStockCheckFromItem);
 elements.clearBtn.addEventListener("click", clearForm);
