@@ -45,13 +45,12 @@ def parser_signature(signature: str) -> str:
 def cached_signature_parts(signature: str) -> tuple[int, int, str]:
     """Parse path|size|mtime|parser-version from the right side of a signature."""
     parts = (signature or "").rsplit("|", 3)
-    if len(parts) == 4:
-        _, size_text, mtime_text, parser_version = parts
-    elif len(parts) == 3:
-        _, size_text, mtime_text = parts
-        parser_version = ""
-    else:
+    if len(parts) < 3:
         return 0, 0, ""
+    if len(parts) == 4 and not parts[-1].replace(".", "", 1).isdigit():
+        size_text, mtime_text, parser_version = parts[-3], parts[-2], parts[-1]
+    else:
+        size_text, mtime_text, parser_version = parts[-2], parts[-1], ""
 
     try:
         cached_size = int(size_text)
@@ -85,14 +84,27 @@ def cache_signature_for_file(signature_manager: Any, filepath: str, file_meta: D
     )
 
 
-def signature_matches_filesystem(signature: str, stat_result: os.stat_result) -> bool:
+def signature_matches_filesystem(
+    signature: str,
+    stat_result: os.stat_result,
+    require_parser_version: bool = False,
+) -> bool:
     cached_size, cached_mtime_ms, cached_parser = cached_signature_parts(signature)
     current_mtime_ms = stat_mtime_ms(stat_result)
-    return (
+    metadata_matches = (
         stat_result.st_size == cached_size
-        and cached_parser == PARSER_SIGNATURE_VERSION
         and abs(current_mtime_ms - cached_mtime_ms) <= 1
     )
+    if not metadata_matches:
+        return False
+    return not require_parser_version or cached_parser == PARSER_SIGNATURE_VERSION
+
+
+def filesystem_file_meta(stat_result: os.stat_result) -> Dict[str, Any]:
+    return {
+        "size": stat_result.st_size,
+        "modified_ms": stat_mtime_ms(stat_result),
+    }
 
 
 class AppState:
@@ -615,6 +627,7 @@ class BOMIndexerGUI:
             # Validate each cached entry's timestamp against actual disk file
             stale_paths = []
             valid_entries = {}
+            signature_upgrades = 0
             checked = 0
 
             for path, entry in entries.items():
@@ -626,6 +639,17 @@ class BOMIndexerGUI:
                         if not signature_matches_filesystem(sig, stat):
                             stale_paths.append(path)
                         else:
+                            _, _, cached_parser = cached_signature_parts(sig)
+                            if cached_parser != PARSER_SIGNATURE_VERSION:
+                                sig_mgr = (self.state.partitioned_cache_manager or self.state.cache_manager)
+                                if sig_mgr:
+                                    entry = dict(entry)
+                                    entry['signature'] = cache_signature_for_file(
+                                        sig_mgr,
+                                        path,
+                                        filesystem_file_meta(stat),
+                                    )
+                                    signature_upgrades += 1
                             valid_entries[path] = entry
                     else:
                         stale_paths.append(path)
@@ -639,9 +663,17 @@ class BOMIndexerGUI:
             valid_count = len(valid_entries)
 
             if stale_count == 0:
+                if signature_upgrades:
+                    all_entries = list(valid_entries.values())
+                    if self.state.partitioned_cache_manager:
+                        self.state.partitioned_cache_manager.save_entries_incremental(all_entries)
+                    else:
+                        self.state.cache_manager.save_entries(all_entries)
+                else:
+                    all_entries = list(entries.values())
                 # All entries valid, use them directly
                 self.state.result_queue.put(('progress', 100))
-                self.state.result_queue.put(('cache_result', list(entries.values()),
+                self.state.result_queue.put(('cache_result', all_entries,
                                             self._t("msg_cache_valid", total), cache_source))
                 self.state.result_queue.put(('done',))
                 return
