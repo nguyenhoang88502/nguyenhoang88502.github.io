@@ -3,6 +3,7 @@
 from typing import Dict, List, Any
 from pathlib import Path
 import sys
+import os
 from datetime import datetime
 
 from logic.bom_classifier import (
@@ -16,6 +17,11 @@ from logic.bom_classifier import (
 )
 from logic.excel_parser import parse_excel_file, get_file_info, sheet_to_rows
 from logic.utils import unique, isFractional, valueAt
+
+
+def stat_mtime_ms(stat_result: os.stat_result) -> int:
+    """Return filesystem modified time as integer milliseconds."""
+    return int(stat_result.st_mtime_ns // 1_000_000)
 
 
 # ============ Workbook Summarization ============
@@ -204,7 +210,7 @@ def summarize_workbook(filepath: str, file_meta: Dict[str, Any] = None) -> Dict[
         import os
         try:
             stat = os.stat(filepath)
-            summary['signature'] = f"{filepath}|{stat.st_size}|{int(stat.st_mtime * 1000)}"
+            summary['signature'] = f"{filepath}|{stat.st_size}|{stat_mtime_ms(stat)}"
         except Exception:
             summary['signature'] = ""
 
@@ -328,7 +334,7 @@ def summarize_workbook_universal(filepath: str, file_meta: Dict[str, Any] = None
         import os
         try:
             stat = os.stat(filepath)
-            summary['signature'] = f"{filepath}|{stat.st_size}|{int(stat.st_mtime * 1000)}"
+            summary['signature'] = f"{filepath}|{stat.st_size}|{stat_mtime_ms(stat)}"
         except Exception:
             summary['signature'] = ""
 

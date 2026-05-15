@@ -12,6 +12,10 @@ import xlrd
 
 # ============ Excel Parser Core ============
 
+def stat_mtime_ms(stat_result: os.stat_result) -> int:
+    """Return filesystem modified time as integer milliseconds."""
+    return int(stat_result.st_mtime_ns // 1_000_000)
+
 def is_excel_file(filepath: str) -> bool:
     """Check if file has an Excel or CSV extension"""
     excel_exts = {'.xlsx', '.xlsm', '.xlsb', '.xls', '.csv'}
@@ -134,7 +138,8 @@ def get_file_info(filepath: str) -> Dict[str, Any]:
             'path': str(p.absolute()),
             'relative_path': str(p),
             'size': stat.st_size,
-            'modified': stat.st_mtime
+            'modified': stat.st_mtime,
+            'modified_ms': stat_mtime_ms(stat)
         }
     except Exception:
         return {

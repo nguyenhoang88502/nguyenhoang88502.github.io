@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional, Callable
 import PySimpleGUI as sg
 
-from logic.excel_parser import scan_directory, get_file_info
+from logic.excel_parser import scan_directory, get_file_info, stat_mtime_ms
 from logic.processor import summarize_workbook, summarize_workbook_universal
 from logic.cache_manager import CacheManager
 from logic.partitioned_cache import PartitionedCacheManager, WebAssetCache
@@ -32,10 +32,67 @@ PARSER_SIGNATURE_VERSION = "bom-parser-v7-universal-fields"
 THEME = "SystemDefault"
 MAX_RENDER_ROWS = 2000
 QUERY_DEBOUNCE_SEC = 0.35
+DEFAULT_WINDOW_SIZE = (1600, 850)
+DETAILS_PANE_WIDTH_PX = 620
+DETAILS_PANE_CHARS = 72
+DETAILS_PANE_ROWS = 18
 
 
 def parser_signature(signature: str) -> str:
     return f"{signature}|{PARSER_SIGNATURE_VERSION}"
+
+
+def cached_signature_parts(signature: str) -> tuple[int, int, str]:
+    """Parse path|size|mtime|parser-version from the right side of a signature."""
+    parts = (signature or "").rsplit("|", 3)
+    if len(parts) == 4:
+        _, size_text, mtime_text, parser_version = parts
+    elif len(parts) == 3:
+        _, size_text, mtime_text = parts
+        parser_version = ""
+    else:
+        return 0, 0, ""
+
+    try:
+        cached_size = int(size_text)
+    except (TypeError, ValueError):
+        cached_size = 0
+    try:
+        cached_mtime_ms = int(float(mtime_text))
+    except (TypeError, ValueError):
+        cached_mtime_ms = 0
+    return cached_size, cached_mtime_ms, parser_version
+
+
+def file_meta_mtime_ms(file_meta: Dict[str, Any]) -> int:
+    """Return file metadata modified time in the same integer-ms unit as cache signatures."""
+    modified_ms = file_meta.get("modified_ms")
+    if isinstance(modified_ms, (int, float)):
+        return int(modified_ms)
+    modified = file_meta.get("modified")
+    if isinstance(modified, (int, float)):
+        return int(modified * 1000)
+    return 0
+
+
+def cache_signature_for_file(signature_manager: Any, filepath: str, file_meta: Dict[str, Any]) -> str:
+    return parser_signature(
+        signature_manager.file_signature(
+            filepath,
+            int(file_meta.get("size") or 0),
+            file_meta_mtime_ms(file_meta),
+        )
+    )
+
+
+def signature_matches_filesystem(signature: str, stat_result: os.stat_result) -> bool:
+    cached_size, cached_mtime_ms, cached_parser = cached_signature_parts(signature)
+    current_mtime_ms = stat_mtime_ms(stat_result)
+    return (
+        stat_result.st_size == cached_size
+        and cached_parser == PARSER_SIGNATURE_VERSION
+        and abs(current_mtime_ms - cached_mtime_ms) <= 1
+    )
 
 
 class AppState:
@@ -293,7 +350,14 @@ class BOMIndexerGUI:
         # Details pane with scroll
         details_col = [
             [sg.Text(t("details_title"), font=("Arial", 10, "bold"), key="-DETAILS_TITLE-")],
-            [sg.Multiline("", size=(40, 15), key="-DETAILS-", disabled=True, expand_x=True, expand_y=True)]
+            [sg.Multiline(
+                "",
+                size=(DETAILS_PANE_CHARS, DETAILS_PANE_ROWS),
+                key="-DETAILS-",
+                disabled=True,
+                expand_x=True,
+                expand_y=True,
+            )]
         ]
 
         # Create the full layout with scrollable main area
@@ -312,7 +376,14 @@ class BOMIndexerGUI:
             [
                 sg.Column(table_cols, expand_x=True, expand_y=True),
                 sg.VerticalSeparator(key="-DETAILS_SEP-"),
-                sg.Column(details_col, expand_x=False, expand_y=True, pad=(0, 0), key="-DETAILS_COL-")
+                sg.Column(
+                    details_col,
+                    size=(DETAILS_PANE_WIDTH_PX, None),
+                    expand_x=False,
+                    expand_y=True,
+                    pad=(0, 0),
+                    key="-DETAILS_COL-",
+                )
             ],
         ]
 
@@ -552,16 +623,7 @@ class BOMIndexerGUI:
                 try:
                     if os.path.exists(path):
                         stat = os.stat(path)
-                        current_mtime = int(stat.st_mtime * 1000)
-                        current_size = stat.st_size
-                        # Parse cached signature: filepath|size|mtime|parser-version
-                        sig_parts = sig.split('|')
-                        cached_mtime = int(sig_parts[2]) if len(sig_parts) >= 3 and sig_parts[2].isdigit() else 0
-                        cached_size = int(sig_parts[1]) if len(sig_parts) >= 2 and sig_parts[1].isdigit() else 0
-                        cached_parser = sig_parts[3] if len(sig_parts) >= 4 else ""
-
-                        if (current_mtime != cached_mtime or current_size != cached_size or
-                            cached_parser != PARSER_SIGNATURE_VERSION):
+                        if not signature_matches_filesystem(sig, stat):
                             stale_paths.append(path)
                         else:
                             valid_entries[path] = entry
@@ -602,11 +664,7 @@ class BOMIndexerGUI:
                     # Build signature for cache manager
                     sig_mgr = (self.state.partitioned_cache_manager or self.state.cache_manager)
                     if sig_mgr:
-                        entry['signature'] = parser_signature(sig_mgr.file_signature(
-                            path,
-                            file_meta['size'],
-                            int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
-                        ))
+                        entry['signature'] = cache_signature_for_file(sig_mgr, path, file_meta)
                     valid_entries[path] = entry
                     refreshed += 1
                 except Exception:
@@ -1031,12 +1089,11 @@ class BOMIndexerGUI:
 
                 for filepath in files:
                     file_meta = get_file_info(filepath)
-                    signature = self.state.partitioned_cache_manager.file_signature(
+                    signature = cache_signature_for_file(
+                        self.state.partitioned_cache_manager,
                         filepath,
-                        file_meta['size'],
-                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                        file_meta,
                     )
-                    signature = parser_signature(signature)
 
                     # Check if file has changed
                     if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
@@ -1080,12 +1137,11 @@ class BOMIndexerGUI:
 
                 for filepath in files:
                     file_meta = get_file_info(filepath)
-                    signature = self.state.cache_manager.file_signature(
+                    signature = cache_signature_for_file(
+                        self.state.cache_manager,
                         filepath,
-                        file_meta['size'],
-                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                        file_meta,
                     )
-                    signature = parser_signature(signature)
 
                     if filepath in cached_entries and cached_entries[filepath].get('signature') == signature:
                         entry = cached_entries[filepath]
@@ -1133,12 +1189,11 @@ class BOMIndexerGUI:
 
                 for i, fp in enumerate(file_paths):
                     file_meta = get_file_info(fp)
-                    signature = self.state.partitioned_cache_manager.file_signature(
+                    signature = cache_signature_for_file(
+                        self.state.partitioned_cache_manager,
                         fp,
-                        file_meta['size'],
-                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                        file_meta,
                     )
-                    signature = parser_signature(signature)
 
                     if fp in cached_entries and cached_entries[fp].get('signature') == signature:
                         entry = cached_entries[fp]
@@ -1170,12 +1225,11 @@ class BOMIndexerGUI:
 
                 for i, fp in enumerate(file_paths):
                     file_meta = get_file_info(fp)
-                    signature = self.state.cache_manager.file_signature(
+                    signature = cache_signature_for_file(
+                        self.state.cache_manager,
                         fp,
-                        file_meta['size'],
-                        int(file_meta['modified'] * 1000) if isinstance(file_meta.get('modified'), (int, float)) else 0
+                        file_meta,
                     )
-                    signature = parser_signature(signature)
 
                     if fp in cached_entries and cached_entries[fp].get('signature') == signature:
                         entry = cached_entries[fp]
@@ -1290,7 +1344,7 @@ class BOMIndexerGUI:
                 self.window.current_location()[0], self.window.current_location()[1]
             )
         except Exception:
-            self.state.window_geometry = (1400, 800, 100, 100)
+            self.state.window_geometry = (*DEFAULT_WINDOW_SIZE, 100, 100)
         self.window.close()
         layout = self._build_layout()
         geom = self.state.window_geometry
@@ -1344,7 +1398,7 @@ class BOMIndexerGUI:
         sg.theme(THEME)
         layout = self._build_layout()
         self.window = sg.Window(self._t("app_title"), layout, finalize=True, resizable=True,
-                                size=(1400, 800), location=(100, 100))
+                                size=DEFAULT_WINDOW_SIZE, location=(100, 100))
 
         # Load saved base path
         try:

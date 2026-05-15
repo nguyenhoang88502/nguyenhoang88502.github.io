@@ -710,5 +710,5 @@ def fileSignature(file_path: str, file_size: int, mtime: Optional[int] = None) -
     """Generate a unique signature for a file (for caching)"""
     stat = os.stat(file_path) if Path(file_path).exists() else None
     size = file_size or (stat.st_size if stat else 0)
-    modified = mtime or (int(stat.st_mtime * 1000) if stat else 0)
+    modified = mtime or (int(stat.st_mtime_ns // 1_000_000) if stat else 0)
     return f"{file_path}|{size}|{modified}"

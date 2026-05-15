@@ -11,6 +11,11 @@ from pathlib import Path
 from threading import Lock
 
 
+def stat_mtime_ms(stat_result: os.stat_result) -> int:
+    """Return filesystem modified time as integer milliseconds."""
+    return int(stat_result.st_mtime_ns // 1_000_000)
+
+
 def modified_from_signature(signature: str) -> str:
     parts = (signature or "").split("|")
     try:
@@ -160,7 +165,7 @@ class PartitionedCacheManager:
         if mtime is None:
             try:
                 stat = os.stat(filepath)
-                mtime = int(stat.st_mtime * 1000)
+                mtime = stat_mtime_ms(stat)
                 size = stat.st_size
             except Exception:
                 pass
@@ -170,7 +175,7 @@ class PartitionedCacheManager:
         """Get file size and modification time"""
         try:
             stat = os.stat(filepath)
-            return stat.st_size, int(stat.st_mtime * 1000)
+            return stat.st_size, stat_mtime_ms(stat)
         except Exception:
             return 0, 0
 
