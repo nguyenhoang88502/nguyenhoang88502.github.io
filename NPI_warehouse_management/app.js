@@ -1,5 +1,5 @@
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbxkZj6WmuDQgg-xZiXN_3qyHn3dl0xFA0OwJoTOlHInozatQCdVUGTTLxmLXGBRK0Yj/exec";
+  "https://script.google.com/macros/s/AKfycbzsPljQoGE4xbnqq6dLoQrH5gzONsbpnQ2aPgN9Ph_3Km6aHDe4m57HmTjX_3G1DN_z/exec";
 
 const STORAGE_KEY = "npiWarehouseTotal.v2";
 const HISTORY_KEY = "npiWarehouseHistory.v1";
