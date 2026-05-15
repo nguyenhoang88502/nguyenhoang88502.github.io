@@ -99,7 +99,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th scope="col">Stt</th>
+                    <th scope="col">Finish good ID</th>
                     <th scope="col">Item number</th>
                     <th scope="col">Product name</th>
                     <th scope="col">On hand</th>
@@ -133,21 +133,8 @@
               <div id="itemLookup" class="item-lookup" aria-live="polite"></div>
 
               <label>
-                Finished good
-                <select id="fg" name="fg" required>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </label>
-
-              <label>
-                FG name
-                <input id="fgName" name="fgName" required placeholder="Widget A" autocomplete="off" />
-              </label>
-
-              <label>
-                Product name
-                <input id="productName" name="productName" required placeholder="Alpha Series" autocomplete="off" />
+                Finish good ID
+                <input id="finishGoodId" name="finishGoodId" placeholder="Auto lookup" autocomplete="off" />
               </label>
 
               <label>
@@ -224,6 +211,11 @@
               <label>
                 Product name
                 <input id="checkProductName" name="productName" required placeholder="Housing Bottom Black 9307" autocomplete="off" />
+              </label>
+
+              <label>
+                Finish good ID
+                <input id="checkFinishGoodId" name="finishGoodId" placeholder="FG-1001" autocomplete="off" />
               </label>
 
               <label>

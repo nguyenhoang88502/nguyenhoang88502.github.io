@@ -1,5 +1,5 @@
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbzFXPRk2Y9Psdp1WSH7_2XEJQO83OT1P_NRv5PlS1Q9JId8THu9H_mrPb5H05x5Y8Vc/exec";
+  "https://script.google.com/macros/s/AKfycbzfxhR77lgY3BlPqm501_vxk0lPAM_EUyj_m4ztB9gBF53KWhM1mL-wTztvPi3AaY7k/exec";
 
 const STORAGE_KEY = "npiWarehouseTotal.v2";
 const HISTORY_KEY = "npiWarehouseHistory.v1";
@@ -20,6 +20,7 @@ const state = {
 
 const elements = {
   adjustmentForm: document.querySelector("#adjustmentForm"),
+  checkFinishGoodId: document.querySelector("#checkFinishGoodId"),
   checkItemNumber: document.querySelector("#checkItemNumber"),
   checkProductName: document.querySelector("#checkProductName"),
   checkStatus: document.querySelector("#checkStatus"),
@@ -33,6 +34,7 @@ const elements = {
   inventoryBody: document.querySelector("#inventoryBody"),
   itemLookup: document.querySelector("#itemLookup"),
   itemNumber: document.querySelector("#itemNumber"),
+  finishGoodId: document.querySelector("#finishGoodId"),
   searchInput: document.querySelector("#searchInput"),
   skuCount: document.querySelector("#skuCount"),
   sendCheckBtn: document.querySelector("#sendCheckBtn"),
@@ -73,9 +75,7 @@ function getFormPayload() {
   return {
     action: "outbound",
     itemNumber: String(formData.get("itemNumber") || "").trim(),
-    fg: String(formData.get("fg") || "Yes"),
-    fgName: String(formData.get("fgName") || "").trim(),
-    productName: String(formData.get("productName") || "").trim(),
+    finishGoodId: String(formData.get("finishGoodId") || "").trim(),
     quantity: Number(formData.get("quantity") || 0),
   };
 }
@@ -91,11 +91,11 @@ function setPanelStatus(element, message, type = "") {
 }
 
 function normalizeStockRow(item) {
-  const quantity = Number(item.quantity ?? item.quantity ?? 0) || 0;
+  const quantity = Number(item.quantity ?? item.quantily ?? 0) || 0;
   const total = Number(item.total ?? quantity) || 0;
 
   return {
-    stt: String(item.stt ?? "").trim(),
+    finishGoodId: String(item.finishGoodId ?? item.fgId ?? item.stt ?? "").trim(),
     itemNumber: String(item.itemNumber || "").trim(),
     productName: String(item.productName || "").trim(),
     quantity,
@@ -261,7 +261,7 @@ function renderInventory() {
   const query = state.search.toLowerCase();
   const filteredInventory = activeStockRows().filter((item) => {
     const searchableText =
-      `${item.stt} ${item.itemNumber} ${item.productName} ${item.location} ${item.shelf} ${item.family}`.toLowerCase();
+      `${item.finishGoodId} ${item.itemNumber} ${item.productName} ${item.location} ${item.shelf} ${item.family}`.toLowerCase();
     return searchableText.includes(query);
   });
 
@@ -277,7 +277,7 @@ function renderInventory() {
   filteredInventory.forEach((item) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${item.stt}</td>
+      <td>${item.finishGoodId}</td>
       <td><button class="item-code" type="button" data-item-number="${item.itemNumber}">${item.itemNumber}</button></td>
       <td>${item.productName}</td>
       <td><strong>${formatNumber(stockOnHand(item))}</strong></td>
@@ -312,7 +312,7 @@ function renderHistory() {
     item.innerHTML = `
       <div>
         <strong>${entry.itemNumber} set to ${formatNumber(entry.quantity)}</strong>
-        <span>${entry.productName} / ${entry.fgName}</span>
+        <span>${entry.finishGoodId || entry.productName || "warehouse adjustment"}</span>
       </div>
       <span>${new Date(entry.createdAt).toLocaleString()}</span>
     `;
@@ -404,7 +404,7 @@ function renderItemLookup() {
         <button class="lookup-result" type="button" data-item-number="${item.itemNumber}">
           <strong>${item.itemNumber}</strong>
           <span>${item.productName}</span>
-          <span>${formatNumber(stockOnHand(item))} units / Loc ${item.location || "-"} / Shelf ${item.shelf || "-"}</span>
+          <span>${formatNumber(stockOnHand(item))} units / FG ${item.finishGoodId || "-"} / Loc ${item.location || "-"} / Shelf ${item.shelf || "-"}</span>
         </button>
       `,
     )
@@ -423,6 +423,7 @@ function itemLookupMarkup(item) {
       <dl>
         <div><dt>Location</dt><dd>${item.location || "-"}</dd></div>
         <div><dt>Shelf</dt><dd>${item.shelf || "-"}</dd></div>
+        <div><dt>FG ID</dt><dd>${item.finishGoodId || "-"}</dd></div>
         <div><dt>Product</dt><dd>${item.productName || "-"}</dd></div>
       </dl>
     </div>
@@ -441,11 +442,7 @@ function selectItem(itemNumber) {
   }
 
   elements.adjustmentForm.itemNumber.value = item.itemNumber;
-  elements.adjustmentForm.productName.value = item.productName;
-
-  if (!elements.adjustmentForm.fgName.value.trim()) {
-    elements.adjustmentForm.fgName.value = item.productName;
-  }
+  elements.adjustmentForm.finishGoodId.value = item.finishGoodId || "";
 
   renderItemLookup();
   setStatus(`${item.itemNumber}: ${formatNumber(stockOnHand(item))} units at location ${item.location || "-"}, shelf ${item.shelf || "-"}.`);
@@ -504,7 +501,7 @@ async function handleSubmit(event) {
 
   const payload = getFormPayload();
 
-  if (!payload.itemNumber || !payload.fgName || !payload.productName || Number.isNaN(payload.quantity)) {
+  if (!payload.itemNumber || Number.isNaN(payload.quantity)) {
     setStatus("Fill every field before submitting.", "error");
     return;
   }
@@ -544,6 +541,7 @@ function getStockCheckPayload() {
     action: "stockCheck",
     itemNumber: String(formData.get("itemNumber") || "").trim(),
     productName: String(formData.get("productName") || "").trim(),
+    finishGoodId: String(formData.get("finishGoodId") || "").trim(),
     quantity: Number(formData.get("quantity") || 0),
     location: String(formData.get("location") || "").trim(),
     shelf: String(formData.get("shelf") || "").trim(),
@@ -603,6 +601,7 @@ function fillStockCheckFromItem() {
   }
 
   elements.checkProductName.value = item.productName;
+  elements.checkFinishGoodId.value = item.finishGoodId || "";
   elements.stockCheckForm.location.value = item.location || "";
   elements.stockCheckForm.shelf.value = item.shelf || "";
 }
@@ -747,7 +746,7 @@ function clearInboundUpload() {
 }
 
 function exportInventoryCsv() {
-  const header = ["stt", "itemNumber", "productName", "quantity", "location", "shelf", "total", "family"];
+  const header = ["finishGoodId", "itemNumber", "productName", "quantity", "location", "shelf", "total", "family"];
   const rows = activeStockRows().map((item) =>
     header.map((key) => `"${String(item[key]).replaceAll('"', '""')}"`).join(","),
   );
