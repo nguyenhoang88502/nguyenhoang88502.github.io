@@ -1,5 +1,5 @@
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbzsPljQoGE4xbnqq6dLoQrH5gzONsbpnQ2aPgN9Ph_3Km6aHDe4m57HmTjX_3G1DN_z/exec";
+  "https://script.google.com/macros/s/AKfycbypYj0ZygHnnoWIc3h8rh8IydRrquUGKig4FOuSukyjqwlty7qk2oK-e_iV509paC-V/exec";
 
 const STORAGE_KEY = "npiWarehouseTotal.v2";
 const HISTORY_KEY = "npiWarehouseHistory.v1";
@@ -8,6 +8,7 @@ const state = {
   inventory: loadJson(STORAGE_KEY, []),
   history: loadJson(HISTORY_KEY, []),
   inboundUploadRows: [],
+  outboundUploadRows: [],
   weekIndex: [],
   selectedWeek: "",
   orderedLastWeek: 0,
@@ -27,18 +28,26 @@ const elements = {
   clearCheckBtn: document.querySelector("#clearCheckBtn"),
   clearBtn: document.querySelector("#clearBtn"),
   clearHistoryBtn: document.querySelector("#clearHistoryBtn"),
+  clearOutboundUploadBtn: document.querySelector("#clearOutboundUploadBtn"),
   clearUploadBtn: document.querySelector("#clearUploadBtn"),
   exportBtn: document.querySelector("#exportBtn"),
   refreshBtn: document.querySelector("#refreshBtn"),
   historyList: document.querySelector("#historyList"),
+  inboundTemplateBtn: document.querySelector("#inboundTemplateBtn"),
   inventoryBody: document.querySelector("#inventoryBody"),
   itemLookup: document.querySelector("#itemLookup"),
   itemNumber: document.querySelector("#itemNumber"),
   finishGoodId: document.querySelector("#finishGoodId"),
   searchInput: document.querySelector("#searchInput"),
+  outboundTemplateBtn: document.querySelector("#outboundTemplateBtn"),
+  outboundUploadPreview: document.querySelector("#outboundUploadPreview"),
+  outboundUploadStatus: document.querySelector("#outboundUploadStatus"),
+  outboundXlsxDropZone: document.querySelector("#outboundXlsxDropZone"),
+  outboundXlsxInput: document.querySelector("#outboundXlsxInput"),
   skuCount: document.querySelector("#skuCount"),
   sendCheckBtn: document.querySelector("#sendCheckBtn"),
   sendInboundBtn: document.querySelector("#sendInboundBtn"),
+  sendOutboundBtn: document.querySelector("#sendOutboundBtn"),
   unitCount: document.querySelector("#unitCount"),
   orderedLastWeek: document.querySelector("#orderedLastWeek"),
   refreshMeta: document.querySelector("#refreshMeta"),
@@ -454,6 +463,7 @@ function render() {
   renderHistory();
   renderItemLookup();
   renderInboundUploadPreview();
+  renderOutboundUploadPreview();
   if (window.lucide) {
     window.lucide.createIcons();
   }
@@ -619,8 +629,27 @@ function renderInboundUploadPreview() {
     return;
   }
 
-  const totalQuantity = state.inboundUploadRows.reduce((sum, row) => sum + row.quantity, 0);
-  const previewRows = state.inboundUploadRows
+  elements.uploadPreview.innerHTML = uploadPreviewMarkup(state.inboundUploadRows);
+}
+
+function renderOutboundUploadPreview() {
+  if (!elements.outboundUploadPreview || !elements.sendOutboundBtn) {
+    return;
+  }
+
+  elements.sendOutboundBtn.disabled = !state.outboundUploadRows.length;
+
+  if (!state.outboundUploadRows.length) {
+    elements.outboundUploadPreview.innerHTML = `<span class="muted-line">Waiting for workbook.</span>`;
+    return;
+  }
+
+  elements.outboundUploadPreview.innerHTML = uploadPreviewMarkup(state.outboundUploadRows);
+}
+
+function uploadPreviewMarkup(rows) {
+  const totalQuantity = rows.reduce((sum, row) => sum + row.quantity, 0);
+  const previewRows = rows
     .slice(0, 5)
     .map(
       (row) => `
@@ -632,9 +661,9 @@ function renderInboundUploadPreview() {
     )
     .join("");
 
-  elements.uploadPreview.innerHTML = `
+  return `
     <div class="upload-summary">
-      <span>${formatNumber(state.inboundUploadRows.length)} rows</span>
+      <span>${formatNumber(rows.length)} rows</span>
       <strong>${formatNumber(totalQuantity)} total units</strong>
     </div>
     <table class="mini-table">
@@ -662,7 +691,7 @@ async function handleInboundFile(file) {
     const firstSheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[firstSheetName];
     const rows = window.XLSX.utils.sheet_to_json(sheet, { defval: "" });
-    state.inboundUploadRows = normalizeInboundRows(rows);
+    state.inboundUploadRows = normalizeUploadRows(rows);
     renderInboundUploadPreview();
 
     if (!state.inboundUploadRows.length) {
@@ -683,6 +712,10 @@ async function handleInboundFile(file) {
 }
 
 function normalizeInboundRows(rows) {
+  return normalizeUploadRows(rows);
+}
+
+function normalizeUploadRows(rows) {
   return rows
     .map((row) => {
       const itemNumber = String(
@@ -693,6 +726,44 @@ function normalizeInboundRows(rows) {
       return { itemNumber, quantity };
     })
     .filter((row) => row.itemNumber && !Number.isNaN(row.quantity) && row.quantity !== 0);
+}
+
+async function handleOutboundFile(file) {
+  if (!file) {
+    return;
+  }
+
+  if (!window.XLSX) {
+    setPanelStatus(elements.outboundUploadStatus, "XLSX parser is still loading. Try again in a moment.", "error");
+    return;
+  }
+
+  setPanelStatus(elements.outboundUploadStatus, `Reading ${file.name}...`);
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const workbook = window.XLSX.read(buffer, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[firstSheetName];
+    const rows = window.XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    state.outboundUploadRows = normalizeUploadRows(rows);
+    renderOutboundUploadPreview();
+
+    if (!state.outboundUploadRows.length) {
+      setPanelStatus(elements.outboundUploadStatus, "No valid rows found. The workbook needs Item number and Quantity columns.", "error");
+      return;
+    }
+
+    setPanelStatus(
+      elements.outboundUploadStatus,
+      `Ready to send ${formatNumber(state.outboundUploadRows.length)} outbound rows from ${firstSheetName}.`,
+      "success",
+    );
+  } catch (error) {
+    state.outboundUploadRows = [];
+    renderOutboundUploadPreview();
+    setPanelStatus(elements.outboundUploadStatus, `Could not read workbook: ${error.message}`, "error");
+  }
 }
 
 function getColumnValue(row, names) {
@@ -709,6 +780,21 @@ function getColumnValue(row, names) {
 
 function normalizeHeader(value) {
   return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function exportDropInTemplate(kind) {
+  if (!window.XLSX) {
+    const statusElement = kind === "inbound" ? elements.uploadStatus : elements.outboundUploadStatus;
+    setPanelStatus(statusElement, "XLSX exporter is still loading. Try again in a moment.", "error");
+    return;
+  }
+
+  const title = kind === "inbound" ? "Inbound" : "Outbound";
+  const worksheet = window.XLSX.utils.aoa_to_sheet([["Item number", "Quantity"]]);
+  worksheet["!cols"] = [{ wch: 18 }, { wch: 12 }];
+  const workbook = window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(workbook, worksheet, title);
+  window.XLSX.writeFile(workbook, `npi-${kind}-drop-in-template.xlsx`);
 }
 
 async function sendInboundUpload() {
@@ -746,6 +832,41 @@ function clearInboundUpload() {
   setPanelStatus(elements.uploadStatus, "Upload cleared.");
 }
 
+async function sendOutboundUpload() {
+  if (!state.outboundUploadRows.length) {
+    setPanelStatus(elements.outboundUploadStatus, "Drop an outbound workbook first.", "error");
+    return;
+  }
+
+  elements.sendOutboundBtn.disabled = true;
+  setPanelStatus(elements.outboundUploadStatus, "Sending outbound rows...");
+
+  try {
+    const result = await postJson({ action: "outboundBulk", rows: state.outboundUploadRows });
+    setPanelStatus(
+      elements.outboundUploadStatus,
+      result === "confirmed"
+        ? `Outbound upload sent: ${formatNumber(state.outboundUploadRows.length)} rows.`
+        : "Outbound upload sent. Refresh after the sheet finishes updating.",
+      "success",
+    );
+    state.outboundUploadRows = [];
+    elements.outboundXlsxInput.value = "";
+    renderOutboundUploadPreview();
+    window.setTimeout(loadStockFromWebhook, 900);
+  } catch (error) {
+    setPanelStatus(elements.outboundUploadStatus, `Outbound upload failed: ${error.message}`, "error");
+    renderOutboundUploadPreview();
+  }
+}
+
+function clearOutboundUpload() {
+  state.outboundUploadRows = [];
+  elements.outboundXlsxInput.value = "";
+  renderOutboundUploadPreview();
+  setPanelStatus(elements.outboundUploadStatus, "Upload cleared.");
+}
+
 function exportInventoryCsv() {
   const header = ["finishGoodId", "itemNumber", "productName", "quantity", "location", "shelf", "total", "family"];
   const rows = activeStockRows().map((item) =>
@@ -770,11 +891,16 @@ elements.checkItemNumber.addEventListener("change", fillStockCheckFromItem);
 elements.checkItemNumber.addEventListener("blur", fillStockCheckFromItem);
 elements.clearBtn.addEventListener("click", clearForm);
 elements.clearCheckBtn.addEventListener("click", clearStockCheckForm);
+elements.clearOutboundUploadBtn.addEventListener("click", clearOutboundUpload);
 elements.clearUploadBtn.addEventListener("click", clearInboundUpload);
 elements.exportBtn.addEventListener("click", exportInventoryCsv);
+elements.inboundTemplateBtn.addEventListener("click", () => exportDropInTemplate("inbound"));
+elements.outboundTemplateBtn.addEventListener("click", () => exportDropInTemplate("outbound"));
 elements.refreshBtn.addEventListener("click", loadStockFromWebhook);
 elements.sendInboundBtn.addEventListener("click", sendInboundUpload);
+elements.sendOutboundBtn.addEventListener("click", sendOutboundUpload);
 elements.xlsxInput.addEventListener("change", (event) => handleInboundFile(event.target.files[0]));
+elements.outboundXlsxInput.addEventListener("change", (event) => handleOutboundFile(event.target.files[0]));
 elements.xlsxDropZone.addEventListener("dragover", (event) => {
   event.preventDefault();
   elements.xlsxDropZone.classList.add("dragging");
@@ -786,6 +912,18 @@ elements.xlsxDropZone.addEventListener("drop", (event) => {
   event.preventDefault();
   elements.xlsxDropZone.classList.remove("dragging");
   handleInboundFile(event.dataTransfer.files[0]);
+});
+elements.outboundXlsxDropZone.addEventListener("dragover", (event) => {
+  event.preventDefault();
+  elements.outboundXlsxDropZone.classList.add("dragging");
+});
+elements.outboundXlsxDropZone.addEventListener("dragleave", () => {
+  elements.outboundXlsxDropZone.classList.remove("dragging");
+});
+elements.outboundXlsxDropZone.addEventListener("drop", (event) => {
+  event.preventDefault();
+  elements.outboundXlsxDropZone.classList.remove("dragging");
+  handleOutboundFile(event.dataTransfer.files[0]);
 });
 elements.clearHistoryBtn.addEventListener("click", () => {
   state.history = [];

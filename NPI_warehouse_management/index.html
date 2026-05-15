@@ -69,6 +69,10 @@
               <span class="muted-line">Waiting for workbook.</span>
             </div>
             <div class="form-actions">
+              <button class="secondary-button" type="button" id="inboundTemplateBtn">
+                <i data-lucide="file-spreadsheet" aria-hidden="true"></i>
+                Export template
+              </button>
               <button class="secondary-button" type="button" id="clearUploadBtn">
                 <i data-lucide="x" aria-hidden="true"></i>
                 Clear upload
@@ -79,6 +83,40 @@
               </button>
             </div>
             <div id="uploadStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </section>
+
+          <section class="outbound-upload-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Outbound</p>
+                <h3>XLSX drop-in</h3>
+              </div>
+              <span class="badge">Item number + Quantity</span>
+            </div>
+            <label class="drop-zone" id="outboundXlsxDropZone">
+              <input id="outboundXlsxInput" type="file" accept=".xlsx,.xls" />
+              <i data-lucide="upload-cloud" aria-hidden="true"></i>
+              <strong>Drop outbound workbook here</strong>
+              <span>or click to choose an .xlsx file</span>
+            </label>
+            <div class="upload-preview" id="outboundUploadPreview">
+              <span class="muted-line">Waiting for workbook.</span>
+            </div>
+            <div class="form-actions">
+              <button class="secondary-button" type="button" id="outboundTemplateBtn">
+                <i data-lucide="file-spreadsheet" aria-hidden="true"></i>
+                Export template
+              </button>
+              <button class="secondary-button" type="button" id="clearOutboundUploadBtn">
+                <i data-lucide="x" aria-hidden="true"></i>
+                Clear upload
+              </button>
+              <button class="primary-button" type="button" id="sendOutboundBtn" disabled>
+                <i data-lucide="send" aria-hidden="true"></i>
+                Send outbound
+              </button>
+            </div>
+            <div id="outboundUploadStatus" class="submit-status" role="status" aria-live="polite"></div>
           </section>
 
           <div class="inventory-panel">

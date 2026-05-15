@@ -243,6 +243,7 @@ button svg,
 .week-panel,
 .adjustment-panel,
 .inbound-upload-panel,
+.outbound-upload-panel,
 .stock-check-panel,
 .history-panel {
   border: 1px solid var(--line);
@@ -254,19 +255,20 @@ button svg,
 .inventory-panel,
 .week-panel,
 .inbound-upload-panel,
+.outbound-upload-panel,
 .history-panel {
   overflow: hidden;
 }
 
 .inventory-panel {
   grid-column: 1 / -1;
-  order: 3;
+  order: 4;
   min-height: 420px;
 }
 
 .week-panel {
   grid-column: 1 / -1;
-  order: 4;
+  order: 5;
   margin-top: 16px;
 }
 
@@ -305,12 +307,17 @@ button svg,
 
 .stock-check-panel {
   display: none;
-  order: 5;
+  order: 6;
   padding: 16px;
 }
 
 .inbound-upload-panel {
   order: 1;
+  padding: 16px;
+}
+
+.outbound-upload-panel {
+  order: 3;
   padding: 16px;
 }
 
@@ -715,6 +722,7 @@ tbody tr:hover {
   .metrics-grid,
   .inventory-panel,
   .inbound-upload-panel,
+  .outbound-upload-panel,
   .week-panel,
   .history-panel {
     display: none;
