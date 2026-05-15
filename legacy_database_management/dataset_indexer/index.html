@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dataset indexer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Local folder metadata</p>
+      <h1>Dataset indexer</h1>
+    </div>
+    <div class="header-actions">
+      <button id="selectFolderBtn" type="button" class="primary">Select folder</button>
+      <button id="fallbackFolderBtn" type="button">Choose files</button>
+      <input id="folderInput" type="file" webkitdirectory multiple hidden>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="status-strip" aria-live="polite">
+      <div>
+        <span class="status-label">Folder</span>
+        <strong id="folderName">No folder selected</strong>
+      </div>
+      <div>
+        <span class="status-label">Indexed</span>
+        <strong id="indexedCount">0 files</strong>
+      </div>
+      <div>
+        <span class="status-label">Showing</span>
+        <strong id="visibleCount">0 files</strong>
+      </div>
+      <div>
+        <span class="status-label">Cache</span>
+        <strong id="cacheState">Empty</strong>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Dataset actions">
+      <button id="refreshBtn" type="button" disabled>Refresh data</button>
+      <button id="loadCacheBtn" type="button">Load cache</button>
+      <button id="clearCacheBtn" type="button">Clear cache</button>
+      <button id="exportCsvBtn" type="button" disabled>Export CSV</button>
+    </section>
+
+    <section class="search-panel">
+      <div class="field-group quick-find">
+        <label for="quickFind">Quick find</label>
+        <div class="control-row">
+          <input id="quickFind" type="search" placeholder="Type name, path, date, or file type">
+          <select id="quickMode" aria-label="Quick find mode">
+            <option value="contains">contains</option>
+            <option value="exact">exact</option>
+            <option value="isOneOf">is one of</option>
+          </select>
+          <select id="quickScope" aria-label="Quick find field">
+            <option value="all">all fields</option>
+            <option value="name">name</option>
+            <option value="path">path</option>
+            <option value="modified">date modified</option>
+            <option value="type">file type</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group batch-find">
+        <label for="batchFind">Batch find</label>
+        <textarea id="batchFind" rows="5" placeholder="Paste exact names, extensions, paths, or dates. Separate with new lines, commas, semicolons, or tabs."></textarea>
+        <div class="control-row">
+          <select id="batchMode" aria-label="Batch find mode">
+            <option value="exact">exact</option>
+            <option value="contains">contains any</option>
+            <option value="isOneOf">is one of</option>
+            <option value="containsAll">contains all</option>
+          </select>
+          <select id="batchScope" aria-label="Batch find field">
+            <option value="all">all fields</option>
+            <option value="name">name</option>
+            <option value="path">path</option>
+            <option value="modified">date modified</option>
+            <option value="type">file type</option>
+          </select>
+          <button id="clearFiltersBtn" type="button">Clear filters</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="progress-area" id="progressArea" hidden>
+      <div class="progress-copy">
+        <span id="progressText">Preparing...</span>
+        <span id="progressMeta"></span>
+      </div>
+      <div class="progress-track">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+    </section>
+
+    <section class="table-shell">
+      <div class="table-topline">
+        <span id="resultSummary">No data loaded</span>
+        <span id="cacheSummary"></span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Path</th>
+              <th>Date modified</th>
+              <th>File type</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <tr class="empty-row">
+              <td colspan="4">Select a folder or load the last cache.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <template id="rowTemplate">
+    <tr>
+      <td data-field="name"></td>
+      <td data-field="path"></td>
+      <td data-field="modified"></td>
+      <td data-field="type"></td>
+    </tr>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
