@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NPI Warehouse Management</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Warehouse navigation">
+        <div class="brand">
+          <div class="brand-mark">NPI</div>
+          <div>
+            <h1>Warehouse</h1>
+            <p>Inventory control</p>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Primary">
+          <a class="nav-item active" href="#dashboard">
+            <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+            Stock overview
+          </a>
+          <a class="nav-item" href="#adjustment-panel">
+            <i data-lucide="package-plus" aria-hidden="true"></i>
+            Adjust quantity
+          </a>
+          <a class="nav-item" href="#history-panel">
+            <i data-lucide="history" aria-hidden="true"></i>
+            Activity
+          </a>
+        </nav>
+
+        <div class="webhook-status" aria-label="Webhook endpoint">
+          <span class="status-dot"></span>
+          <span>Webhook connected</span>
+        </div>
+      </aside>
+
+      <main class="main" id="dashboard">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">NPI warehouse management</p>
+            <h2>Warehouse stock</h2>
+          </div>
+          <div class="topbar-actions">
+            <button class="secondary-button" type="button" id="refreshBtn">
+              <i data-lucide="refresh-cw" aria-hidden="true"></i>
+              Refresh stock
+            </button>
+            <button class="icon-button" type="button" id="exportBtn" title="Export inventory CSV" aria-label="Export inventory CSV">
+              <i data-lucide="download" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <section class="metrics-grid" aria-label="Warehouse metrics">
+          <article class="metric">
+            <span class="metric-label">Total SKUs</span>
+            <strong id="skuCount">0</strong>
+            <span id="fgCount">0 finished goods</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Units on hand</span>
+            <strong id="unitCount">0</strong>
+            <span id="stockSource">read-only stock</span>
+          </article>
+          <article class="metric attention">
+            <span class="metric-label">Low stock</span>
+            <strong id="lowStockCount">0</strong>
+            <span>below reorder level</span>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <div class="inventory-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Inventory</p>
+                <h3>Read-only stock</h3>
+              </div>
+              <div class="table-tools">
+                <label class="search-field">
+                  <i data-lucide="search" aria-hidden="true"></i>
+                  <input id="searchInput" type="search" placeholder="Search item, FG, or product" autocomplete="off" />
+                </label>
+                <select id="fgFilter" aria-label="Filter by FG status">
+                  <option value="All">All</option>
+                  <option value="Yes">FG only</option>
+                  <option value="No">Non-FG</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Item number</th>
+                    <th scope="col">FG</th>
+                    <th scope="col">FG name</th>
+                    <th scope="col">Product</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="adjustment-panel" id="adjustment-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Webhook submit</p>
+                <h3>Adjust quantity</h3>
+              </div>
+              <span class="badge">POST JSON</span>
+            </div>
+
+            <form id="adjustmentForm" class="form-grid">
+              <label>
+                Item number
+                <input id="itemNumber" name="itemNumber" required placeholder="NPI-1001" />
+              </label>
+
+              <label>
+                Finished good
+                <select id="fg" name="fg" required>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </label>
+
+              <label>
+                FG name
+                <input id="fgName" name="fgName" required placeholder="Widget A" />
+              </label>
+
+              <label>
+                Product name
+                <input id="productName" name="productName" required placeholder="Alpha Series" />
+              </label>
+
+              <label>
+                Quantity
+                <input id="quantity" name="quantity" type="number" min="0" step="1" required placeholder="150" />
+              </label>
+
+              <div class="form-actions">
+                <button class="secondary-button" type="button" id="clearBtn">
+                  <i data-lucide="eraser" aria-hidden="true"></i>
+                  Clear
+                </button>
+                <button class="primary-button" type="submit" id="submitBtn">
+                  <i data-lucide="send" aria-hidden="true"></i>
+                  Send adjustment
+                </button>
+              </div>
+            </form>
+
+            <div class="payload-preview" aria-live="polite">
+              <div class="preview-heading">
+                <span>Payload</span>
+                <button class="icon-button small" type="button" id="copyPayloadBtn" title="Copy payload" aria-label="Copy payload">
+                  <i data-lucide="copy" aria-hidden="true"></i>
+                </button>
+              </div>
+              <pre id="payloadPreview"></pre>
+            </div>
+
+            <div id="submitStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </aside>
+        </section>
+
+        <section class="history-panel" id="history-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Activity</p>
+              <h3>Recent adjustments</h3>
+            </div>
+            <button class="secondary-button" type="button" id="clearHistoryBtn">
+              <i data-lucide="trash-2" aria-hidden="true"></i>
+              Clear history
+            </button>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
