@@ -72,6 +72,7 @@ NPI tool directory for Wahl Clipper Vietnam-related workflows. It includes:
 |-- inspection_standard_tool/
 |-- manufacturing-failure-analytics-pipeline/
 |-- NPI_warehouse_management/
+|-- WMS/
 |-- OPF_sim/
 |-- pdftodocx/
 |-- systemdesign/
@@ -218,6 +219,21 @@ Main workflows:
 - Check actual stock and cycle count.
 - Search warehouse shelves.
 
+### `WMS/`
+
+Portfolio-friendly public copy of the warehouse management system. Stripped of company-specific information for showcase purposes. Includes real-time inventory tracking, warehouse layout visualization, XLSX inbound/outbound processing, and cycle count management — all as a static web app connected to Google Apps Script.
+
+Useful files:
+
+- `index.html`: warehouse stock and transaction interface.
+- `app.js`: main stock, upload, export, cycle count, and webhook behavior.
+- `dashboard.html`: interactive warehouse layout dashboard.
+- `dashboard.js`: layout rendering, shelf search, metrics, and click interaction.
+- `styles.css`: shared styling (desktop + mobile responsive).
+- `Layout.xlsx`: source layout workbook.
+- `warehouse-layout.js`: generated layout data for the dashboard.
+- `README.md`: stakeholder-friendly project overview.
+
 ### `OPF_sim/`
 
 Trimmer assembly line simulation project. It includes a portfolio page, a Monte Carlo simulation tool, time-study data collection, before/after reports, images, PDFs, Excel files, Arena model files, and process videos.
@@ -335,7 +351,13 @@ Two deployment models are possible:
 
 The first model is simpler. The second model preserves the existing GitHub Pages URL.
 
-## AI Chat Plan With Vercel Serverless Proxy
+## AI Chatbot (Implemented)
+
+The AI assistant is live on the portfolio site. For full technical documentation, see [`AI_CHATBOT.md`](AI_CHATBOT.md).
+
+## AI Chat Plan With Vercel Serverless Proxy (Historical)
+
+This section documents the original plan. The implementation follows this architecture and is now live.
 
 Goal: add an AI assistant to the portfolio or NPI tool directory without exposing private API keys in browser code.
 
