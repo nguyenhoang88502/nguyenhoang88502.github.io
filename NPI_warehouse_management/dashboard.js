@@ -96,7 +96,9 @@ function renderMetrics() {
 }
 
 function renderLayout() {
-  const rows = window.NPI_WAREHOUSE_LAYOUT?.rows || [];
+  const rows = (window.NPI_WAREHOUSE_LAYOUT?.rows || [])
+    .slice(0, 13)
+    .map((row) => row.slice(0, 17));
   const shelfCodes = layoutShelfCodeSet();
   const selectedShelf = normalizeKey(itemShelfCode(dashboardState.selectedItem));
   const columnCount = rows[0]?.length || 1;
