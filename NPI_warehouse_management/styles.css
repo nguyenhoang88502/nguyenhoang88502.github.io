@@ -147,7 +147,7 @@ button {
   white-space: nowrap;
 }
 
-.mobile-dashboard-link {
+.mobile-dashboard-link.secondary-button {
   display: none;
   margin-bottom: 14px;
 }
@@ -914,7 +914,7 @@ button.layout-cell {
     flex-direction: column;
   }
 
-  .mobile-dashboard-link {
+  .mobile-dashboard-link.secondary-button {
     display: flex;
   }
 
