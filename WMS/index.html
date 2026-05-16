@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NPI Warehouse Management</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
+    <script src="warehouse-layout.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="main" id="dashboard">
+        <header class="topbar">
+          <div class="brand-row">
+            <div class="brand-mark">NPI</div>
+            <div>
+              <p class="eyebrow">NPI warehouse management</p>
+              <h2>Total stock</h2>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <a class="secondary-button" href="dashboard.html">
+              <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+              Dashboard
+            </a>
+            <button class="secondary-button" type="button" id="refreshBtn">
+              <i data-lucide="refresh-cw" aria-hidden="true"></i>
+              Refresh stock
+            </button>
+            <span class="refresh-meta" id="refreshMeta">Auto-refresh every 10s</span>
+            <button class="icon-button" type="button" id="exportBtn" title="Export inventory CSV" aria-label="Export inventory CSV">
+              <i data-lucide="download" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <a class="secondary-button mobile-dashboard-link" href="dashboard.html">
+          <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+          Dashboard
+        </a>
+
+        <section class="metrics-grid" aria-label="Warehouse metrics">
+          <article class="metric">
+            <span class="metric-label">Total SKUs</span>
+            <strong id="skuCount">0</strong>
+            <span>non-zero SKUs</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Total units</span>
+            <strong id="unitCount">0</strong>
+            <span id="stockSource">on hand</span>
+          </article>
+          <article class="metric attention">
+            <span class="metric-label">Inbound SKUs last week</span>
+            <strong id="inboundSkuLastWeek">0</strong>
+            <span>unique SKUs received</span>
+          </article>
+        </section>
+
+        <section class="operations-grid" aria-label="Warehouse actions">
+          <section class="inbound-upload-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Inbound</p>
+                <h3>XLSX drop-in</h3>
+              </div>
+              <span class="badge">Item number + Quantity</span>
+            </div>
+            <label class="drop-zone" id="xlsxDropZone">
+              <input id="xlsxInput" type="file" accept=".xlsx,.xls" />
+              <i data-lucide="upload-cloud" aria-hidden="true"></i>
+              <strong>Drop inbound workbook here</strong>
+              <span>or click to choose an .xlsx file</span>
+            </label>
+            <div class="upload-preview" id="uploadPreview">
+              <span class="muted-line">Waiting for workbook.</span>
+            </div>
+            <div class="form-actions">
+              <button class="secondary-button" type="button" id="inboundTemplateBtn">
+                <i data-lucide="file-spreadsheet" aria-hidden="true"></i>
+                Export template
+              </button>
+              <button class="secondary-button" type="button" id="clearUploadBtn">
+                <i data-lucide="x" aria-hidden="true"></i>
+                Clear upload
+              </button>
+              <button class="primary-button" type="button" id="sendInboundBtn" disabled>
+                <i data-lucide="send" aria-hidden="true"></i>
+                Send inbound
+              </button>
+            </div>
+            <div id="uploadStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </section>
+
+          <section class="outbound-upload-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Outbound</p>
+                <h3>XLSX drop-in</h3>
+              </div>
+              <span class="badge">Item number + Quantity</span>
+            </div>
+            <label class="drop-zone" id="outboundXlsxDropZone">
+              <input id="outboundXlsxInput" type="file" accept=".xlsx,.xls" />
+              <i data-lucide="upload-cloud" aria-hidden="true"></i>
+              <strong>Drop outbound workbook here</strong>
+              <span>or click to choose an .xlsx file</span>
+            </label>
+            <div class="upload-preview" id="outboundUploadPreview">
+              <span class="muted-line">Waiting for workbook.</span>
+            </div>
+            <div class="form-actions">
+              <button class="secondary-button" type="button" id="outboundTemplateBtn">
+                <i data-lucide="file-spreadsheet" aria-hidden="true"></i>
+                Export template
+              </button>
+              <button class="secondary-button" type="button" id="clearOutboundUploadBtn">
+                <i data-lucide="x" aria-hidden="true"></i>
+                Clear upload
+              </button>
+              <button class="primary-button" type="button" id="sendOutboundBtn" disabled>
+                <i data-lucide="send" aria-hidden="true"></i>
+                Send outbound
+              </button>
+            </div>
+            <div id="outboundUploadStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </section>
+
+          <div class="inventory-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Inventory</p>
+                <h3>Total sheet only</h3>
+              </div>
+              <div class="table-tools">
+                <label class="search-field">
+                  <i data-lucide="search" aria-hidden="true"></i>
+                  <input id="searchInput" type="search" placeholder="Search item, product, location, shelf, family" autocomplete="off" />
+                </label>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Finish good ID</th>
+                    <th scope="col">Item number</th>
+                    <th scope="col">Product name</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Shelf</th>
+                    <th scope="col">Family</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="adjustment-panel" id="adjustment-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Outbound</p>
+                <h3>Adjustment</h3>
+              </div>
+              <span class="badge">POST JSON</span>
+            </div>
+
+            <form id="adjustmentForm" class="form-grid" autocomplete="off">
+              <label>
+                Item number
+                <input id="itemNumber" name="itemNumber" required placeholder="NPI-1001" autocomplete="off" />
+              </label>
+
+              <div id="itemLookup" class="item-lookup" aria-live="polite"></div>
+
+              <label>
+                Finish good ID
+                <input id="finishGoodId" name="finishGoodId" placeholder="Auto lookup" autocomplete="off" />
+              </label>
+
+              <label>
+                Quantity
+                <input id="quantity" name="quantity" type="number" min="0" step="1" required placeholder="150" autocomplete="off" />
+              </label>
+
+              <div class="form-actions">
+                <button class="secondary-button" type="button" id="clearBtn">
+                  <i data-lucide="eraser" aria-hidden="true"></i>
+                  Clear
+                </button>
+                <button class="primary-button" type="submit" id="submitBtn">
+                  <i data-lucide="send" aria-hidden="true"></i>
+                  Send adjustment
+                </button>
+              </div>
+            </form>
+
+            <div id="submitStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </aside>
+
+          <section class="week-panel" aria-label="Weekly inbound and outbound index">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Week index</p>
+                <h3>Inbound and outbound</h3>
+              </div>
+              <div class="table-tools">
+                <select id="weekSelect" aria-label="Select week"></select>
+              </div>
+            </div>
+            <div class="week-summary">
+              <div>
+                <span>Inbound</span>
+                <strong id="weekInboundQty">0</strong>
+              </div>
+              <div>
+                <span>Outbound</span>
+                <strong id="weekOutboundQty">0</strong>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Flow</th>
+                    <th scope="col">Item number</th>
+                    <th scope="col">Product name</th>
+                    <th scope="col">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody id="weekBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="stock-check-panel" id="stock-check-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Cycle count</p>
+                <h3>Check Actual Stocking Quantity</h3>
+              </div>
+              <span class="badge">Inbound + shelf</span>
+            </div>
+
+            <form id="stockCheckForm" class="form-grid" autocomplete="off">
+              <label>
+                Item number
+                <input id="checkItemNumber" name="itemNumber" required placeholder="1000014" autocomplete="off" />
+              </label>
+
+              <label>
+                Product name
+                <input id="checkProductName" name="productName" placeholder="Auto lookup" autocomplete="off" readonly />
+              </label>
+
+              <label>
+                Finish good ID
+                <input id="checkFinishGoodId" name="finishGoodId" placeholder="Auto lookup" autocomplete="off" readonly />
+              </label>
+
+              <label>
+                Quantity
+                <input id="checkQuantity" name="quantity" type="number" min="0" step="1" required placeholder="15" autocomplete="off" />
+              </label>
+
+              <label>
+                Location
+                <input id="checkLocation" name="location" required placeholder="1" autocomplete="off" />
+              </label>
+
+              <label>
+                Shelf
+                <input id="checkShelf" name="shelf" required placeholder="C1" autocomplete="off" />
+              </label>
+
+              <div class="form-actions">
+                <button class="secondary-button" type="button" id="clearCheckBtn">
+                  <i data-lucide="eraser" aria-hidden="true"></i>
+                  Clear
+                </button>
+                <button class="primary-button" type="submit" id="sendCheckBtn">
+                  <i data-lucide="send" aria-hidden="true"></i>
+                  Send check
+                </button>
+              </div>
+            </form>
+
+            <div id="checkStatus" class="submit-status" role="status" aria-live="polite"></div>
+          </aside>
+        </section>
+
+        <section class="history-panel" id="history-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Activity</p>
+              <h3>Recent adjustments</h3>
+            </div>
+            <button class="secondary-button" type="button" id="clearHistoryBtn">
+              <i data-lucide="trash-2" aria-hidden="true"></i>
+              Clear history
+            </button>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

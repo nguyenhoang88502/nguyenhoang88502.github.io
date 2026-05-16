@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NPI Warehouse Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="warehouse-layout.js" defer></script>
+    <script src="dashboard.js" defer></script>
+  </head>
+  <body class="dashboard-page">
+    <div class="app-shell">
+      <main class="main">
+        <header class="topbar">
+          <div class="brand-row">
+            <div class="brand-mark">NPI</div>
+            <div>
+              <p class="eyebrow">warehouse dashboard</p>
+              <h2>Layout view</h2>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <a class="secondary-button" href="index.html">
+              <i data-lucide="arrow-left" aria-hidden="true"></i>
+              Stock app
+            </a>
+            <button class="secondary-button" type="button" id="dashboardRefreshBtn">
+              <i data-lucide="refresh-cw" aria-hidden="true"></i>
+              Refresh stock
+            </button>
+            <span class="refresh-meta" id="dashboardRefreshMeta">Loading stock...</span>
+          </div>
+        </header>
+
+        <section class="metrics-grid dashboard-metrics" aria-label="Warehouse dashboard metrics">
+          <article class="metric">
+            <span class="metric-label">Total SKUs</span>
+            <strong id="dashboardSkuCount">0</strong>
+            <span>non-zero SKUs</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Total units</span>
+            <strong id="dashboardUnitCount">0</strong>
+            <span>on hand</span>
+          </article>
+          <article class="metric attention">
+            <span class="metric-label">Inbound SKUs last week</span>
+            <strong id="dashboardInboundSkuLastWeek">0</strong>
+            <span>unique SKUs received</span>
+          </article>
+        </section>
+
+        <section class="dashboard-workspace">
+          <aside class="dashboard-search-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Find shelf</p>
+                <h3>Item lookup</h3>
+              </div>
+            </div>
+            <label class="dashboard-search-field">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <input id="dashboardSearchInput" type="search" placeholder="Type item number" autocomplete="off" />
+            </label>
+            <div class="lookup-card dashboard-result" id="dashboardResult">
+              <span>Search an item number to highlight its shelf.</span>
+            </div>
+          </aside>
+
+          <section class="layout-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Warehouse layout</p>
+                <h3>Layout</h3>
+              </div>
+              <span class="badge" id="layoutMatchBadge">No shelf selected</span>
+            </div>
+            <div class="layout-scroll">
+              <div class="warehouse-layout-grid" id="warehouseLayoutGrid"></div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
