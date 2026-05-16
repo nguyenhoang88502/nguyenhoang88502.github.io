@@ -280,10 +280,6 @@ function initChatWidget() {
 
   launcher.addEventListener("click", () => {
     chat.classList.toggle("is-open");
-
-    if (chat.classList.contains("is-open")) {
-      input.focus();
-    }
   });
 
   closeButton.addEventListener("click", () => {
