@@ -147,6 +147,11 @@ button {
   white-space: nowrap;
 }
 
+.mobile-dashboard-link {
+  display: none;
+  margin-bottom: 14px;
+}
+
 .icon-button,
 .secondary-button,
 .primary-button {
@@ -909,6 +914,10 @@ button.layout-cell {
     flex-direction: column;
   }
 
+  .mobile-dashboard-link {
+    display: flex;
+  }
+
   .search-field {
     min-width: 100%;
   }
@@ -918,31 +927,39 @@ button.layout-cell {
     width: 100%;
   }
 
-  .workspace {
-    display: grid;
-    gap: 22px;
-  }
-
   .operations-grid {
-    display: contents;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 0;
   }
 
   .adjustment-panel,
   .stock-check-panel {
     display: block;
+    min-height: 0;
     border: 0;
     box-shadow: none;
     padding: 0;
   }
 
+  .adjustment-panel .form-grid {
+    flex: initial;
+  }
+
   .section-heading {
     align-items: stretch;
     flex-direction: column;
-    padding: 0 0 18px;
+    gap: 8px;
+    padding: 0 0 10px;
   }
 
   .form-grid {
-    gap: 16px;
+    gap: 12px;
+  }
+
+  .submit-status {
+    margin-top: 10px;
   }
 
   .form-grid input,
@@ -960,13 +977,32 @@ button.layout-cell {
     display: flex;
     align-items: stretch;
     flex-direction: column;
-    margin: -14px -14px 16px;
-    padding: 12px 14px;
+    gap: 10px;
+    min-height: 0;
+    margin: -14px -14px 10px;
+    padding: 10px 14px;
   }
 
   .dashboard-page .metrics-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .dashboard-page .metric {
+    min-height: 74px;
+    padding: 9px;
+  }
+
+  .dashboard-page .metric strong {
+    margin: 5px 0 3px;
+    font-size: 22px;
+  }
+
+  .dashboard-page .metric-label,
+  .dashboard-page .metric span:last-child {
+    font-size: 10px;
   }
 
   .dashboard-page .topbar-actions {
@@ -976,9 +1012,40 @@ button.layout-cell {
 
   .dashboard-workspace {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dashboard-search-panel,
+  .layout-panel {
+    padding: 10px;
+  }
+
+  .dashboard-result {
+    max-height: 165px;
+    overflow: auto;
+  }
+
+  .layout-panel .section-heading {
+    padding-bottom: 8px;
   }
 
   .warehouse-layout-grid {
-    height: 430px;
+    height: min(38svh, 310px);
+    min-height: 250px;
+    padding: 5px;
+    gap: 1px;
+  }
+
+  .layout-cell {
+    border-width: 1px;
+    font-size: 8px;
+  }
+
+  .layout-cell.parent {
+    font-size: 15px;
+  }
+
+  .shelf-sku-list {
+    max-height: 140px;
   }
 }
