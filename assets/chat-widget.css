@@ -242,6 +242,127 @@
 
 .portfolio-chat__message--assistant {
   align-self: flex-start;
+  white-space: normal;
+}
+
+/* ---- Markdown styling for assistant messages ---- */
+
+.portfolio-chat__message--assistant h1,
+.portfolio-chat__message--assistant h2,
+.portfolio-chat__message--assistant h3,
+.portfolio-chat__message--assistant h4,
+.portfolio-chat__message--assistant h5,
+.portfolio-chat__message--assistant h6 {
+  margin: 12px 0 6px;
+  color: var(--chat-cream);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.portfolio-chat__message--assistant h1 { font-size: 1.2rem; }
+.portfolio-chat__message--assistant h2 { font-size: 1.08rem; }
+.portfolio-chat__message--assistant h3 { font-size: 0.98rem; }
+.portfolio-chat__message--assistant h4 { font-size: 0.9rem; }
+.portfolio-chat__message--assistant h5 { font-size: 0.84rem; }
+.portfolio-chat__message--assistant h6 { font-size: 0.8rem; color: var(--chat-muted); }
+
+.portfolio-chat__message--assistant h1:first-child,
+.portfolio-chat__message--assistant h2:first-child,
+.portfolio-chat__message--assistant h3:first-child,
+.portfolio-chat__message--assistant h4:first-child,
+.portfolio-chat__message--assistant h5:first-child,
+.portfolio-chat__message--assistant h6:first-child {
+  margin-top: 0;
+}
+
+.portfolio-chat__message--assistant p {
+  margin: 6px 0;
+}
+
+.portfolio-chat__message--assistant p:first-child { margin-top: 0; }
+.portfolio-chat__message--assistant p:last-child { margin-bottom: 0; }
+
+.portfolio-chat__message--assistant ul,
+.portfolio-chat__message--assistant ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.portfolio-chat__message--assistant li {
+  margin: 2px 0;
+}
+
+.portfolio-chat__message--assistant li::marker {
+  color: var(--chat-gold-soft);
+}
+
+.portfolio-chat__message--assistant strong {
+  color: var(--chat-cream);
+  font-weight: 700;
+}
+
+.portfolio-chat__message--assistant em {
+  font-style: italic;
+}
+
+.portfolio-chat__message--assistant del {
+  opacity: 0.6;
+}
+
+.portfolio-chat__message--assistant code {
+  padding: 1px 5px;
+  border: 1px solid rgba(142, 164, 189, 0.2);
+  border-radius: 4px;
+  color: var(--chat-gold-soft);
+  background: rgba(8, 15, 26, 0.7);
+  font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, Consolas, monospace;
+  font-size: 0.82em;
+}
+
+.portfolio-chat__message--assistant pre {
+  margin: 8px 0;
+  overflow-x: auto;
+  border: 1px solid rgba(142, 164, 189, 0.18);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(8, 15, 26, 0.88);
+}
+
+.portfolio-chat__message--assistant pre code {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  color: #d9e5f5;
+  background: transparent;
+  font-size: 0.78em;
+  line-height: 1.55;
+}
+
+.portfolio-chat__message--assistant a {
+  color: var(--chat-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.portfolio-chat__message--assistant a:hover {
+  color: var(--chat-gold-soft);
+}
+
+.portfolio-chat__message--assistant blockquote {
+  margin: 8px 0;
+  border-left: 3px solid var(--chat-gold);
+  padding: 6px 10px;
+  background: rgba(200, 146, 42, 0.06);
+}
+
+.portfolio-chat__message--assistant blockquote p {
+  margin: 0;
+}
+
+.portfolio-chat__message--assistant hr {
+  margin: 10px 0;
+  border: none;
+  border-top: 1px solid var(--chat-line);
 }
 
 .portfolio-chat__message--status {
