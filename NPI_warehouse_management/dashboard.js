@@ -209,42 +209,33 @@ function renderShelfResult(shelfKey, items) {
     dashboardElements.result.innerHTML = `
       <span>Selected shelf</span>
       <strong>${escapeHtml(shelfLabel)}</strong>
-      <div class="shelf-summary">
-        <h4>What's there</h4>
-        <p>No loaded SKUs are assigned to this shelf.</p>
-        <h4>What's not there</h4>
-        <p>No stock row was found for this shelf in the Total sheet data.</p>
-      </div>
+      <p class="shelf-empty">No SKUs assigned to this shelf in the loaded stock.</p>
     `;
     dashboardElements.matchBadge.textContent = `${shelfLabel}: empty in loaded stock`;
     return;
   }
 
-  const totalUnits = items.reduce((sum, item) => sum + stockOnHand(item), 0);
   dashboardElements.result.innerHTML = `
     <span>Selected shelf</span>
     <strong>${escapeHtml(shelfLabel)}</strong>
-    <dl>
-      <div><dt>SKUs there</dt><dd>${formatNumber(items.length)}</dd></div>
-      <div><dt>Total units</dt><dd>${formatNumber(totalUnits)}</dd></div>
-      <div><dt>Status</dt><dd>Assigned</dd></div>
-    </dl>
-    <div class="shelf-summary">
-      <h4>What's there</h4>
-      <ul>
+    <div class="shelf-sku-list">
+      <table>
+        <thead>
+          <tr><th>SKU</th><th>Quantity</th></tr>
+        </thead>
+        <tbody>
         ${items
           .map(
             (item) => `
-              <li>
-                <strong>${escapeHtml(item.itemNumber)}</strong>
-                <span>${escapeHtml(item.productName || "-")} / ${formatNumber(stockOnHand(item))} units</span>
-              </li>
+              <tr>
+                <td>${escapeHtml(item.itemNumber)}</td>
+                <td><strong>${formatNumber(stockOnHand(item))}</strong></td>
+              </tr>
             `,
           )
           .join("")}
-      </ul>
-      <h4>What's not there</h4>
-      <p>${formatNumber(items.length)} SKU row${items.length === 1 ? "" : "s"} found here; no missing row is visible from the loaded Total sheet.</p>
+        </tbody>
+      </table>
     </div>
   `;
   dashboardElements.matchBadge.textContent = `${shelfLabel}: ${formatNumber(items.length)} SKU${items.length === 1 ? "" : "s"}`;
