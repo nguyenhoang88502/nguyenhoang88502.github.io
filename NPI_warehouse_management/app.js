@@ -649,12 +649,15 @@ function renderOutboundUploadPreview() {
 
 function uploadPreviewMarkup(rows) {
   const totalQuantity = rows.reduce((sum, row) => sum + row.quantity, 0);
+  const hasDetails = rows.some((row) => row.finishGoodId || row.productName);
   const previewRows = rows
     .slice(0, 5)
     .map(
       (row) => `
         <tr>
+          ${hasDetails ? `<td>${row.finishGoodId || ""}</td>` : ""}
           <td>${row.itemNumber}</td>
+          ${hasDetails ? `<td>${row.productName || ""}</td>` : ""}
           <td><strong>${formatNumber(row.quantity)}</strong></td>
         </tr>
       `,
@@ -667,7 +670,14 @@ function uploadPreviewMarkup(rows) {
       <strong>${formatNumber(totalQuantity)} total units</strong>
     </div>
     <table class="mini-table">
-      <thead><tr><th>Item number</th><th>Quantity</th></tr></thead>
+      <thead>
+        <tr>
+          ${hasDetails ? "<th>Finish good ID</th>" : ""}
+          <th>Item number</th>
+          ${hasDetails ? "<th>Product name</th>" : ""}
+          <th>Quantity</th>
+        </tr>
+      </thead>
       <tbody>${previewRows}</tbody>
     </table>
   `;
@@ -722,8 +732,14 @@ function normalizeUploadRows(rows) {
         getColumnValue(row, ["Item number", "Item Number", "item number", "item", "Item"]) || "",
       ).trim();
       const quantity = Number(getColumnValue(row, ["Quantity", "quantity", "Qty", "qty"]) || 0);
+      const finishGoodId = String(
+        getColumnValue(row, ["Finish good ID", "Finished good ID", "Finish Good ID", "FG ID", "fgId"]) || "",
+      ).trim();
+      const productName = String(
+        getColumnValue(row, ["Product name", "Product Name", "productName"]) || "",
+      ).trim();
 
-      return { itemNumber, quantity };
+      return { finishGoodId, itemNumber, productName, quantity };
     })
     .filter((row) => row.itemNumber && !Number.isNaN(row.quantity) && row.quantity !== 0);
 }
@@ -790,8 +806,24 @@ function exportDropInTemplate(kind) {
   }
 
   const title = kind === "inbound" ? "Inbound" : "Outbound";
-  const worksheet = window.XLSX.utils.aoa_to_sheet([["Item number", "Quantity"]]);
-  worksheet["!cols"] = [{ wch: 18 }, { wch: 12 }];
+  const data =
+    kind === "outbound"
+      ? [
+          ["Finish good ID", "Item number", "Product name", "available", "Quantity"],
+          ...activeStockRows().map((item) => [
+            item.finishGoodId || "",
+            item.itemNumber || "",
+            item.productName || "",
+            stockOnHand(item),
+            "",
+          ]),
+        ]
+      : [["Item number", "Quantity"]];
+  const worksheet = window.XLSX.utils.aoa_to_sheet(data);
+  worksheet["!cols"] =
+    kind === "outbound"
+      ? [{ wch: 18 }, { wch: 18 }, { wch: 36 }, { wch: 12 }, { wch: 12 }]
+      : [{ wch: 18 }, { wch: 12 }];
   const workbook = window.XLSX.utils.book_new();
   window.XLSX.utils.book_append_sheet(workbook, worksheet, title);
   window.XLSX.writeFile(workbook, `npi-${kind}-drop-in-template.xlsx`);
