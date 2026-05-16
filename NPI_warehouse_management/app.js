@@ -756,8 +756,9 @@ function normalizeUploadRows(rows) {
       const productName = String(
         getColumnValue(row, ["Product name", "Product Name", "productName"]) || "",
       ).trim();
+      const shelf = String(getColumnValue(row, ["Shelf", "shelf", "Shelf location", "shelfLocation"]) || "").trim();
 
-      return { finishGoodId, itemNumber, productName, quantity };
+      return { finishGoodId, itemNumber, productName, quantity, shelf };
     })
     .filter((row) => row.itemNumber && !Number.isNaN(row.quantity) && row.quantity !== 0);
 }
@@ -816,35 +817,136 @@ function normalizeHeader(value) {
   return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function exportDropInTemplate(kind) {
-  if (!window.XLSX) {
+async function exportDropInTemplate(kind) {
+  if (!window.ExcelJS) {
     const statusElement = kind === "inbound" ? elements.uploadStatus : elements.outboundUploadStatus;
-    setPanelStatus(statusElement, "XLSX exporter is still loading. Try again in a moment.", "error");
+    setPanelStatus(statusElement, "Excel template exporter is still loading. Try again in a moment.", "error");
     return;
   }
 
   const title = kind === "inbound" ? "Inbound" : "Outbound";
-  const data =
-    kind === "outbound"
-      ? [
-          ["Finish good ID", "Item number", "Product name", "available", "Quantity"],
-          ...activeStockRows().map((item) => [
-            item.finishGoodId || "",
-            item.itemNumber || "",
-            item.productName || "",
-            stockOnHand(item),
-            "",
-          ]),
-        ]
-      : [["Item number", "Quantity"]];
-  const worksheet = window.XLSX.utils.aoa_to_sheet(data);
-  worksheet["!cols"] =
-    kind === "outbound"
-      ? [{ wch: 18 }, { wch: 18 }, { wch: 36 }, { wch: 12 }, { wch: 12 }]
-      : [{ wch: 18 }, { wch: 12 }];
-  const workbook = window.XLSX.utils.book_new();
-  window.XLSX.utils.book_append_sheet(workbook, worksheet, title);
-  window.XLSX.writeFile(workbook, `npi-${kind}-drop-in-template.xlsx`);
+  const workbook = new window.ExcelJS.Workbook();
+  workbook.creator = "NPI Warehouse Management";
+  workbook.created = new Date();
+
+  if (kind === "outbound") {
+    buildOutboundTemplate(workbook, title);
+  } else {
+    buildInboundTemplate(workbook, title);
+  }
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `npi-${kind}-drop-in-template.xlsx`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildInboundTemplate(workbook, title) {
+  const sheet = workbook.addWorksheet(title);
+  sheet.addRow(["Item number", "Quantity", "Shelf"]);
+  sheet.columns = [{ width: 18 }, { width: 12 }, { width: 16 }];
+  sheet.views = [{ state: "frozen", ySplit: 1 }];
+  styleTemplateHeader(sheet);
+
+  const shelfCodes = warehouseShelfCodes();
+  const layoutSheet = addLayoutWorksheet(workbook);
+  const shelfListSheet = workbook.addWorksheet("ShelfList");
+  shelfListSheet.state = "veryHidden";
+  shelfCodes.forEach((code, index) => {
+    shelfListSheet.getCell(index + 1, 1).value = code;
+  });
+
+  if (shelfCodes.length) {
+    const formula = `ShelfList!$A$1:$A$${shelfCodes.length}`;
+    for (let row = 2; row <= 501; row += 1) {
+      sheet.getCell(row, 3).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [formula],
+        showErrorMessage: true,
+        errorTitle: "Choose a shelf",
+        error: "Pick a shelf from the warehouse layout list.",
+      };
+    }
+  }
+
+  sheet.getCell("A2").note = "Type or scan the item number.";
+  sheet.getCell("B2").note = "Type the inbound quantity.";
+  sheet.getCell("C2").note = "Choose the shelf from the dropdown. See the Layout sheet.";
+  layoutSheet.getCell("A1").note = "Reference sheet only. Use the Inbound sheet to enter item, quantity, and shelf.";
+}
+
+function buildOutboundTemplate(workbook, title) {
+  const sheet = workbook.addWorksheet(title);
+  sheet.addRow(["Finish good ID", "Item number", "Product name", "available", "Quantity"]);
+  activeStockRows().forEach((item) => {
+    sheet.addRow([item.finishGoodId || "", item.itemNumber || "", item.productName || "", stockOnHand(item), ""]);
+  });
+  sheet.columns = [{ width: 18 }, { width: 18 }, { width: 36 }, { width: 12 }, { width: 12 }];
+  sheet.views = [{ state: "frozen", ySplit: 1 }];
+  styleTemplateHeader(sheet);
+}
+
+function styleTemplateHeader(sheet) {
+  const header = sheet.getRow(1);
+  header.font = { bold: true, color: { argb: "FFFFFFFF" } };
+  header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0078D4" } };
+  header.alignment = { vertical: "middle" };
+  header.height = 22;
+  sheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: sheet.columns.length },
+  };
+}
+
+function warehouseLayoutRows() {
+  return window.NPI_WAREHOUSE_LAYOUT?.rows || [];
+}
+
+function warehouseShelfCodes() {
+  return window.NPI_WAREHOUSE_LAYOUT?.shelfCodes || [];
+}
+
+function addLayoutWorksheet(workbook) {
+  const sheet = workbook.addWorksheet("Layout");
+  const rows = warehouseLayoutRows();
+  rows.forEach((row) => sheet.addRow(row));
+  sheet.columns = Array.from({ length: rows[0]?.length || 1 }, () => ({ width: 13 }));
+  sheet.views = [{ state: "frozen", ySplit: 3 }];
+
+  rows.forEach((row, rowIndex) => {
+    row.forEach((value, colIndex) => {
+      const cell = sheet.getCell(rowIndex + 1, colIndex + 1);
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFD2D0CE" } },
+        left: { style: "thin", color: { argb: "FFD2D0CE" } },
+        bottom: { style: "thin", color: { argb: "FFD2D0CE" } },
+        right: { style: "thin", color: { argb: "FFD2D0CE" } },
+      };
+
+      if (!value) {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8F8F8" } };
+        return;
+      }
+
+      if (warehouseShelfCodes().includes(String(value))) {
+        cell.font = { bold: true, color: { argb: "FF201F1E" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE6F2FB" } };
+      } else {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF605E5C" } };
+      }
+    });
+  });
+
+  return sheet;
 }
 
 async function sendInboundUpload() {

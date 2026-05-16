@@ -29,6 +29,11 @@ body {
     "Segoe UI", "Segoe UI Web", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 button,
 input,
 select {
@@ -82,8 +87,11 @@ button {
   font-size: 13px;
 }
 
-button svg,
-.search-field svg {
+.secondary-button svg,
+.primary-button svg,
+.icon-button svg,
+.search-field svg,
+.dashboard-search-field svg {
   width: 18px;
   height: 18px;
   flex: 0 0 auto;
@@ -726,8 +734,106 @@ tbody tr:hover {
   border-top: 1px solid var(--line);
 }
 
+.dashboard-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.32fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.dashboard-search-panel,
+.layout-panel {
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.dashboard-search-panel,
+.layout-panel {
+  padding: 16px;
+}
+
+.dashboard-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.dashboard-search-field input {
+  width: 100%;
+}
+
+.dashboard-result {
+  margin-top: 14px;
+}
+
+.layout-panel {
+  min-width: 0;
+}
+
+.layout-scroll {
+  max-height: calc(100vh - 250px);
+  min-height: 430px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.warehouse-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--layout-columns), minmax(58px, 1fr));
+  gap: 2px;
+  min-width: 980px;
+  padding: 12px;
+  background: #f3f2f1;
+}
+
+.layout-cell {
+  display: grid;
+  place-items: center;
+  min-height: 38px;
+  border: 1px solid #d2d0ce;
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.layout-cell.empty {
+  border-color: transparent;
+  background: #f8f8f8;
+}
+
+.layout-cell.label {
+  background: #605e5c;
+  color: #ffffff;
+}
+
+.layout-cell.shelf {
+  background: #deecf9;
+  color: #201f1e;
+}
+
+.layout-cell.highlight {
+  border-color: #a4262c;
+  background: #fff4ce;
+  color: #201f1e;
+  outline: 3px solid #a4262c;
+  outline-offset: -3px;
+  box-shadow: 0 0 0 4px rgba(164, 38, 44, 0.12);
+}
+
 @media (max-width: 1040px) {
   .operations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-workspace {
     grid-template-columns: 1fr;
   }
 }
@@ -801,5 +907,32 @@ tbody tr:hover {
 
   .lookup-card dl {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-page .topbar {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    margin: -14px -14px 16px;
+    padding: 12px 14px;
+  }
+
+  .dashboard-page .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-page .topbar-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-scroll {
+    max-height: 520px;
+    min-height: 360px;
   }
 }
