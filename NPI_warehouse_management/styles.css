@@ -650,9 +650,11 @@ tbody tr:hover {
 
 .upload-preview {
   min-height: 92px;
+  max-height: 220px;
   margin-top: 14px;
   border: 1px solid var(--line);
   background: #ffffff;
+  overflow: auto;
 }
 
 .upload-preview > .muted-line {
@@ -678,6 +680,12 @@ tbody tr:hover {
 
 .mini-table {
   min-width: 0;
+}
+
+.mini-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .mini-table th,

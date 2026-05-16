@@ -649,15 +649,11 @@ function renderOutboundUploadPreview() {
 
 function uploadPreviewMarkup(rows) {
   const totalQuantity = rows.reduce((sum, row) => sum + row.quantity, 0);
-  const hasDetails = rows.some((row) => row.finishGoodId || row.productName);
   const previewRows = rows
-    .slice(0, 5)
     .map(
       (row) => `
         <tr>
-          ${hasDetails ? `<td>${row.finishGoodId || ""}</td>` : ""}
           <td>${row.itemNumber}</td>
-          ${hasDetails ? `<td>${row.productName || ""}</td>` : ""}
           <td><strong>${formatNumber(row.quantity)}</strong></td>
         </tr>
       `,
@@ -672,9 +668,7 @@ function uploadPreviewMarkup(rows) {
     <table class="mini-table">
       <thead>
         <tr>
-          ${hasDetails ? "<th>Finish good ID</th>" : ""}
           <th>Item number</th>
-          ${hasDetails ? "<th>Product name</th>" : ""}
           <th>Quantity</th>
         </tr>
       </thead>
