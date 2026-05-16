@@ -573,7 +573,7 @@
       <aside class="status-panel" aria-label="Directory status">
         <div class="status-row">
           <span class="status-label" data-i18n="toolCountLabel">Available tools</span>
-          <span class="status-value">02</span>
+          <span class="status-value">03</span>
         </div>
         <div class="status-row">
           <span class="status-label" data-i18n="scopeLabel">Workflow scope</span>
@@ -594,6 +594,7 @@
         <button class="filter active" type="button" data-filter="all" data-i18n="filterAll">All</button>
         <button class="filter" type="button" data-filter="quality" data-i18n="filterQuality">Quality Control</button>
         <button class="filter" type="button" data-filter="simulation" data-i18n="filterSimulation">Simulation</button>
+        <button class="filter" type="button" data-filter="operations" data-i18n="filterOperations">Operations</button>
       </div>
     </div>
 
@@ -631,6 +632,23 @@
         </div>
         <a class="button button-primary" href="OPF_sim/tool.html" data-i18n="launchTool">Launch Tool</a>
       </article>
+
+      <article class="tool-card" data-type="operations" data-search="warehouse management inventory layout tracking kho quan ly ton kho bo tri">
+        <div class="tool-top">
+          <div class="tool-icon">03</div>
+          <span class="tag" data-i18n="tagOperations">Operations</span>
+        </div>
+        <h2 data-i18n="warehouseTitle">NPI Warehouse Management</h2>
+        <p data-i18n="warehouseDesc">
+          Interactive warehouse layout and inventory dashboard for managing NPI material staging, tracking SKU locations, and optimizing floor-level storage allocations during new product launches.
+        </p>
+        <div class="metadata">
+          <span class="meta-chip" data-i18n="warehouseMeta1">Inventory</span>
+          <span class="meta-chip" data-i18n="warehouseMeta2">Layout</span>
+          <span class="meta-chip" data-i18n="warehouseMeta3">Dashboard</span>
+        </div>
+        <a class="button button-primary" href="NPI_warehouse_management/" data-i18n="launchTool">Launch Tool</a>
+      </article>
     </section>
 
     <div class="empty-state" id="emptyState" data-i18n="emptyState">No tools match the current search or filter.</div>
@@ -666,6 +684,7 @@
         filterAll: "All",
         filterQuality: "Quality Control",
         filterSimulation: "Simulation",
+        filterOperations: "Operations",
         tagQuality: "Quality Control",
         tagSimulation: "Simulation",
         inspectionTitle: "Inspection Standards",
@@ -678,6 +697,12 @@
         opfMeta1: "Capacity",
         opfMeta2: "Cycle Time",
         opfMeta3: "Optimization",
+        tagOperations: "Operations",
+        warehouseTitle: "NPI Warehouse Management",
+        warehouseDesc: "Interactive warehouse layout and inventory dashboard for managing NPI material staging, tracking SKU locations, and optimizing floor-level storage allocations during new product launches.",
+        warehouseMeta1: "Inventory",
+        warehouseMeta2: "Layout",
+        warehouseMeta3: "Dashboard",
         launchTool: "Launch Tool",
         emptyState: "No tools match the current search or filter.",
         note: "This directory is built for expansion. Additional NPI dashboards, work instructions, controlled templates, and launch resources can be added without changing the access pattern.",
@@ -701,6 +726,7 @@
         filterAll: "Tất Cả",
         filterQuality: "Kiểm Soát Chất Lượng",
         filterSimulation: "Mô Phỏng",
+        filterOperations: "Vận Hành",
         tagQuality: "Kiểm Soát Chất Lượng",
         tagSimulation: "Mô Phỏng",
         inspectionTitle: "Tiêu Chuẩn Kiểm Tra",
@@ -713,6 +739,12 @@
         opfMeta1: "Năng Lực",
         opfMeta2: "Cycle Time",
         opfMeta3: "Tối Ưu",
+        tagOperations: "Vận Hành",
+        warehouseTitle: "Quản Lý Kho NPI",
+        warehouseDesc: "Bảng điều khiển bố trí kho và tồn kho tương tác dành cho việc quản lý vật tư NPI, theo dõi vị trí SKU và tối ưu hóa phân bổ lưu trữ trong quá trình triển khai sản phẩm mới.",
+        warehouseMeta1: "Tồn Kho",
+        warehouseMeta2: "Bố Trí",
+        warehouseMeta3: "Dashboard",
         launchTool: "Mở Công Cụ",
         emptyState: "Không có công cụ phù hợp với tìm kiếm hoặc bộ lọc hiện tại.",
         note: "Thư mục này được thiết kế để mở rộng. Có thể bổ sung dashboard NPI, hướng dẫn công việc, biểu mẫu kiểm soát và tài nguyên triển khai mà không cần thay đổi cấu trúc truy cập.",
