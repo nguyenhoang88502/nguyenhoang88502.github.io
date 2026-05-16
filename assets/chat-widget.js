@@ -1,42 +1,55 @@
 const CHAT_API_URL = "https://portfolio-ai-proxy.vercel.app/api/chat";
-const MAX_HISTORY_MESSAGES = 10;
+const MAX_HISTORY_MESSAGES = 12;
 
 const chatState = {
   messages: [],
   isSending: false
 };
 
+const suggestedQuestions = [
+  "What projects best show Hoang's manufacturing analytics work?",
+  "Summarize Hoang's NPI internship experience.",
+  "Which project should a recruiter look at first?"
+];
+
 function createChatElement() {
   const root = document.createElement("div");
   root.className = "portfolio-chat";
   root.innerHTML = `
-    <section class="portfolio-chat__panel" aria-label="Portfolio assistant">
+    <div class="portfolio-chat__panel" role="dialog" aria-label="Portfolio assistant">
       <header class="portfolio-chat__header">
+        <div class="portfolio-chat__mark" aria-hidden="true">NH</div>
         <div>
+          <p class="portfolio-chat__kicker">Portfolio Assistant</p>
           <h2 class="portfolio-chat__title">Ask about Hoang</h2>
-          <p class="portfolio-chat__subtitle">Projects, NPI tools, analytics, and simulation.</p>
+          <p class="portfolio-chat__subtitle">Manufacturing analytics, NPI tools, simulation, dashboards, and project fit.</p>
         </div>
-        <button class="portfolio-chat__close" type="button" aria-label="Close chat">×</button>
+        <button class="portfolio-chat__close" type="button" aria-label="Close chat">&times;</button>
       </header>
 
-      <div class="portfolio-chat__messages" role="log" aria-live="polite"></div>
+      <div class="portfolio-chat__messages" role="log" aria-live="polite">
+        <div class="portfolio-chat__intro">
+          I can help visitors understand Hoang's portfolio, from production analytics and SPC to NPI workflow tools, Power BI dashboards, and assembly-line simulation.
+          <div class="portfolio-chat__prompts"></div>
+        </div>
+      </div>
 
       <form class="portfolio-chat__form">
         <textarea
           class="portfolio-chat__input"
           rows="1"
           maxlength="1000"
-          placeholder="Ask a quick question..."
+          placeholder="Ask about a project..."
           aria-label="Message"
         ></textarea>
 
-        <button class="portfolio-chat__send" type="submit" aria-label="Send message">›</button>
+        <button class="portfolio-chat__send" type="submit" aria-label="Send message">&rsaquo;</button>
       </form>
-    </section>
+    </div>
 
     <button class="portfolio-chat__launcher" type="button" aria-label="Open portfolio assistant">
-      <span class="portfolio-chat__launcher-icon" aria-hidden="true">✦</span>
-      <span>Ask AI</span>
+      <span class="portfolio-chat__launcher-icon" aria-hidden="true">AI</span>
+      <span>Ask Hoang AI</span>
     </button>
   `;
 
@@ -88,7 +101,24 @@ async function sendToAssistant() {
 
 function autosizeTextarea(textarea) {
   textarea.style.height = "auto";
-  textarea.style.height = `${Math.min(textarea.scrollHeight, 96)}px`;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, 106)}px`;
+}
+
+function submitPrompt(form, input, prompt) {
+  input.value = prompt;
+  autosizeTextarea(input);
+  form.requestSubmit();
+}
+
+function initSuggestedPrompts(form, input, promptWrap) {
+  suggestedQuestions.forEach((question) => {
+    const button = document.createElement("button");
+    button.className = "portfolio-chat__prompt";
+    button.type = "button";
+    button.textContent = question;
+    button.addEventListener("click", () => submitPrompt(form, input, question));
+    promptWrap.append(button);
+  });
 }
 
 function initChatWidget() {
@@ -103,12 +133,9 @@ function initChatWidget() {
   const input = chat.querySelector(".portfolio-chat__input");
   const sendButton = chat.querySelector(".portfolio-chat__send");
   const messages = chat.querySelector(".portfolio-chat__messages");
+  const promptWrap = chat.querySelector(".portfolio-chat__prompts");
 
-  appendMessage(
-    messages,
-    "assistant",
-    "Hi, I can answer questions about Hoang's projects, NPI tools, manufacturing analytics, and simulation work."
-  );
+  initSuggestedPrompts(form, input, promptWrap);
 
   launcher.addEventListener("click", () => {
     chat.classList.toggle("is-open");

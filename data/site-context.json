@@ -1,0 +1,258 @@
+{
+  "owner": {
+    "name": "Nguyen Huy Hoang",
+    "location": "Ho Chi Minh City, Vietnam",
+    "email": "nguyenhoang88502@gmail.com",
+    "phone": "+84 369 412 005",
+    "linkedin": "https://linkedin.com/in/nguyenhoang88502",
+    "headline": "Industrial Systems Engineering student focused on production analytics, operational optimization, digitalization, SPC, and discrete-event simulation.",
+    "positioning": "A practical industrial systems engineer who builds usable tools, dashboards, simulations, and documentation for manufacturing and operations workflows."
+  },
+  "education": {
+    "school": "Ho Chi Minh City University of Technology (HCMUT / Bach Khoa)",
+    "degree": "Bachelor of Engineering in Industrial Systems Engineering",
+    "expected_graduation": "2027",
+    "gpa": "3.3 / 4.0 for 2025-2026",
+    "certifications": [
+      "TOEIC Listening & Reading: 935 / 990",
+      "Microsoft Office Specialist (MOS) Associate for Office 365 and Office 2019"
+    ]
+  },
+  "core_focus": [
+    "Production data analytics",
+    "Statistical process control (SPC)",
+    "Discrete-event simulation and Monte Carlo simulation",
+    "Power BI dashboarding and data modeling",
+    "NPI workflow digitalization",
+    "Manufacturing quality documentation",
+    "Warehouse and shop-floor process tools"
+  ],
+  "important_tone_guidance": [
+    "Emphasize production analytics, SPC, dashboarding, NPI tooling, and simulation.",
+    "Lean Six Sigma can be mentioned if asked, but do not overemphasize it.",
+    "Give concrete project examples instead of generic praise.",
+    "Keep answers concise, recruiter-friendly, and grounded in the portfolio."
+  ],
+  "skills": {
+    "data_visualization": [
+      "SQL foundational",
+      "Power BI",
+      "Data modeling",
+      "Dashboarding",
+      "Advanced Excel",
+      "Pivot tables"
+    ],
+    "industrial_engineering": [
+      "SPC",
+      "Control charts",
+      "Cycle time analysis",
+      "Kaizen",
+      "DMAIC",
+      "AutoCAD 2D"
+    ],
+    "tools_automation": [
+      "Power Apps",
+      "Power Automate",
+      "Arena discrete-event simulation",
+      "LINGO",
+      "CPLEX",
+      "QM",
+      "Minitab"
+    ]
+  },
+  "experience": [
+    {
+      "organization": "Wahl Clipper Vietnam",
+      "role": "New Product Introduction (NPI) Intern",
+      "location": "Can Giuoc, Long An",
+      "period": "March 2026 - Present",
+      "highlights": [
+        "Detected and reconciled critical data mismatches between legacy and updated BOMs across multiple product iterations.",
+        "Standardized documentation to prevent procurement integration errors and support on-time Mass Production authorization.",
+        "Conducted structured QC inspections against engineering specifications.",
+        "Prepared Finished Goods samples for customer sign-off and reduced re-inspection cycles.",
+        "Built or maintained NPI workflow tools for inspection standards, warehouse stock visibility, and assembly simulation."
+      ]
+    },
+    {
+      "organization": "7-Eleven Vietnam",
+      "role": "Store Assistant",
+      "period": "July 2024 - November 2024",
+      "highlights": [
+        "Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting."
+      ]
+    }
+  ],
+  "activities": [
+    {
+      "organization": "Bach Khoa Ambassador Club",
+      "role": "Project Leader - BKFC at Nguyen Huu Canh High School",
+      "period": "November 2025 - Present",
+      "highlights": [
+        "Led a 6-month university orientation campaign for grade 12 students.",
+        "Reached 200+ students directly across 14 classes.",
+        "Used content performance analytics to grow fanpage views by 932%.",
+        "Shifted to short-form video after engagement analysis; reels drove about 73.7% of campaign views.",
+        "Generated more than 12,000 total views with roughly 90% reach from non-followers.",
+        "Built admission information tools and a poster/caption archive as project artifacts."
+      ]
+    },
+    {
+      "organization": "Play & Learn English Club",
+      "role": "HR Member",
+      "period": "September 2024 - Present",
+      "highlights": [
+        "Redesigned project workflows and tracking templates for a 15-member team.",
+        "Improved administrative efficiency and reduced missed deadlines."
+      ]
+    },
+    {
+      "organization": "Mechanical Engineering Faculty Youth Union, HCMUT",
+      "role": "Event MC, Coordinator, and STEM Team Member",
+      "period": "June 2025 - November 2025",
+      "highlights": [
+        "Built MC runbooks and coordinated award ceremonies/logistics for a 90-participant camp night.",
+        "Structured STEM project milestones with owners and checkpoints for on-time delivery."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Manufacturing Failure Analytics Pipeline",
+      "path": "manufacturing-failure-analytics-pipeline/",
+      "type": "Data warehouse, BI, and machine learning project",
+      "summary": "A CO4031 project that transforms the AI4I 2020 predictive maintenance dataset into a business intelligence workflow.",
+      "details": [
+        "Includes raw exploration, preprocessing, ETL, PostgreSQL staging, star schema design, OLAP outputs, Streamlit dashboard, and optional XGBoost failure prediction.",
+        "Dashboard reads OLAP CSV outputs and shows KPIs, failure distribution, monthly trends, machine condition vs failure rate, product quality failure rates, and detail tables.",
+        "Data warehouse uses fact_machine_operations with date, product, failure type, and machine condition dimensions.",
+        "ML script trains an XGBoost classifier with SMOTE, scaling, ROC-AUC, confusion matrix, feature importance, SHAP explainability, and cross-validation."
+      ],
+      "best_for": "Showing data engineering, analytics thinking, dashboarding, and applied ML for manufacturing."
+    },
+    {
+      "name": "Data Visualization & Dashboarding Projects",
+      "path": "dashboard/",
+      "type": "Power BI manufacturing dashboard showcase",
+      "summary": "A manufacturing performance and downtime dashboard built to help supervisors scan performance, rank downtime losses, and recover line capacity.",
+      "details": [
+        "Combines production logs, product standards, and downtime factors.",
+        "Uses Power Query cleanup, fact/dimension modeling, DAX measures, KPI cards, efficiency calculations, Pareto ranking, cumulative downtime, and conditional formatting.",
+        "Includes downloadable PBIX and synthetic production dataset."
+      ],
+      "best_for": "Showing Power BI, DAX, data modeling, Pareto analysis, and operational dashboard design."
+    },
+    {
+      "name": "NPI Warehouse Management",
+      "path": "NPI_warehouse_management/",
+      "type": "Static web app connected to Google Apps Script and Google Sheets",
+      "summary": "A browser-based warehouse management app for NPI stock review, inbound/outbound Excel processing, cycle count checks, and warehouse layout search.",
+      "details": [
+        "Main page supports live stock loading, JSON/JSONP fallback, metric cards, inbound/outbound XLSX parsing, template export, adjustment submission, cycle count stock checks, and local cache.",
+        "Dashboard page renders a clickable warehouse layout from generated JavaScript data and highlights shelves by item number or finished good ID.",
+        "Uses Lucide, SheetJS XLSX, and ExcelJS from CDNs."
+      ],
+      "best_for": "Showing practical NPI digitalization, warehouse workflow understanding, spreadsheet automation, and client-side app design."
+    },
+    {
+      "name": "OPF Simulation / Trimmer Assembly Line Simulator",
+      "path": "OPF_sim/",
+      "type": "Offline-first industrial engineering simulation tool",
+      "summary": "A trimmer assembly line simulation project using time-study collection, Monte Carlo modeling, Yamazumi charts, flow simulation, and Arena files.",
+      "details": [
+        "tool.html is the main Monte Carlo simulation and Yamazumi analysis app.",
+        "data_collection.html is a mobile stopwatch for shop-floor time-study readings.",
+        "Exports Yamazumi XLSX by populating a production template with JSZip and XML manipulation so charts and formatting are preserved.",
+        "Includes before/after reports, PDFs, Arena model files, videos, images, and workbooks.",
+        "Useful for comparing capacity scenarios, takt time feasibility, VA/Semi-VA/NVA mix, bottlenecks, and line balance."
+      ],
+      "best_for": "Showing simulation, time study, process improvement, and manufacturing decision support."
+    },
+    {
+      "name": "Inspection Standard Tool",
+      "path": "inspection_standard_tool/",
+      "type": "Browser-based quality documentation tool",
+      "summary": "A web tool for placing uploaded images or PDF pages into an Excel inspection-standard template.",
+      "details": [
+        "Supports image/PDF uploads, manual assignment to asset slots, draggable crop handles, proportional image insertion, paired merge slots, BOM checking, and Excel workbook generation.",
+        "Keeps BOM checks in the web app instead of writing BOM text into the output workbook.",
+        "Preserves pictures already embedded in template.xlsx and adds uploaded images to mapped placeholder regions."
+      ],
+      "best_for": "Showing quality documentation automation and practical QA workflow tooling."
+    },
+    {
+      "name": "AHP Customer Segmentation Analysis",
+      "path": "decisionanalysis/",
+      "type": "Decision analysis project",
+      "summary": "Uses Analytic Hierarchy Process to evaluate customer segments using weighted evidence.",
+      "details": [
+        "Evaluates segments across revenue potential, market growth, customer loyalty, and strategic fit.",
+        "Includes a presentation and case study."
+      ],
+      "best_for": "Showing structured decision-making and analytical prioritization."
+    },
+    {
+      "name": "AutoCAD 2D Engineering Graphics",
+      "path": "autocad2d/",
+      "type": "Technical drawing archive",
+      "summary": "A showcase of orthographic projections, section views, technical drawings, layer structures, line weights, and dimensioning.",
+      "best_for": "Showing engineering drawing literacy and technical communication."
+    },
+    {
+      "name": "Ergonomic Kitchen Workspace Design",
+      "path": "ergonomic/",
+      "type": "Human factors and ergonomics project",
+      "summary": "Applies anthropometric data and ergonomic principles to optimize kitchen layouts, movement efficiency, storage accessibility, and safety.",
+      "best_for": "Showing human factors thinking and design constraints."
+    },
+    {
+      "name": "Co-working Space Cafe System Design",
+      "path": "systemdesign/",
+      "type": "Systems engineering project",
+      "summary": "Designs a 24/7 cafe integrated with workspace functionality, including system life-cycle analysis, floor layouts, pricing strategy, and operating model.",
+      "best_for": "Showing systems thinking, operations design, and service process modeling."
+    },
+    {
+      "name": "BK FC Career Orientation Project",
+      "path": "BKFC/",
+      "type": "Leadership and campaign analytics project",
+      "summary": "A Bach Khoa career orientation campaign for Nguyen Huu Canh High School, led by Hoang.",
+      "details": [
+        "Reached 200+ grade 12 students directly.",
+        "Covered 14 classes.",
+        "Grew online campaign views by more than 900% through short-form content strategy.",
+        "Includes an admission information tool and a poster/caption archive."
+      ],
+      "best_for": "Showing leadership, analytics-informed communication, and project execution."
+    },
+    {
+      "name": "Bus Simulation VNU-HCM Route 50",
+      "path": "bus_sim/",
+      "type": "Single-page browser simulation",
+      "summary": "A route 50 bus simulation page.",
+      "best_for": "Showing simulation interest and browser-based interactive work."
+    },
+    {
+      "name": "PDF Extractor Utility",
+      "path": "pdftodocx/",
+      "type": "Document OCR/extraction utility",
+      "summary": "A single-page tool for extracting text and exporting document results.",
+      "best_for": "Showing lightweight browser utility building."
+    }
+  ],
+  "removed_or_deemphasized": [
+    {
+      "name": "Legacy Database Management",
+      "note": "This project was intentionally removed from the main portfolio and should not be recommended as a featured project."
+    }
+  ],
+  "assistant_behavior": [
+    "Answer visitor questions as a concise portfolio guide.",
+    "Use the project names and paths above when recommending where to click.",
+    "If asked which projects best represent Hoang, prioritize Manufacturing Failure Analytics Pipeline, OPF Simulation, NPI Warehouse Management, Inspection Standard Tool, and Power BI Dashboarding.",
+    "If asked about a recruiter angle, connect projects to production analytics, NPI operations, dashboarding, simulation, SPC, and manufacturing workflow digitalization.",
+    "If asked about contact, provide email and LinkedIn.",
+    "Do not claim to access live warehouse data, private company data, or hidden files.",
+    "Do not recommend the removed legacy database management project."
+  ]
+}
