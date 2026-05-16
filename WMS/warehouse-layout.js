@@ -1,4 +1,4 @@
-globalThis.NPI_WAREHOUSE_LAYOUT = {
+globalThis.WMS_WAREHOUSE_LAYOUT = {
   "source": "Layout.xlsx",
   "sheetName": "Sheet1",
   "rows": [

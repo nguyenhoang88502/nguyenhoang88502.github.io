@@ -1,8 +1,8 @@
-# NPI Warehouse Management Web App
+# WMS — Warehouse Management System
 
 ## Purpose
 
-This repository contains a browser-based warehouse management app for the NPI warehouse. It connects to a Google Apps Script webhook backed by the NPI Warehouse Management Google Sheet. The app is designed for two main workflows:
+This repository contains a browser-based warehouse management system with live inventory tracking, warehouse layout visualization, and inbound/outbound workflow tools. It connects to a Google Apps Script webhook backed by the WMS Warehouse Management Google Sheet. The app is designed for two main workflows:
 
 * Desktop warehouse administration: review live stock, upload inbound and outbound Excel files, export Excel templates, review week activity, and use the full stock table.
 * Mobile outbound and cycle count work: submit outbound quantity adjustments, check actual stock quantity, update shelf information, and open a compact warehouse dashboard.
@@ -14,13 +14,13 @@ The app is static HTML, CSS, and JavaScript. It can be hosted from GitHub Pages 
 All current app work should be done in:
 
 ```text
-C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\NPI\\\_warehouse\\\_management
+C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\WMS
 ```
 
 ## Repository Structure
 
 ```text
-NPI\\\_warehouse\\\_management/
+WMS/
   index.html
   app.js
   dashboard.html
@@ -128,7 +128,7 @@ Generated JavaScript data file created from `Layout.xlsx`.
 It exposes:
 
 ```js
-globalThis.NPI\\\_WAREHOUSE\\\_LAYOUT = {
+globalThis.WMS\\\_WAREHOUSE\\\_LAYOUT = {
   source: "Layout.xlsx",
   sheetName: "Sheet1",
   rows: \\\[...],
@@ -880,8 +880,8 @@ The app uses browser `localStorage`:
 
 |Key|Purpose|
 |-|-|
-|`npiWarehouseTotal.v2`|Cached live stock data. Shared by main app and dashboard.|
-|`npiWarehouseHistory.v1`|Local recent outbound adjustment history.|
+|`wmsWarehouseTotal.v2`|Cached live stock data. Shared by main app and dashboard.|
+|`wmsWarehouseHistory.v1`|Local recent outbound adjustment history.|
 
 Clearing browser site data will remove these caches. It does not affect the Google Sheet.
 
@@ -892,7 +892,7 @@ Because the app loads JavaScript files and external CDN libraries, use a simple 
 From the project folder:
 
 ```powershell
-cd C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\NPI\\\_warehouse\\\_management
+cd C:\\\\Users\\\\nguyenhoang88502\\\\Documents\\\\GitHub\\\\nguyenhoang88502.github.io\\\\WMS
 python -m http.server 8000
 ```
 
@@ -966,7 +966,7 @@ The current extracted dashboard view displays only `A1:Q13`. If the workbook ran
 Relevant code:
 
 ```js
-const rows = (window.NPI\\\_WAREHOUSE\\\_LAYOUT?.rows || \\\[])
+const rows = (window.WMS\\\_WAREHOUSE\\\_LAYOUT?.rows || \\\[])
   .slice(0, 13)
   .map((row) => row.slice(0, 17));
 ```

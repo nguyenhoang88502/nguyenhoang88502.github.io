@@ -8,6 +8,7 @@ const chatState = {
 
 const suggestedQuestions = [
   "What projects best show Hoang's manufacturing analytics work?",
+  "What does the WMS warehouse management project demonstrate?",
   "Summarize Hoang's NPI internship experience.",
   "Which project should a recruiter look at first?"
 ];
@@ -29,7 +30,7 @@ function createChatElement() {
 
       <div class="portfolio-chat__messages" role="log" aria-live="polite">
         <div class="portfolio-chat__intro">
-          I can help visitors understand Hoang's portfolio, from production analytics and SPC to NPI workflow tools, Power BI dashboards, and assembly-line simulation.
+          I can help visitors understand Hoang's portfolio, from production analytics and SPC to warehouse management, NPI workflow tools, Power BI dashboards, and assembly-line simulation.
           <div class="portfolio-chat__prompts"></div>
         </div>
       </div>

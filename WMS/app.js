@@ -1,8 +1,8 @@
 const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbyqXifxM9PSiAoxIGtyEvj2wpp3K3lIvngTTAbYQJkS8JQZevjpOjSL5eK5cyG_mGAQ/exec";
 
-const STORAGE_KEY = "npiWarehouseTotal.v2";
-const HISTORY_KEY = "npiWarehouseHistory.v1";
+const STORAGE_KEY = "wmsWarehouseTotal.v2";
+const HISTORY_KEY = "wmsWarehouseHistory.v1";
 
 const state = {
   inventory: loadJson(STORAGE_KEY, []),
@@ -175,7 +175,7 @@ async function fetchStockJson() {
 
 function fetchStockJsonp() {
   return new Promise((resolve, reject) => {
-    const callbackName = `npiStockCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const callbackName = `wmsStockCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const script = document.createElement("script");
     const timeoutId = window.setTimeout(() => {
       cleanup();
@@ -826,7 +826,7 @@ async function exportDropInTemplate(kind) {
 
   const title = kind === "inbound" ? "Inbound" : "Outbound";
   const workbook = new window.ExcelJS.Workbook();
-  workbook.creator = "NPI Warehouse Management";
+  workbook.creator = "WMS — Warehouse Management System";
   workbook.created = new Date();
 
   if (kind === "outbound") {
@@ -842,7 +842,7 @@ async function exportDropInTemplate(kind) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `npi-${kind}-drop-in-template.xlsx`;
+  link.download = `wms-${kind}-drop-in-template.xlsx`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -906,11 +906,11 @@ function styleTemplateHeader(sheet) {
 }
 
 function warehouseLayoutRows() {
-  return window.NPI_WAREHOUSE_LAYOUT?.rows || [];
+  return window.WMS_WAREHOUSE_LAYOUT?.rows || [];
 }
 
 function warehouseShelfCodes() {
-  return window.NPI_WAREHOUSE_LAYOUT?.shelfCodes || [];
+  return window.WMS_WAREHOUSE_LAYOUT?.shelfCodes || [];
 }
 
 function addLayoutWorksheet(workbook) {
@@ -1029,7 +1029,7 @@ function exportInventoryCsv() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `npi-total-stock-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `wms-total-stock-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }

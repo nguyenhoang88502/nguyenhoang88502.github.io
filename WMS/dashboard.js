@@ -1,6 +1,6 @@
 const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbx3gpYGoOY81E3J85TvZNllrmc6fBzessoQVicZr18G5uornSqX7Cgk_TGZ1D_-XUTS/exec";
-const STORAGE_KEY = "npiWarehouseTotal.v2";
+const STORAGE_KEY = "wmsWarehouseTotal.v2";
 
 const dashboardState = {
   inventory: loadJson(STORAGE_KEY, []),
@@ -78,7 +78,7 @@ function escapeHtml(value) {
 }
 
 function layoutShelfCodeSet() {
-  return new Set((window.NPI_WAREHOUSE_LAYOUT?.shelfCodes || []).map(normalizeKey));
+  return new Set((window.WMS_WAREHOUSE_LAYOUT?.shelfCodes || []).map(normalizeKey));
 }
 
 function parentSections() {
@@ -152,7 +152,7 @@ function renderMetrics() {
 }
 
 function renderLayout() {
-  const rows = (window.NPI_WAREHOUSE_LAYOUT?.rows || [])
+  const rows = (window.WMS_WAREHOUSE_LAYOUT?.rows || [])
     .slice(0, 13)
     .map((row) => row.slice(0, 17));
   const shelfCodes = layoutShelfCodeSet();
@@ -387,7 +387,7 @@ async function fetchStockJson() {
 
 function fetchStockJsonp() {
   return new Promise((resolve, reject) => {
-    const callbackName = `npiDashboardCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const callbackName = `wmsDashboardCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const script = document.createElement("script");
     const timeoutId = window.setTimeout(() => {
       cleanup();
