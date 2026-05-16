@@ -86,14 +86,35 @@ function parentSections() {
     { label: "B", rowStart: 4, rowEnd: 8, colStart: 1, colEnd: 2 },
     { label: "D", rowStart: 4, rowEnd: 8, colStart: 5, colEnd: 6 },
     { label: "F", rowStart: 4, rowEnd: 8, colStart: 6, colEnd: 7 },
+    { label: "H", rowStart: 4, rowEnd: 8, colStart: 10, colEnd: 11 },
+    { label: "K", rowStart: 4, rowEnd: 8, colStart: 11, colEnd: 12 },
+    { label: "M", rowStart: 4, rowEnd: 8, colStart: 15, colEnd: 16 },
+    { label: "O", rowStart: 4, rowEnd: 8, colStart: 16, colEnd: 17 },
     { label: "A", rowStart: 8, rowEnd: 12, colStart: 1, colEnd: 2 },
     { label: "C", rowStart: 8, rowEnd: 12, colStart: 5, colEnd: 6 },
     { label: "E", rowStart: 8, rowEnd: 12, colStart: 6, colEnd: 7 },
+    { label: "G", rowStart: 8, rowEnd: 12, colStart: 10, colEnd: 11 },
+    { label: "I", rowStart: 8, rowEnd: 12, colStart: 11, colEnd: 12 },
+    { label: "L", rowStart: 8, rowEnd: 12, colStart: 15, colEnd: 16 },
+    { label: "N", rowStart: 8, rowEnd: 12, colStart: 16, colEnd: 17 },
   ];
 }
 
 function skippedParentCells() {
-  const skipped = new Set(["3:5", "3:6", "8:5", "8:6"]);
+  const skipped = new Set([
+    "3:5",
+    "3:6",
+    "3:10",
+    "3:11",
+    "3:15",
+    "3:16",
+    "8:5",
+    "8:6",
+    "8:10",
+    "8:11",
+    "8:15",
+    "8:16",
+  ]);
 
   parentSections().forEach((section) => {
     for (let row = section.rowStart; row < section.rowEnd; row += 1) {
