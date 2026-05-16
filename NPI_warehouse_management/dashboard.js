@@ -7,6 +7,7 @@ const dashboardState = {
   weekIndex: [],
   inboundSkuLastWeek: 0,
   selectedItem: null,
+  selectedShelfKey: "",
   isLoading: false,
 };
 
@@ -67,8 +68,42 @@ function normalizeKey(value) {
   return String(value || "").trim().toUpperCase().replace(/\s+/g, "");
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function layoutShelfCodeSet() {
   return new Set((window.NPI_WAREHOUSE_LAYOUT?.shelfCodes || []).map(normalizeKey));
+}
+
+function parentSections() {
+  return [
+    { label: "B", rowStart: 4, rowEnd: 8, colStart: 1, colEnd: 2 },
+    { label: "D", rowStart: 4, rowEnd: 8, colStart: 5, colEnd: 6 },
+    { label: "F", rowStart: 4, rowEnd: 8, colStart: 6, colEnd: 7 },
+    { label: "A", rowStart: 8, rowEnd: 12, colStart: 1, colEnd: 2 },
+    { label: "C", rowStart: 8, rowEnd: 12, colStart: 5, colEnd: 6 },
+    { label: "E", rowStart: 8, rowEnd: 12, colStart: 6, colEnd: 7 },
+  ];
+}
+
+function skippedParentCells() {
+  const skipped = new Set(["3:5", "3:6", "8:5", "8:6"]);
+
+  parentSections().forEach((section) => {
+    for (let row = section.rowStart; row < section.rowEnd; row += 1) {
+      for (let column = section.colStart; column < section.colEnd; column += 1) {
+        skipped.add(`${row}:${column}`);
+      }
+    }
+  });
+
+  return skipped;
 }
 
 function itemShelfCode(item) {
@@ -100,14 +135,30 @@ function renderLayout() {
     .slice(0, 13)
     .map((row) => row.slice(0, 17));
   const shelfCodes = layoutShelfCodeSet();
-  const selectedShelf = normalizeKey(itemShelfCode(dashboardState.selectedItem));
+  const selectedShelf = dashboardState.selectedShelfKey || normalizeKey(itemShelfCode(dashboardState.selectedItem));
   const columnCount = rows[0]?.length || 1;
-
-  dashboardElements.layoutGrid.style.setProperty("--layout-columns", columnCount);
-  dashboardElements.layoutGrid.innerHTML = rows
-    .map((row) =>
+  const skipped = skippedParentCells();
+  const parentMarkup = parentSections()
+    .map(
+      (section) => `
+        <div
+          class="layout-cell parent"
+          style="grid-row:${section.rowStart} / ${section.rowEnd}; grid-column:${section.colStart} / ${section.colEnd};"
+        >${section.label}</div>
+      `,
+    )
+    .join("");
+  const cellMarkup = rows
+    .map((row, rowIndex) =>
       row
-        .map((value) => {
+        .map((value, columnIndex) => {
+          const rowNumber = rowIndex + 1;
+          const columnNumber = columnIndex + 1;
+
+          if (skipped.has(`${rowNumber}:${columnNumber}`)) {
+            return "";
+          }
+
           const key = normalizeKey(value);
           const classes = ["layout-cell"];
           if (!value) {
@@ -120,22 +171,90 @@ function renderLayout() {
           if (selectedShelf && key === selectedShelf) {
             classes.push("highlight");
           }
-          return `<div class="${classes.join(" ")}" data-shelf-key="${key}">${value || ""}</div>`;
+
+          const tag = shelfCodes.has(key) ? "button" : "div";
+          const type = shelfCodes.has(key) ? ' type="button"' : "";
+          return `<${tag}${type} class="${classes.join(" ")}" data-shelf-key="${key}" style="grid-row:${rowNumber}; grid-column:${columnNumber};">${escapeHtml(value)}</${tag}>`;
         })
         .join(""),
     )
     .join("");
 
-  const highlightedCell = dashboardElements.layoutGrid.querySelector(".layout-cell.highlight");
-  if (highlightedCell) {
-    highlightedCell.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+  dashboardElements.layoutGrid.style.setProperty("--layout-columns", columnCount);
+  dashboardElements.layoutGrid.style.setProperty("--layout-rows", rows.length);
+  dashboardElements.layoutGrid.innerHTML = parentMarkup + cellMarkup;
+
+  dashboardElements.layoutGrid.querySelectorAll(".layout-cell.shelf").forEach((cell) => {
+    cell.addEventListener("click", () => selectShelf(cell.dataset.shelfKey));
+  });
+}
+
+function itemsForShelf(shelfKey) {
+  const normalizedShelf = normalizeKey(shelfKey);
+  return activeStockRows().filter((item) => normalizeKey(itemShelfCode(item)) === normalizedShelf);
+}
+
+function selectShelf(shelfKey) {
+  dashboardState.selectedShelfKey = normalizeKey(shelfKey);
+  const items = itemsForShelf(dashboardState.selectedShelfKey);
+  dashboardState.selectedItem = items[0] || null;
+  renderShelfResult(dashboardState.selectedShelfKey, items);
+  renderLayout();
+}
+
+function renderShelfResult(shelfKey, items) {
+  const shelfLabel = shelfKey || "-";
+
+  if (!items.length) {
+    dashboardElements.result.innerHTML = `
+      <span>Selected shelf</span>
+      <strong>${escapeHtml(shelfLabel)}</strong>
+      <div class="shelf-summary">
+        <h4>What's there</h4>
+        <p>No loaded SKUs are assigned to this shelf.</p>
+        <h4>What's not there</h4>
+        <p>No stock row was found for this shelf in the Total sheet data.</p>
+      </div>
+    `;
+    dashboardElements.matchBadge.textContent = `${shelfLabel}: empty in loaded stock`;
+    return;
   }
+
+  const totalUnits = items.reduce((sum, item) => sum + stockOnHand(item), 0);
+  dashboardElements.result.innerHTML = `
+    <span>Selected shelf</span>
+    <strong>${escapeHtml(shelfLabel)}</strong>
+    <dl>
+      <div><dt>SKUs there</dt><dd>${formatNumber(items.length)}</dd></div>
+      <div><dt>Total units</dt><dd>${formatNumber(totalUnits)}</dd></div>
+      <div><dt>Status</dt><dd>Assigned</dd></div>
+    </dl>
+    <div class="shelf-summary">
+      <h4>What's there</h4>
+      <ul>
+        ${items
+          .map(
+            (item) => `
+              <li>
+                <strong>${escapeHtml(item.itemNumber)}</strong>
+                <span>${escapeHtml(item.productName || "-")} / ${formatNumber(stockOnHand(item))} units</span>
+              </li>
+            `,
+          )
+          .join("")}
+      </ul>
+      <h4>What's not there</h4>
+      <p>${formatNumber(items.length)} SKU row${items.length === 1 ? "" : "s"} found here; no missing row is visible from the loaded Total sheet.</p>
+    </div>
+  `;
+  dashboardElements.matchBadge.textContent = `${shelfLabel}: ${formatNumber(items.length)} SKU${items.length === 1 ? "" : "s"}`;
 }
 
 function renderSearchResult() {
   const item = dashboardState.selectedItem;
 
   if (!item) {
+    dashboardState.selectedShelfKey = "";
     dashboardElements.result.innerHTML = `<span>Search an item number to highlight its shelf.</span>`;
     dashboardElements.matchBadge.textContent = "No shelf selected";
     renderLayout();
@@ -143,15 +262,16 @@ function renderSearchResult() {
   }
 
   const shelf = itemShelfCode(item);
+  dashboardState.selectedShelfKey = normalizeKey(shelf);
   dashboardElements.result.innerHTML = `
     <span>Matched item</span>
-    <strong>${item.itemNumber}</strong>
+    <strong>${escapeHtml(item.itemNumber)}</strong>
     <dl>
-      <div><dt>Product</dt><dd>${item.productName || "-"}</dd></div>
-      <div><dt>FG ID</dt><dd>${item.finishGoodId || "-"}</dd></div>
+      <div><dt>Product</dt><dd>${escapeHtml(item.productName || "-")}</dd></div>
+      <div><dt>FG ID</dt><dd>${escapeHtml(item.finishGoodId || "-")}</dd></div>
       <div><dt>Available</dt><dd>${formatNumber(stockOnHand(item))}</dd></div>
-      <div><dt>Location</dt><dd>${item.location || "-"}</dd></div>
-      <div><dt>Shelf</dt><dd>${item.shelf || "-"}</dd></div>
+      <div><dt>Location</dt><dd>${escapeHtml(item.location || "-")}</dd></div>
+      <div><dt>Shelf</dt><dd>${escapeHtml(item.shelf || "-")}</dd></div>
     </dl>
   `;
   dashboardElements.matchBadge.textContent = shelf ? `Highlighting ${shelf}` : "No shelf on stock row";
@@ -163,6 +283,7 @@ function handleSearch() {
 
   if (!query) {
     dashboardState.selectedItem = null;
+    dashboardState.selectedShelfKey = "";
     renderSearchResult();
     return;
   }
@@ -175,6 +296,7 @@ function handleSearch() {
     rows.find((item) => normalizeKey(item.itemNumber).includes(normalizedQuery));
 
   if (!dashboardState.selectedItem) {
+    dashboardState.selectedShelfKey = "";
     dashboardElements.result.innerHTML = `<span>No matching item found in loaded stock.</span>`;
     dashboardElements.matchBadge.textContent = "No shelf selected";
     renderLayout();

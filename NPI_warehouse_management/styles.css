@@ -776,32 +776,40 @@ tbody tr:hover {
 }
 
 .layout-scroll {
-  max-height: calc(100vh - 250px);
-  min-height: 430px;
-  overflow: auto;
+  overflow: visible;
   border: 1px solid var(--line);
   background: #ffffff;
 }
 
 .warehouse-layout-grid {
   display: grid;
-  grid-template-columns: repeat(var(--layout-columns), minmax(58px, 1fr));
+  grid-template-columns: repeat(var(--layout-columns), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--layout-rows), minmax(24px, 1fr));
   gap: 2px;
-  min-width: 980px;
-  padding: 12px;
+  width: 100%;
+  height: min(56vh, 560px);
+  min-height: 360px;
+  padding: 10px;
   background: #f3f2f1;
 }
 
 .layout-cell {
   display: grid;
   place-items: center;
-  min-height: 38px;
+  min-width: 0;
+  min-height: 0;
+  padding: 2px;
   border: 1px solid #d2d0ce;
   background: #ffffff;
   color: var(--muted);
-  font-size: 12px;
+  font-size: clamp(10px, 0.68vw, 12px);
   font-weight: 600;
+  line-height: 1;
   text-align: center;
+}
+
+button.layout-cell {
+  cursor: pointer;
 }
 
 .layout-cell.empty {
@@ -814,9 +822,21 @@ tbody tr:hover {
   color: #ffffff;
 }
 
+.layout-cell.parent {
+  background: #323130;
+  color: #ffffff;
+  font-size: clamp(16px, 1.4vw, 24px);
+  font-weight: 700;
+}
+
 .layout-cell.shelf {
   background: #deecf9;
   color: #201f1e;
+}
+
+.layout-cell.shelf:hover {
+  border-color: var(--accent);
+  background: #c7e0f4;
 }
 
 .layout-cell.highlight {
@@ -826,6 +846,44 @@ tbody tr:hover {
   outline: 3px solid #a4262c;
   outline-offset: -3px;
   box-shadow: 0 0 0 4px rgba(164, 38, 44, 0.12);
+}
+
+.shelf-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.shelf-summary h4 {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.shelf-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.shelf-summary ul {
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.shelf-summary li {
+  display: grid;
+  gap: 3px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.shelf-summary li span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 @media (max-width: 1040px) {
@@ -931,8 +989,7 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 
-  .layout-scroll {
-    max-height: 520px;
-    min-height: 360px;
+  .warehouse-layout-grid {
+    height: 430px;
   }
 }
