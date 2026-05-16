@@ -1,5 +1,5 @@
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbypYj0ZygHnnoWIc3h8rh8IydRrquUGKig4FOuSukyjqwlty7qk2oK-e_iV509paC-V/exec";
+  "https://script.google.com/macros/s/AKfycbx3gpYGoOY81E3J85TvZNllrmc6fBzessoQVicZr18G5uornSqX7Cgk_TGZ1D_-XUTS/exec";
 
 const STORAGE_KEY = "npiWarehouseTotal.v2";
 const HISTORY_KEY = "npiWarehouseHistory.v1";
@@ -11,7 +11,7 @@ const state = {
   outboundUploadRows: [],
   weekIndex: [],
   selectedWeek: "",
-  orderedLastWeek: 0,
+  inboundSkuLastWeek: 0,
   isLoadingStock: false,
   lastUpdatedAt: "",
   stockStatus: "Loading stock...",
@@ -49,7 +49,7 @@ const elements = {
   sendInboundBtn: document.querySelector("#sendInboundBtn"),
   sendOutboundBtn: document.querySelector("#sendOutboundBtn"),
   unitCount: document.querySelector("#unitCount"),
-  orderedLastWeek: document.querySelector("#orderedLastWeek"),
+  inboundSkuLastWeek: document.querySelector("#inboundSkuLastWeek"),
   refreshMeta: document.querySelector("#refreshMeta"),
   stockSource: document.querySelector("#stockSource"),
   submitBtn: document.querySelector("#submitBtn"),
@@ -218,7 +218,9 @@ function applyStockPayload(data, source, silent = false) {
   if (!state.selectedWeek || !state.weekIndex.some((week) => week.weekKey === state.selectedWeek)) {
     state.selectedWeek = state.weekIndex[0]?.weekKey || "";
   }
-  state.orderedLastWeek = Number(data.metrics?.orderedLastWeek || data.orderedLastWeek || 0);
+  state.inboundSkuLastWeek = Number(
+    data.metrics?.inboundSkuLastWeek || data.inboundSkuLastWeek || countInboundSkusLastWeek(state.weekIndex),
+  );
   state.lastUpdatedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   state.stockSource = source;
   state.stockStatus = stock.length ? "" : "Connected to the stock endpoint, but no stock rows were returned.";
@@ -241,13 +243,35 @@ function stockOnHand(item) {
   return Number(item.total || item.quantity) || 0;
 }
 
+function countInboundSkusLastWeek(weekIndex) {
+  const seen = new Set();
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  weekIndex.forEach((week) => {
+    (Array.isArray(week.inbound) ? week.inbound : []).forEach((entry) => {
+      const entryDate = new Date(entry.date);
+
+      if (Number.isNaN(entryDate.getTime()) || entryDate < sevenDaysAgo || entryDate > now) {
+        return;
+      }
+
+      if (entry.itemNumber) {
+        seen.add(String(entry.itemNumber).trim());
+      }
+    });
+  });
+
+  return seen.size;
+}
+
 function renderMetrics() {
   const stockRows = activeStockRows();
   const totalUnits = stockRows.reduce((sum, item) => sum + stockOnHand(item), 0);
 
   elements.skuCount.textContent = formatNumber(stockRows.length);
   elements.unitCount.textContent = formatNumber(totalUnits);
-  elements.orderedLastWeek.textContent = formatNumber(state.orderedLastWeek);
+  elements.inboundSkuLastWeek.textContent = formatNumber(state.inboundSkuLastWeek);
   elements.stockSource.textContent = state.stockSource;
 }
 
