@@ -1,5 +1,5 @@
-const CHAT_API_URL = "https://portfolio-ai-proxy.vercel.app/api/chat";
-const CHAT_PLACEHOLDER_URL = "https://portfolio-ai-proxy.vercel.app/api/chat";
+const CHAT_API_URL = "https://portfolio-ai-proxy.vercel.app/";
+const CHAT_PLACEHOLDER_URL = "https://portfolio-ai-proxy.vercel.app/";
 const MAX_HISTORY_MESSAGES = 10;
 
 const chatState = {
