@@ -573,7 +573,7 @@
       <aside class="status-panel" aria-label="Directory status">
         <div class="status-row">
           <span class="status-label" data-i18n="toolCountLabel">Available tools</span>
-          <span class="status-value">03</span>
+          <span class="status-value">02</span>
         </div>
         <div class="status-row">
           <span class="status-label" data-i18n="scopeLabel">Workflow scope</span>
@@ -592,33 +592,15 @@
       <input class="search" id="toolSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search by tool name, workflow, or category..." aria-label="Search tools" />
       <div class="filters" aria-label="Tool type filters">
         <button class="filter active" type="button" data-filter="all" data-i18n="filterAll">All</button>
-        <button class="filter" type="button" data-filter="data" data-i18n="filterData">Data Management</button>
         <button class="filter" type="button" data-filter="quality" data-i18n="filterQuality">Quality Control</button>
         <button class="filter" type="button" data-filter="simulation" data-i18n="filterSimulation">Simulation</button>
       </div>
     </div>
 
     <section class="directory-grid" id="toolGrid" aria-label="NPI tools">
-      <article class="tool-card" data-type="data" data-search="legacy database management bom indexer data integrity historical records quan ly du lieu co so du lieu bom">
-        <div class="tool-top">
-          <div class="tool-icon">01</div>
-          <span class="tag" data-i18n="tagData">Data Management</span>
-        </div>
-        <h2 data-i18n="legacyTitle">Legacy Database Management</h2>
-        <p data-i18n="legacyDesc">
-          BOM indexing and retrieval workspace for maintaining data integrity, searching historical records, and supporting revision-level reconciliation during NPI launches.
-        </p>
-        <div class="metadata">
-          <span class="meta-chip" data-i18n="legacyMeta1">BOM Records</span>
-          <span class="meta-chip" data-i18n="legacyMeta2">Indexing</span>
-          <span class="meta-chip" data-i18n="legacyMeta3">Historical Data</span>
-        </div>
-        <a class="button button-primary" href="legacy_database_management/" data-i18n="accessDatabase">Access Database</a>
-      </article>
-
       <article class="tool-card" data-type="quality" data-search="inspection standards quality assurance compliance sample approval kiem tra chat luong tieu chuan">
         <div class="tool-top">
-          <div class="tool-icon">02</div>
+          <div class="tool-icon">01</div>
           <span class="tag" data-i18n="tagQuality">Quality Control</span>
         </div>
         <h2 data-i18n="inspectionTitle">Inspection Standards</h2>
@@ -635,7 +617,7 @@
 
       <article class="tool-card" data-type="simulation" data-search="opf sim tool simulation process optimization cycle time capacity line balance mo phong toi uu chuyen san xuat">
         <div class="tool-top">
-          <div class="tool-icon">03</div>
+          <div class="tool-icon">02</div>
           <span class="tag" data-i18n="tagSimulation">Simulation</span>
         </div>
         <h2 data-i18n="opfTitle">OPF SIM Tool</h2>
@@ -682,17 +664,10 @@
         modeValue: "Bilingual",
         searchPlaceholder: "Search by tool name, workflow, or category...",
         filterAll: "All",
-        filterData: "Data Management",
         filterQuality: "Quality Control",
         filterSimulation: "Simulation",
-        tagData: "Data Management",
         tagQuality: "Quality Control",
         tagSimulation: "Simulation",
-        legacyTitle: "Legacy Database Management",
-        legacyDesc: "BOM indexing and retrieval workspace for maintaining data integrity, searching historical records, and supporting revision-level reconciliation during NPI launches.",
-        legacyMeta1: "BOM Records",
-        legacyMeta2: "Indexing",
-        legacyMeta3: "Historical Data",
         inspectionTitle: "Inspection Standards",
         inspectionDesc: "Quality documentation tool for creating inspection-standard outputs, aligning sample checks with engineering requirements, and preparing customer-ready approval records.",
         inspectionMeta1: "QA",
@@ -703,7 +678,6 @@
         opfMeta1: "Capacity",
         opfMeta2: "Cycle Time",
         opfMeta3: "Optimization",
-        accessDatabase: "Access Database",
         launchTool: "Launch Tool",
         emptyState: "No tools match the current search or filter.",
         note: "This directory is built for expansion. Additional NPI dashboards, work instructions, controlled templates, and launch resources can be added without changing the access pattern.",
@@ -725,17 +699,10 @@
         modeValue: "Song ngữ",
         searchPlaceholder: "Tìm theo tên công cụ, quy trình hoặc phân loại...",
         filterAll: "Tất Cả",
-        filterData: "Quản Lý Dữ Liệu",
         filterQuality: "Kiểm Soát Chất Lượng",
         filterSimulation: "Mô Phỏng",
-        tagData: "Quản Lý Dữ Liệu",
         tagQuality: "Kiểm Soát Chất Lượng",
         tagSimulation: "Mô Phỏng",
-        legacyTitle: "Quản Lý Cơ Sở Dữ Liệu Cũ",
-        legacyDesc: "Không gian lập chỉ mục và truy xuất BOM nhằm duy trì tính toàn vẹn dữ liệu, tìm kiếm hồ sơ lịch sử và hỗ trợ đối chiếu theo từng phiên bản trong quá trình NPI.",
-        legacyMeta1: "Hồ Sơ BOM",
-        legacyMeta2: "Lập Chỉ Mục",
-        legacyMeta3: "Dữ Liệu Lịch Sử",
         inspectionTitle: "Tiêu Chuẩn Kiểm Tra",
         inspectionDesc: "Công cụ tài liệu chất lượng dùng để tạo đầu ra tiêu chuẩn kiểm tra, liên kết kiểm tra mẫu với yêu cầu kỹ thuật và chuẩn bị hồ sơ phê duyệt cho khách hàng.",
         inspectionMeta1: "QA",
@@ -746,7 +713,6 @@
         opfMeta1: "Năng Lực",
         opfMeta2: "Cycle Time",
         opfMeta3: "Tối Ưu",
-        accessDatabase: "Mở Công Cụ",
         launchTool: "Mở Công Cụ",
         emptyState: "Không có công cụ phù hợp với tìm kiếm hoặc bộ lọc hiện tại.",
         note: "Thư mục này được thiết kế để mở rộng. Có thể bổ sung dashboard NPI, hướng dẫn công việc, biểu mẫu kiểm soát và tài nguyên triển khai mà không cần thay đổi cấu trúc truy cập.",
@@ -838,5 +804,7 @@
     setTheme(localStorage.getItem("npiToolTheme") || DEFAULT_THEME);
     setLanguage(currentLang);
   </script>
+  <link rel="stylesheet" href="assets/chat-widget.css" />
+  <script src="assets/chat-widget.js" defer></script>
 </body>
 </html>

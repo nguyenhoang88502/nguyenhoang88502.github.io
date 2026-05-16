@@ -1,0 +1,223 @@
+:root {
+  --chat-bg: #07111f;
+  --chat-surface: #0d1a2b;
+  --chat-surface-strong: #12243a;
+  --chat-text: #eef5ff;
+  --chat-muted: #9db0c7;
+  --chat-line: rgba(157, 176, 199, 0.22);
+  --chat-accent: #c8922a;
+  --chat-accent-2: #e8b84b;
+  --chat-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+}
+
+.portfolio-chat {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 9990;
+  font-family: Inter, "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--chat-text);
+}
+
+.portfolio-chat * {
+  box-sizing: border-box;
+}
+
+.portfolio-chat__launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid rgba(232, 184, 75, 0.44);
+  border-radius: 999px;
+  color: #111827;
+  background: linear-gradient(135deg, var(--chat-accent-2), var(--chat-accent));
+  box-shadow: var(--chat-shadow);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.portfolio-chat__launcher-icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+}
+
+.portfolio-chat__panel {
+  position: absolute;
+  right: 0;
+  bottom: 62px;
+  display: none;
+  width: min(380px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 112px));
+  overflow: hidden;
+  border: 1px solid var(--chat-line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--chat-bg) 94%, transparent);
+  box-shadow: var(--chat-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.portfolio-chat.is-open .portfolio-chat__panel {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.portfolio-chat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--chat-line);
+  background: var(--chat-surface);
+}
+
+.portfolio-chat__title {
+  margin: 0;
+  color: var(--chat-text);
+  font-size: 0.92rem;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.portfolio-chat__subtitle {
+  margin: 2px 0 0;
+  color: var(--chat-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.portfolio-chat__close {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--chat-line);
+  border-radius: 8px;
+  color: var(--chat-text);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.portfolio-chat__messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 14px;
+  overflow-y: auto;
+  background:
+    linear-gradient(180deg, rgba(200, 146, 42, 0.06), transparent 160px),
+    var(--chat-bg);
+}
+
+.portfolio-chat__message {
+  max-width: 88%;
+  padding: 10px 12px;
+  border: 1px solid var(--chat-line);
+  border-radius: 12px;
+  color: var(--chat-text);
+  background: var(--chat-surface);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.portfolio-chat__message--user {
+  align-self: flex-end;
+  color: #111827;
+  border-color: rgba(232, 184, 75, 0.45);
+  background: linear-gradient(135deg, var(--chat-accent-2), var(--chat-accent));
+}
+
+.portfolio-chat__message--assistant {
+  align-self: flex-start;
+}
+
+.portfolio-chat__message--status {
+  align-self: center;
+  max-width: 96%;
+  color: var(--chat-muted);
+  border-style: dashed;
+  background: transparent;
+  text-align: center;
+}
+
+.portfolio-chat__form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--chat-line);
+  background: var(--chat-surface);
+}
+
+.portfolio-chat__input {
+  width: 100%;
+  min-height: 44px;
+  max-height: 96px;
+  resize: none;
+  border: 1px solid var(--chat-line);
+  border-radius: 10px;
+  padding: 11px 12px;
+  color: var(--chat-text);
+  background: var(--chat-surface-strong);
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  outline: none;
+}
+
+.portfolio-chat__input:focus {
+  border-color: rgba(232, 184, 75, 0.7);
+}
+
+.portfolio-chat__send {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  color: #111827;
+  background: linear-gradient(135deg, var(--chat-accent-2), var(--chat-accent));
+  cursor: pointer;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.portfolio-chat__send:disabled,
+.portfolio-chat__input:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+@media (max-width: 560px) {
+  .portfolio-chat {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .portfolio-chat__launcher span:last-child {
+    display: none;
+  }
+
+  .portfolio-chat__launcher {
+    width: 52px;
+    height: 52px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .portfolio-chat__panel {
+    right: -2px;
+    bottom: 64px;
+    width: calc(100vw - 24px);
+  }
+}

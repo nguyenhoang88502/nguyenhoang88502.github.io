@@ -1,4 +1,0 @@
-PySimpleGUI==4.60.5.1
-openpyxl==3.1.5
-xlrd==2.0.1
-pyinstaller==6.20.0
