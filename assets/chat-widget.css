@@ -196,6 +196,7 @@
 .portfolio-chat__prompts {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 8px;
   margin-top: 10px;
 }
@@ -203,7 +204,7 @@
 .portfolio-chat__prompt {
   min-height: 32px;
   border: 1px solid rgba(200, 146, 42, 0.26);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 6px 10px;
   color: var(--chat-cream);
   background: rgba(200, 146, 42, 0.08);
@@ -211,6 +212,7 @@
   font: inherit;
   font-size: 0.76rem;
   font-weight: 700;
+  text-align: left;
 }
 
 .portfolio-chat__prompt:hover,

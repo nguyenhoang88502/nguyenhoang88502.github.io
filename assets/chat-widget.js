@@ -7,10 +7,10 @@ const chatState = {
 };
 
 const suggestedQuestions = [
-  "What projects best show Hoang's manufacturing analytics work?",
-  "What does the WMS warehouse management project demonstrate?",
-  "Summarize Hoang's NPI internship experience.",
-  "Which project should a recruiter look at first?"
+  "What are Hoang's core technical skills and areas of expertise?",
+  "Tell me about his work as an NPI Intern at Wahl Clipper Vietnam.",
+  "Can you explain the architecture behind his Warehouse Management System?",
+  "Summarize Hoang's portfolio in 3 sentences."
 ];
 
 function createChatElement() {
