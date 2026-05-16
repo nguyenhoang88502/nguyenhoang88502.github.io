@@ -124,7 +124,7 @@ async function loadStockFromWebhook({ silent = false } = {}) {
   elements.refreshBtn.disabled = true;
 
   if (!silent) {
-    state.stockStatus = "Loading stock from Google Sheets...";
+    state.stockStatus = "Loading stock...";
     renderInventory();
     renderRefreshMeta();
   }
@@ -227,7 +227,7 @@ function applyStockPayload(data, source, silent = false) {
   saveState();
   render();
   if (!silent) {
-    setStatus(stock.length ? "Total sheet loaded from the Google Sheet." : state.stockStatus, "success");
+    setStatus(stock.length ? "Total sheet loaded." : state.stockStatus, "success");
   }
 }
 
