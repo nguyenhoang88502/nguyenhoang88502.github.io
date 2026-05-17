@@ -147,7 +147,7 @@
     .navbar-toggler:focus { box-shadow: none; }
 
     /* ── Section scaffold ── */
-    section { padding: 7rem 0; }
+    section { padding: clamp(4rem, 7vw, 7rem) 0; }
     .section-label {
       font-size: .65rem;
       letter-spacing: .2em;
@@ -158,7 +158,7 @@
     }
     .section-title {
       font-family: 'Cormorant', serif;
-      font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+      font-size: clamp(2rem, 4.5vw, 3.8rem);
       font-weight: 600;
       color: var(--cream);
       line-height: 1.05;
@@ -166,13 +166,13 @@
     .divider {
       width: 40px; height: 1px;
       background: linear-gradient(90deg, var(--gold), transparent);
-      margin: 1.4rem 0 2.8rem;
+      margin: clamp(1rem, 2vw, 1.4rem) 0 clamp(1.8rem, 4vw, 2.8rem);
     }
     .divider.mx-auto { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
 
     /* ══ HERO ══ */
     #hero {
-      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       position: relative;
@@ -208,15 +208,15 @@
     .hero-eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: .6rem;
-      font-size: .68rem;
-      letter-spacing: .2em;
+      gap: .5rem;
+      font-size: clamp(0.58rem, 0.9vw, 0.68rem);
+      letter-spacing: .18em;
       text-transform: uppercase;
       color: var(--gold);
       border: 1px solid var(--line);
-      padding: .4rem 1rem;
+      padding: .35rem .85rem;
       border-radius: 2px;
-      margin-bottom: 2rem;
+      margin-bottom: clamp(1.2rem, 2.5vw, 2rem);
       background: rgba(200,146,42,.04);
     }
     .hero-eyebrow::before {
@@ -227,7 +227,7 @@
 
     .hero-name {
       font-family: 'Cormorant', serif;
-      font-size: clamp(3.5rem, 9vw, 7.5rem);
+      font-size: clamp(2.6rem, 7vw, 7.5rem);
       font-weight: 300;
       line-height: .95;
       letter-spacing: -.02em;
@@ -242,7 +242,7 @@
     }
 
     .hero-desc {
-      font-size: 1rem;
+      font-size: clamp(0.88rem, 1.2vw, 1rem);
       color: var(--muted);
       max-width: 440px;
       line-height: 1.8;
@@ -352,7 +352,7 @@
       background: var(--card-bg);
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 2.4rem;
+      padding: clamp(1.5rem, 3vw, 2.4rem);
       height: 100%;
     }
     .cert-bar-wrap {
@@ -374,7 +374,7 @@
       background: var(--card-bg);
       border: 1px solid var(--line);
       border-radius: 6px;
-      padding: 2.2rem;
+      padding: clamp(1.4rem, 3vw, 2.2rem);
       height: 100%;
       position: relative;
       overflow: hidden;
@@ -440,7 +440,7 @@
     }
 
     /* ══ TIMELINE (Experience & Extra) ══ */
-    .timeline { position: relative; padding-left: 2.8rem; }
+    .timeline { position: relative; padding-left: clamp(2rem, 5vw, 2.8rem); }
     .timeline::before {
       content: '';
       position: absolute;
@@ -504,7 +504,7 @@
       background: var(--card-bg);
       border: 1px solid var(--line);
       border-radius: 6px;
-      padding: 1.8rem;
+      padding: clamp(1.2rem, 2.5vw, 1.8rem);
       display: flex;
       flex-direction: column;
       position: relative;
@@ -645,13 +645,14 @@
 
     /* ══ RESPONSIVE ══ */
     @media (max-width: 991px) {
-      #hero { padding: 7rem 0 5rem; }
+      #hero { padding-top: 6rem; padding-bottom: 3rem; }
       .hero-photo { max-width: 260px; }
+      .hero-photo-wrap::after { top: 14px; left: 14px; right: -14px; bottom: -14px; }
       .ring-1, .ring-2, .ring-3 { display: none; }
     }
     @media (max-width: 767px) {
-      section { padding: 5rem 0; }
-      .hero-name { font-size: 3.5rem; }
+      .hero-photo { max-width: 220px; }
+      .hero-photo-wrap::after { top: 10px; left: 10px; right: -10px; bottom: -10px; }
     }
     @media (max-width: 575px) {
       body { cursor: auto; }
@@ -698,7 +699,7 @@
   <div class="ring ring-3"></div>
 
   <div class="container hero-content">
-    <div class="row align-items-center g-5 g-lg-0">
+    <div class="row align-items-center g-4 g-lg-0">
       <div class="col-lg-7 order-2 order-lg-1">
         <div class="hero-eyebrow">Industrial Systems Engineer</div>
         <h1 class="hero-name">
