@@ -151,6 +151,113 @@
     .navbar-toggler { border: 1px solid var(--line); background: none; padding: .4rem .6rem; }
     .navbar-toggler:focus { box-shadow: none; }
 
+    /* ── Mobile sidebar ── */
+    .nav-sidebar {
+      position: fixed;
+      top: 0; right: 0;
+      width: 280px;
+      max-width: 82vw;
+      height: 100dvh;
+      z-index: 1050;
+      background: var(--navy2);
+      border-left: 1px solid var(--line);
+      transform: translateX(100%);
+      transition: transform .32s cubic-bezier(.4,0,.2,1);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1.8rem;
+      overflow-y: auto;
+    }
+    .nav-sidebar.is-open {
+      transform: translateX(0);
+    }
+    .nav-sidebar__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-sidebar__brand {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .nav-sidebar__close {
+      display: grid;
+      width: 34px; height: 34px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: color .2s, border-color .2s;
+    }
+    .nav-sidebar__close:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+    .nav-sidebar__links {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .nav-sidebar__links .nav-link {
+      font-size: .82rem;
+      padding: .7rem .6rem !important;
+      letter-spacing: .1em;
+      border-radius: 4px;
+      transition: background .2s, color .2s;
+    }
+    .nav-sidebar__links .nav-link:hover,
+    .nav-sidebar__links .nav-link.active-section {
+      background: rgba(200,146,42,.08);
+    }
+    .nav-sidebar__links .nav-link::after { display: none; }
+    .nav-sidebar__lang {
+      margin-top: 1.5rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: .5rem;
+    }
+    .nav-sidebar__lang .lang-toggle {
+      flex: 1;
+      text-align: center;
+      margin-left: 0;
+      padding: .4rem .6rem;
+      font-size: .65rem;
+    }
+
+    /* Backdrop */
+    .nav-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1040;
+      background: rgba(0,0,0,.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+    .nav-backdrop.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Hide sidebar on desktop */
+    @media (min-width: 992px) {
+      .nav-sidebar,
+      .nav-backdrop { display: none; }
+    }
+
     /* Language toggle */
     .lang-toggle {
       background: transparent;
@@ -705,11 +812,9 @@
 <nav id="navbar" class="navbar navbar-expand-lg fixed-top">
   <div class="container">
     <a class="nav-brand" href="#hero">About Me</a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Toggle navigation">
-      <i class="bi bi-list fs-4" style="color:var(--gold);"></i>
-    </button>
-    <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-      <ul class="navbar-nav gap-1 align-items-center">
+    <!-- Desktop nav (hidden below lg) -->
+    <div class="d-none d-lg-flex justify-content-end flex-grow-1" id="navMenu">
+      <ul class="d-flex flex-row gap-1 align-items-center list-unstyled mb-0">
         <li class="nav-item"><a class="nav-link" href="#hero" data-section="hero" data-i18n="nav.about">About</a></li>
         <li class="nav-item"><a class="nav-link" href="#Education" data-section="Education" data-i18n="nav.education">Education</a></li>
         <li class="nav-item"><a class="nav-link" href="#skills" data-section="skills" data-i18n="nav.skills">Skills</a></li>
@@ -723,8 +828,36 @@
         </li>
       </ul>
     </div>
+    <!-- Mobile hamburger -->
+    <button class="navbar-toggler border-0 d-lg-none" type="button" id="sidebarToggle" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-4" style="color:var(--gold);"></i>
+    </button>
   </div>
 </nav>
+
+<!-- Mobile sidebar overlay -->
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<!-- Mobile sidebar -->
+<aside class="nav-sidebar" id="navSidebar">
+  <div class="nav-sidebar__header">
+    <a class="nav-sidebar__brand" href="#hero">About Me</a>
+    <button class="nav-sidebar__close" id="sidebarClose" aria-label="Close navigation">&times;</button>
+  </div>
+  <ul class="nav-sidebar__links">
+    <li><a class="nav-link" href="#hero" data-section="hero" data-i18n="nav.about">About</a></li>
+    <li><a class="nav-link" href="#Education" data-section="Education" data-i18n="nav.education">Education</a></li>
+    <li><a class="nav-link" href="#skills" data-section="skills" data-i18n="nav.skills">Skills</a></li>
+    <li><a class="nav-link" href="#experience" data-section="experience" data-i18n="nav.experience">Experience</a></li>
+    <li><a class="nav-link" href="#extra" data-section="extra" data-i18n="nav.activities">Activities</a></li>
+    <li><a class="nav-link" href="#projects" data-section="projects" data-i18n="nav.projects">Projects</a></li>
+    <li><a class="nav-link" href="#contacts" data-section="contacts" data-i18n="nav.contacts">Contacts</a></li>
+  </ul>
+  <div class="nav-sidebar__lang">
+    <button class="lang-toggle active-lang" data-lang="en" aria-label="Switch to Vietnamese">EN</button>
+    <button class="lang-toggle" data-lang="vi" aria-label="Switch to English">VI</button>
+  </div>
+</aside>
 
 <!-- ══════════ HERO ══════════ -->
 <section id="hero">
@@ -1246,6 +1379,46 @@
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  /* ── Mobile sidebar ── */
+  const sidebar = document.getElementById('navSidebar');
+  const backdrop = document.getElementById('navBackdrop');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebarClose = document.getElementById('sidebarClose');
+
+  function openSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.add('is-open');
+    backdrop.classList.add('is-visible');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('is-open');
+    backdrop.classList.remove('is-visible');
+    document.body.style.overflow = '';
+  }
+
+  if (sidebarToggle) sidebarToggle.addEventListener('click', openSidebar);
+  if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+  // Close sidebar when a nav link is clicked
+  if (sidebar) {
+    sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        closeSidebar();
+      });
+    });
+  }
+
+  // Close sidebar on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('is-open')) {
+      closeSidebar();
+    }
+  });
 </script>
 <link rel="stylesheet" href="assets/chat-widget.css" />
 <script src="assets/chat-widget.js" defer></script>
