@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Architecture — nguyenhoang88502.github.io</title>
+<style>
+  :root {
+    --bg: #0b1320;
+    --surface: #101c2e;
+    --surface2: #162438;
+    --border: #1e3350;
+    --gold: #c8922a;
+    --gold-lt: #e8b84b;
+    --cream: #f0ece4;
+    --muted: #7a8fa6;
+    --text: #ccd8e8;
+    --code-bg: #080f1a;
+    --red: #ef6b6b;
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 0.92rem;
+  }
+
+  /* ── Nav ── */
+  #toc {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100dvh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    z-index: 100;
+  }
+
+  #toc h2 {
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.4rem;
+  }
+
+  #toc a {
+    display: block;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 0.35rem 0;
+    transition: color 0.2s;
+    border-left: 2px solid transparent;
+    padding-left: 0.8rem;
+  }
+
+  #toc a:hover,
+  #toc a.active {
+    color: var(--gold-lt);
+    border-left-color: var(--gold);
+  }
+
+  #toc .toc-l2 { padding-left: 1.8rem; font-size: 0.74rem; }
+
+  /* ── Main ── */
+  #main {
+    margin-left: 260px;
+    padding: 3rem 4rem;
+    max-width: 960px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cream);
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gold-lt);
+    margin-top: 2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--cream);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p { margin: 0.8rem 0; }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0.8rem 0 1.4rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--cream);
+  }
+
+  p code, li code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.78rem;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0 1.4rem;
+    font-size: 0.84rem;
+  }
+
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: var(--surface);
+    color: var(--gold-lt);
+    font-weight: 600;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── File tree ── */
+  .tree {
+    font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, Consolas, monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.8;
+    margin: 0.8rem 0 1.4rem;
+  }
+
+  .tree .hl { color: var(--gold-lt); }
+  .tree .cm { color: #5a7a9a; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border-radius: 100px;
+    margin-right: 0.3rem;
+  }
+
+  .badge--css { background: rgba(96,165,250,.12); color: var(--blue); border: 1px solid rgba(96,165,250,.25); }
+  .badge--js  { background: rgba(232,184,75,.12); color: var(--gold-lt); border: 1px solid rgba(232,184,75,.25); }
+  .badge--py  { background: rgba(74,222,128,.12); color: var(--green); border: 1px solid rgba(74,222,128,.25); }
+  .badge--sql { background: rgba(192,132,252,.12); color: var(--purple); border: 1px solid rgba(192,132,252,.25); }
+  .badge--cfg { background: rgba(239,107,107,.12); color: var(--red); border: 1px solid rgba(239,107,107,.25); }
+  .badge--api { background: rgba(96,165,250,.12); color: var(--blue); border: 1px solid rgba(96,165,250,.25); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.4rem;
+    margin: 1rem 0;
+  }
+
+  .card h4 { margin-top: 0; }
+
+  /* ── Diagram ── */
+  .diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 0.8rem 0 1.4rem;
+    font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, Consolas, monospace;
+    font-size: 0.76rem;
+    line-height: 1.7;
+    color: var(--muted);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .diagram .k { color: var(--purple); }
+  .diagram .v { color: var(--green); }
+  .diagram .c { color: #5a7a9a; }
+
+  /* ── Alert ── */
+  .alert {
+    border-left: 3px solid var(--gold);
+    background: rgba(200,146,42,.06);
+    padding: 0.8rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.84rem;
+    color: var(--gold-lt);
+  }
+
+  .alert strong { color: var(--gold); }
+
+  ul, ol { margin: 0.6rem 0 1rem 1.5rem; }
+  li { margin: 0.3rem 0; }
+
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #toc { display: none; }
+    #main { margin-left: 0; padding: 2rem 1.2rem; }
+  }
+
+  @media print {
+    #toc { display: none; }
+    #main { margin-left: 0; padding: 1rem; }
+    body { font-size: 0.82rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR TOC ══════════ -->
+<nav id="toc">
+  <h2>Architecture Docs</h2>
+  <a href="#overview">Overview &amp; Site Map</a>
+  <a href="#files" class="toc-l2">Root Files</a>
+  <a href="#files" class="toc-l2">Project Folders</a>
+  <a href="#css">CSS Architecture</a>
+  <a href="#css-tokens" class="toc-l2">Design Tokens</a>
+  <a href="#css-components" class="toc-l2">Component Patterns</a>
+  <a href="#css-responsive" class="toc-l2">Responsive Breakpoints</a>
+  <a href="#js">JavaScript Architecture</a>
+  <a href="#js-modules" class="toc-l2">Module Map</a>
+  <a href="#js-state" class="toc-l2">State Management</a>
+  <a href="#i18n">Language Toggle / i18n</a>
+  <a href="#i18n-translations" class="toc-l2">Translation Dictionary</a>
+  <a href="#i18n-flow" class="toc-l2">Toggle Flow</a>
+  <a href="#sidebar">Mobile Sidebar</a>
+  <a href="#chat">Chat Widget</a>
+  <a href="#chat-frontend" class="toc-l2">Frontend (chat-widget.js)</a>
+  <a href="#chat-markdown" class="toc-l2">Markdown Renderer</a>
+  <a href="#chat-backend" class="toc-l2">Vercel Serverless Proxy</a>
+  <a href="#chat-security" class="toc-l2">Security Model</a>
+  <a href="#deploy">Deployment Architecture</a>
+  <a href="#update">Update Guides</a>
+  <a href="#update-content" class="toc-l2">Add/Edit Content</a>
+  <a href="#update-translation" class="toc-l2">Add Translations</a>
+  <a href="#update-chat" class="toc-l2">Update Chat Context</a>
+  <a href="#update-skill" class="toc-l2">Add Skill/Tool Tags</a>
+  <a href="#ref">Quick Reference</a>
+</nav>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div id="main">
+
+<h1>Portfolio Architecture</h1>
+<p class="subtitle">
+  <code>nguyenhoang88502.github.io</code> &mdash; Complete technical reference.
+  Last updated: May 2026.
+  This file is self-contained; edit sections in order to keep it modular.
+</p>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  1. OVERVIEW                              -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="overview">1. Overview &amp; Site Map</h2>
+
+<p>
+  This repository is a <strong>static GitHub Pages site</strong>: HTML, CSS, JavaScript, images, PDFs,
+  and data artifacts organized into project folders. There is no build step, no bundler, and
+  no server-side rendering. Every folder with an <code>index.html</code> is a routable subpage.
+</p>
+
+<div class="diagram">
+<span class="c">// Public URL structure</span>
+https://nguyenhoang88502.github.io/                          <span class="c">→ index.html (portfolio)</span>
+https://nguyenhoang88502.github.io/OPF_sim/                  <span class="c">→ OPF_sim/index.html</span>
+https://nguyenhoang88502.github.io/WMS/                      <span class="c">→ WMS/index.html</span>
+https://nguyenhoang88502.github.io/manufacturing-failure.../ <span class="c">→ manufacturing-failure.../index.html</span>
+</div>
+
+<p>The root <code>index.html</code> is the personal portfolio landing page. It contains:</p>
+<ul>
+  <li>Hero section with name, photo, description, and CTA buttons</li>
+  <li>Education &amp; Certifications cards</li>
+  <li>Skills &amp; Tools (4 cards: Data, Optimization, Tools, Software Dev)</li>
+  <li>Work Experience timeline (Wahl Clipper Vietnam + 7-Eleven)</li>
+  <li>Extracurricular Activities timeline (3 entries)</li>
+  <li>Projects grid (9 project cards)</li>
+  <li>Contact section (email, phone, LinkedIn, location)</li>
+  <li>AI Chat Widget (bottom-right launcher)</li>
+  <li>EN/VI language toggle in the navbar</li>
+</ul>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  2. FILE STRUCTURE                        -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="files">2. File Structure</h2>
+
+<h3 id="files-root">Root Files</h3>
+
+<table>
+  <tr><th>File</th><th>Role</th><th>Type</th></tr>
+  <tr>
+    <td><code>index.html</code></td>
+    <td>Portfolio landing page — single-file HTML with embedded CSS and JS</td>
+    <td><span class="badge badge--css">CSS</span><span class="badge badge--js">JS</span></td>
+  </tr>
+  <tr>
+    <td><code>ARCHITECTURE.html</code></td>
+    <td>This documentation file</td>
+    <td><span class="badge badge--cfg">DOC</span></td>
+  </tr>
+  <tr>
+    <td><code>AI_CHATBOT.md</code></td>
+    <td>Original chatbot technical documentation (markdown)</td>
+    <td><span class="badge badge--cfg">DOC</span></td>
+  </tr>
+  <tr>
+    <td><code>README.md</code></td>
+    <td>Repository-level README with folder guide and deployment notes</td>
+    <td><span class="badge badge--cfg">DOC</span></td>
+  </tr>
+  <tr>
+    <td><code>favicon.png</code></td>
+    <td>Site favicon</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><code>resume1.pdf</code></td>
+    <td>Downloadable r&eacute;sum&eacute; linked from hero and footer</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><code>resume.tex</code></td>
+    <td>LaTeX source for the r&eacute;sum&eacute;</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><code>DSC_4906a (1).jpg</code></td>
+    <td>Profile photo used in hero section</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><code>assets/chat-widget.js</code></td>
+    <td>AI chat widget frontend (DOM, state, markdown, API calls, i18n)</td>
+    <td><span class="badge badge--js">JS</span></td>
+  </tr>
+  <tr>
+    <td><code>assets/chat-widget.css</code></td>
+    <td>Chat widget styling (BEM classes, custom properties, responsive)</td>
+    <td><span class="badge badge--css">CSS</span></td>
+  </tr>
+</table>
+
+<h3 id="files-projects">Project Folders</h3>
+
+<table>
+  <tr><th>Folder</th><th>Description</th><th>Key Tech</th></tr>
+  <tr>
+    <td><code>OPF_sim/</code></td>
+    <td>Trimmer assembly line Monte Carlo / DES simulator</td>
+    <td>D3.js, JSZip, Arena</td>
+  </tr>
+  <tr>
+    <td><code>WMS/</code></td>
+    <td>Public warehouse management system (portfolio copy)</td>
+    <td>Google Apps Script, SheetJS, ExcelJS</td>
+  </tr>
+  <tr>
+    <td><code>NPI_warehouse_management/</code></td>
+    <td>NPI warehouse app (internal deployment)</td>
+    <td>Google Apps Script, SheetJS, ExcelJS</td>
+  </tr>
+  <tr>
+    <td><code>manufacturing-failure-analytics-pipeline/</code></td>
+    <td>ETL + DW + OLAP + ML pipeline for AI4I dataset</td>
+    <td>Python, Streamlit, PostgreSQL, XGBoost</td>
+  </tr>
+  <tr>
+    <td><code>inspection_standard_tool/</code></td>
+    <td>Image-to-Excel inspection standard builder</td>
+    <td>React/Vite, ExcelJS, PDF.js</td>
+  </tr>
+  <tr>
+    <td><code>BKFC/</code></td>
+    <td>Career orientation project + social poster pack</td>
+    <td>Python (Pillow), PowerShell</td>
+  </tr>
+  <tr>
+    <td><code>dashboard/</code></td>
+    <td>Manufacturing dashboard showcase (Power BI)</td>
+    <td>Power BI (.pbix)</td>
+  </tr>
+  <tr>
+    <td><code>decisionanalysis/</code></td>
+    <td>AHP customer segmentation project</td>
+    <td>Static HTML</td>
+  </tr>
+  <tr>
+    <td><code>autocad2d/</code></td>
+    <td>AutoCAD 2D engineering graphics portfolio</td>
+    <td>Static HTML + PDF/JPG</td>
+  </tr>
+  <tr>
+    <td><code>ergonomic/</code></td>
+    <td>Ergonomic kitchen workspace design</td>
+    <td>Static HTML + PDF</td>
+  </tr>
+  <tr>
+    <td><code>systemdesign/</code></td>
+    <td>Co-working space cafe system design</td>
+    <td>Static HTML + PDF</td>
+  </tr>
+  <tr>
+    <td><code>bus_sim/</code></td>
+    <td>VNU-HCM bus route 50 simulation</td>
+    <td>Static HTML</td>
+  </tr>
+  <tr>
+    <td><code>pdftodocx/</code></td>
+    <td>Browser PDF text extraction tool</td>
+    <td>Static HTML</td>
+  </tr>
+</table>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  3. CSS ARCHITECTURE                      -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="css">3. CSS Architecture</h2>
+
+<p>
+  All CSS for the main portfolio lives in a <strong>single <code>&lt;style&gt;</code> block</strong>
+  inside <code>index.html</code> (lines 17–800). No external stylesheets except Bootstrap 5 CDN,
+  Bootstrap Icons CDN, Google Fonts CDN, and the separate chat widget CSS.
+</p>
+
+<h3 id="css-tokens">3.1 Design Tokens</h3>
+
+<div class="card">
+  <h4>Color System</h4>
+  <p>All colors are CSS custom properties defined in <code>:root</code>. The palette is a dark navy + gold theme.</p>
+  <table>
+    <tr><th>Variable</th><th>Value</th><th>Usage</th></tr>
+    <tr><td><code>--navy</code></td><td><code>#080f1a</code></td><td>Deepest background (hero, projects, footer)</td></tr>
+    <tr><td><code>--navy2</code></td><td><code>#0d1626</code></td><td>Mid background (skills, contact, mobile sidebar)</td></tr>
+    <tr><td><code>--navy3</code></td><td><code>#121e30</code></td><td>Lightest background (education, experience)</td></tr>
+    <tr><td><code>--gold</code></td><td><code>#c8922a</code></td><td>Primary accent (headings, icons, active states)</td></tr>
+    <tr><td><code>--gold-lt</code></td><td><code>#e8b84b</code></td><td>Light gold (hover states, button gradient)</td></tr>
+    <tr><td><code>--gold-dk</code></td><td><code>#9b6d18</code></td><td>Dark gold (scrollbar, certification bar)</td></tr>
+    <tr><td><code>--cream</code></td><td><code>#f0ece4</code></td><td>Primary text color</td></tr>
+    <tr><td><code>--muted</code></td><td><code>#7a8fa6</code></td><td>Secondary text color</td></tr>
+    <tr><td><code>--card-bg</code></td><td><code>#101c2e</code></td><td>Card surface background</td></tr>
+    <tr><td><code>--line</code></td><td><code>rgba(200,146,42,.18)</code></td><td>Border color used on cards and dividers</td></tr>
+    <tr><td><code>--glow</code></td><td><code>rgba(200,146,42,.08)</code></td><td>Hover glow effect on cards</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h4>Typography Tokens</h4>
+  <table>
+    <tr><th>Element</th><th>Font</th><th>Sizing Strategy</th></tr>
+    <tr><td>Body text</td><td><code>'Inter', sans-serif</code></td><td>Browser default 16px base</td></tr>
+    <tr><td>Hero name</td><td><code>'Libre Baskerville', serif</code></td><td><code>clamp(2.6rem, 7vw, 7.5rem)</code></td></tr>
+    <tr><td>Section titles</td><td><code>'Libre Baskerville', serif</code></td><td><code>clamp(2rem, 4.5vw, 3.8rem)</code></td></tr>
+    <tr><td>Hero description</td><td><code>'Inter', sans-serif</code></td><td><code>clamp(0.88rem, 1.2vw, 1rem)</code></td></tr>
+    <tr><td>Bold/metric text</td><td><code>'Inter', sans-serif</code></td><td><code>font-weight: 600; color: #e8dbbc</code></td></tr>
+    <tr><td>Timeline titles</td><td><code>'Libre Baskerville', serif</code></td><td>Fixed <code>1.45rem</code></td></tr>
+    <tr><td>Card headings</td><td><code>'Inter', sans-serif</code></td><td>Fixed <code>0.9rem</code></td></tr>
+  </table>
+</div>
+
+<h3 id="css-components">3.2 Component Patterns</h3>
+
+<table>
+  <tr><th>Component</th><th>Base Class</th><th>Key Properties</th></tr>
+  <tr>
+    <td>Skill card</td>
+    <td><code>.skill-card</code></td>
+    <td><code>height: 100%</code>, gold border, ::before gradient reveal, ::after glow on hover, <code>padding: clamp(1.4rem, 3vw, 2.2rem)</code></td>
+  </tr>
+  <tr>
+    <td>Education card</td>
+    <td><code>.edu-card</code></td>
+    <td><code>height: 100%</code>, <code>padding: clamp(1.5rem, 3vw, 2.4rem)</code></td>
+  </tr>
+  <tr>
+    <td>Project card</td>
+    <td><code>.project-card</code></td>
+    <td><code>display: flex; flex-direction: column</code>, CSS Grid <code>minmax(min(100%, 295px), 1fr)</code> auto-fill, <code>padding: clamp(1.2rem, 2.5vw, 1.8rem)</code></td>
+  </tr>
+  <tr>
+    <td>Timeline</td>
+    <td><code>.timeline</code></td>
+    <td><code>::before</code> vertical gold gradient line, <code>::before</code> diamond dots on each item, <code>padding-left: clamp(2rem, 5vw, 2.8rem)</code></td>
+  </tr>
+  <tr>
+    <td>Contact link</td>
+    <td><code>.contact-link</code></td>
+    <td>Flex row, gold border on hover, <code>translateY(-4px)</code> lift effect</td>
+  </tr>
+  <tr>
+    <td>Buttons</td>
+    <td><code>.btn-gold</code> / <code>.btn-ghost</code></td>
+    <td>Solid gold fill vs transparent with gold border, <code>translateY(-3px)</code> hover lift</td>
+  </tr>
+  <tr>
+    <td>Section scaffold</td>
+    <td><code>section</code></td>
+    <td><code>padding: clamp(4rem, 7vw, 7rem) 0</code></td>
+  </tr>
+  <tr>
+    <td>Section divider</td>
+    <td><code>.divider</code></td>
+    <td>40px wide, 1px height, gold gradient, <code>margin: clamp(1rem, 2vw, 1.4rem) 0 clamp(1.8rem, 4vw, 2.8rem)</code></td>
+  </tr>
+</table>
+
+<h3 id="css-responsive">3.3 Responsive Breakpoints</h3>
+
+<table>
+  <tr><th>Breakpoint</th><th>What Changes</th></tr>
+  <tr>
+    <td><code>@media (min-width: 992px)</code></td>
+    <td>Mobile sidebar and backdrop are <code>display: none</code>; desktop nav uses <code>d-lg-flex</code></td>
+  </tr>
+  <tr>
+    <td><code>@media (max-width: 991px)</code></td>
+    <td>Hero padding shrinks; hero photo max-width=260px; decorative rings hidden; offset photo frame scales down</td>
+  </tr>
+  <tr>
+    <td><code>@media (max-width: 767px)</code></td>
+    <td>Hero photo max-width=220px; offset frame scales further</td>
+  </tr>
+  <tr>
+    <td><code>@media (max-width: 575px)</code></td>
+    <td>Custom cursor hidden (performance/usability on touch devices)</td>
+  </tr>
+</table>
+
+<div class="alert">
+  <strong>No hardcoded font-size overrides in media queries.</strong>
+  All typography uses <code>clamp()</code> for fluid scaling. The 767px breakpoint
+  that previously forced <code>font-size: 3.5rem</code> on the hero name has been removed.
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  4. JAVASCRIPT ARCHITECTURE               -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="js">4. JavaScript Architecture</h2>
+
+<h3 id="js-modules">4.1 Module Map</h3>
+
+<p>
+  All JavaScript in <code>index.html</code> lives in <strong>two inline <code>&lt;script&gt;</code> blocks</strong>
+  plus one external file. They are loaded in this order:
+</p>
+
+<div class="diagram">
+<span class="c">// Load order in index.html (before &lt;/body&gt;)</span>
+
+1. Bootstrap 5 JS (CDN)                <span class="c">— navbar toggler, collapse</span>
+2. &lt;script&gt; inline block #1           <span class="c">— cursor, scroll, navbar, sidebar, i18n</span>
+   ├── Custom cursor animation
+   ├── Scroll progress bar
+   ├── Navbar scroll effect
+   ├── Active-section highlighting
+   ├── Intersection Observer (fade-up)
+   └── Mobile sidebar toggle
+3. assets/chat-widget.css (CDN)        <span class="c">— chat widget styles</span>
+4. assets/chat-widget.js (defer)       <span class="c">— chat widget logic</span>
+5. &lt;script&gt; inline block #2           <span class="c">— language toggle / i18n engine</span>
+   ├── I18N translation dictionary
+   ├── applyLang()
+   └── DOMContentLoaded listener
+</div>
+
+<h3 id="js-state">4.2 State Management</h3>
+
+<p>There is no framework — state is kept in simple patterns:</p>
+
+<table>
+  <tr><th>State</th><th>Storage</th><th>Scope</th></tr>
+  <tr><td>Language preference</td><td><code>localStorage.getItem("lang")</code></td><td>Persistent across sessions</td></tr>
+  <tr><td>Current language</td><td><code>window.__siteLang</code></td><td>Global, read by chat widget</td></tr>
+  <tr><td>Chat messages</td><td><code>chatState.messages[]</code> (in-memory)</td><td>Current page session only</td></tr>
+  <tr><td>Chat sending flag</td><td><code>chatState.isSending</code></td><td>Prevents double-submit</td></tr>
+  <tr><td>Scroll position</td><td>DOM scroll events</td><td>Progress bar + active nav link</td></tr>
+  <tr><td>Mobile sidebar</td><td><code>.is-open</code> CSS class on DOM element</td><td>Toggle state</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  5. LANGUAGE TOGGLE / i18n                 -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="i18n">5. Language Toggle / i18n System</h2>
+
+<h3 id="i18n-translations">5.1 Translation Dictionary</h3>
+
+<p>
+  All translations live in a single <code>const I18N</code> object in the second inline
+  <code>&lt;script&gt;</code> block. It has two top-level keys: <code>en</code> and <code>vi</code>.
+  Each contains ~80 translation entries organized by section prefix:
+</p>
+
+<div class="diagram">
+I18N
+├── en
+│   ├── nav.*         <span class="c">// 7 navbar links</span>
+│   ├── hero.*        <span class="c">// eyebrow, desc (HTML), cta, resume</span>
+│   ├── edu.*         <span class="c">// label, title, degree, grad, gpa, certs, english</span>
+│   ├── skills.*      <span class="c">// label, title, data, opt, tools, dev</span>
+│   ├── exp.*         <span class="c">// label, title, wahl.* (date/company/role/b1-b4), seven.*</span>
+│   ├── extra.*       <span class="c">// label, title, bkfc.*, plec.*, ymu.*</span>
+│   ├── projects.*    <span class="c">// label, title</span>
+│   ├── proj.01.* ... proj.09.*  <span class="c">// cat, title, desc (some with HTML)</span>
+│   ├── contact.*     <span class="c">// label, title, email, phone, location</span>
+│   └── footer.*      <span class="c">// tagline</span>
+└── vi                 <span class="c">// Mirror structure with Vietnamese text</span>
+</div>
+
+<div class="alert">
+  <strong>Key naming convention:</strong> <code>section.sub.key</code> using dot notation.
+  Keys ending with HTML content use <code>data-i18n-html</code> attribute; plain text keys use
+  <code>data-i18n</code>.
+</div>
+
+<h3 id="i18n-flow">5.2 Toggle Flow</h3>
+
+<div class="diagram">
+<span class="c">// User clicks EN or VI button</span>
+1. click event on .lang-toggle
+2. Read data-lang attribute ("en" | "vi")
+3. Set currentLang = lang
+4. localStorage.setItem("lang", lang)
+5. Call applyLang(lang):
+   ├── window.__siteLang = lang
+   ├── document.documentElement.lang = lang
+   ├── Walk all [data-i18n] elements → set textContent
+   ├── Walk all [data-i18n-html] elements → set innerHTML
+   ├── Update .lang-toggle active-lang class
+   └── Call window.__setChatLang(lang) <span class="c">// updates chat widget</span>
+</div>
+
+<h3>5.3 HTML Markers</h3>
+
+<table>
+  <tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr>
+  <tr>
+    <td><code>data-i18n="key"</code></td>
+    <td>Plain text replacement via <code>textContent</code></td>
+    <td><code>&lt;span data-i18n="hero.cta"&gt;Contact Me&lt;/span&gt;</code></td>
+  </tr>
+  <tr>
+    <td><code>data-i18n-html="key"</code></td>
+    <td>HTML replacement via <code>innerHTML</code> (preserves <code>&lt;strong&gt;</code> tags)</td>
+    <td><code>&lt;li data-i18n-html="exp.wahl.b1"&gt;...&lt;/li&gt;</code></td>
+  </tr>
+  <tr>
+    <td><code>data-chat-i18n="key"</code></td>
+    <td>Chat widget text (updated by <code>__setChatLang</code>)</td>
+    <td><code>&lt;span data-chat-i18n="launcher"&gt;Ask Hoang AI&lt;/span&gt;</code></td>
+  </tr>
+</table>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  6. MOBILE SIDEBAR                        -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="sidebar">6. Mobile Sidebar System</h2>
+
+<p>
+  On screens below 992px, the desktop nav is hidden (<code>d-none d-lg-flex</code>) and replaced
+  by a custom right-side drawer. The Bootstrap collapse component is <strong>not used</strong> for
+  mobile navigation.
+</p>
+
+<div class="card">
+  <h4>Architecture</h4>
+  <div class="diagram">
+<span class="c">// HTML structure (outside &lt;nav&gt;)</span>
+&lt;div class="nav-backdrop" id="navBackdrop"&gt;&lt;/div&gt;   <span class="c">// Dark overlay</span>
+&lt;aside class="nav-sidebar" id="navSidebar"&gt;        <span class="c">// Slide-in drawer</span>
+  ├── .nav-sidebar__header            <span class="c">// Brand + close button</span>
+  ├── .nav-sidebar__links             <span class="c">// 7 nav links (duplicated from desktop)</span>
+  └── .nav-sidebar__lang              <span class="c">// EN/VI toggle buttons</span>
+&lt;/aside&gt;
+  </div>
+</div>
+
+<table>
+  <tr><th>Feature</th><th>Implementation</th></tr>
+  <tr><td>Open trigger</td><td><code>#sidebarToggle</code> hamburger button (visible only on <code>d-lg-none</code>)</td></tr>
+  <tr><td>Close triggers</td><td>Close button, backdrop click, any nav link click, Escape key</td></tr>
+  <tr><td>Animation</td><td><code>transform: translateX(100%) → translateX(0)</code> with <code>cubic-bezier(.4,0,.2,1)</code></td></tr>
+  <tr><td>Backdrop</td><td>Fixed full-screen <code>rgba(0,0,0,.55)</code> with opacity fade transition</td></tr>
+  <tr><td>Body scroll lock</td><td><code>document.body.style.overflow = 'hidden'</code> while open</td></tr>
+  <tr><td>Desktop behavior</td><td>Sidebar and backdrop hidden via <code>@media (min-width: 992px) { display: none }</code></td></tr>
+  <tr><td>Lang toggle sync</td><td>Sidebar buttons share <code>.lang-toggle</code> class — the i18n <code>applyLang()</code> function updates them automatically</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  7. CHAT WIDGET                           -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="chat">7. Chat Widget</h2>
+
+<h3 id="chat-frontend">7.1 Frontend (<code>assets/chat-widget.js</code>)</h3>
+
+<p>
+  A self-contained vanilla JS module (~420 lines). No framework dependencies. It creates its
+  own DOM from JavaScript and appends it to <code>document.body</code>.
+</p>
+
+<div class="card">
+  <h4>Key Constants</h4>
+  <table>
+    <tr><th>Name</th><th>Value</th><th>Purpose</th></tr>
+    <tr><td><code>CHAT_API_URL</code></td><td><code>"https://portfolio-ai-proxy.vercel.app/api/chat"</code></td><td>Vercel serverless proxy endpoint</td></tr>
+    <tr><td><code>MAX_HISTORY_MESSAGES</code></td><td><code>12</code></td><td>Only last 12 messages sent per request</td></tr>
+    <tr><td><code>CHAT_I18N</code></td><td><code>{ en: {...}, vi: {...} }</code></td><td>Bilingual UI strings for the widget</td></tr>
+  </table>
+</div>
+
+<h4>Widget Lifecycle</h4>
+
+<div class="diagram">
+<span class="c">// initChatWidget() runs on DOMContentLoaded (or immediately if already loaded)</span>
+1. createChatElement()          <span class="c">// Build full DOM from JS template string</span>
+   ├── .portfolio-chat__panel   <span class="c">// Chat panel (header + messages + form)</span>
+   └── .portfolio-chat__launcher <span class="c">// Floating pill button</span>
+2. initSuggestedPrompts()       <span class="c">// Render 4 prompt pill buttons from CHAT_I18N</span>
+3. Bind event listeners:
+   ├── launcher click → toggle .is-open
+   ├── close button click → remove .is-open
+   ├── textarea input → autosize
+   ├── textarea Enter key → submit
+   └── form submit → send message flow
+4. window.__setChatLang = fn    <span class="c">// Expose for i18n sync</span>
+</div>
+
+<h4>Send Message Flow</h4>
+
+<div class="diagram">
+1. Validate: non-empty input, not already sending
+2. chatState.isSending = true, disable input
+3. Push user message to chatState.messages[]
+4. Append user bubble to DOM
+5. Append "Thinking..." status bubble (in current language)
+6. await sendToAssistant()
+   ├── POST to CHAT_API_URL
+   │   { messages: last 12, lang: "en"|"vi" }
+   └── Parse JSON response → return .text
+7. Remove status bubble
+8. Push assistant response to chatState.messages[]
+9. Append assistant bubble (rendered as markdown)
+10. chatState.isSending = false, re-enable input
+</div>
+
+<h3 id="chat-markdown">7.2 Markdown Renderer</h3>
+
+<p>
+  A custom zero-dependency markdown-to-HTML parser (<code>renderMarkdown()</code>).
+  Built from scratch to avoid CDN dependencies in the widget.
+</p>
+
+<table>
+  <tr><th>Step</th><th>Operation</th></tr>
+  <tr><td>1. HTML-escape</td><td>Convert <code>&amp; &lt; &gt;</code> to entities — foundation of XSS prevention</td></tr>
+  <tr><td>2. Code block extraction</td><td>Triple-backtick blocks replaced with <code>%%CODEBLOCK_N%%</code> placeholders</td></tr>
+  <tr><td>3. Inline formatting</td><td>Bold, italic, strikethrough, inline code, links</td></tr>
+  <tr><td>4. Link protocol check</td><td>Only <code>https:</code>, <code>http:</code>, <code>mailto:</code> allowed</td></tr>
+  <tr><td>5. Block-level parsing</td><td>Line-by-line: headings, blockquotes, unordered/ordered lists, horizontal rules</td></tr>
+  <tr><td>6. Paragraph wrapping</td><td>Remaining text groups wrapped in <code>&lt;p&gt;</code>; single newlines → <code>&lt;br&gt;</code></td></tr>
+  <tr><td>7. Code block restoration</td><td>Placeholders swapped back to <code>&lt;pre&gt;&lt;code&gt;</code></td></tr>
+</table>
+
+<h3 id="chat-backend">7.3 Vercel Serverless Proxy</h3>
+
+<div class="diagram">
+<span class="c">// Deployed separately at portfolio-ai-proxy.vercel.app</span>
+Browser (GitHub Pages)
+    |
+    | POST /api/chat  { messages: [...], lang: "vi" }
+    v
+Vercel Function (api/chat.js)
+    |
+    ├── Validate method (POST only)
+    ├── Validate Origin against ALLOWED_ORIGIN env var
+    ├── Validate messages (array, 1-20 items, max 4000 chars each)
+    ├── Inject system prompt (portfolio-aware assistant)
+    ├── Forward to AI provider (OpenAI / Anthropic)
+    └── Return JSON { text: "..." }
+</div>
+
+<div class="alert">
+  <strong>The API key never reaches the browser.</strong>
+  The Vercel Function reads <code>OPENAI_API_KEY</code> from Vercel environment variables.
+  The browser only communicates with the proxy.
+</div>
+
+<h3 id="chat-security">7.4 Security Model</h3>
+
+<table>
+  <tr><th>Threat</th><th>Mitigation</th></tr>
+  <tr><td>API key exposure</td><td>Key lives only in Vercel env vars, never in client code</td></tr>
+  <tr><td>Cross-origin abuse</td><td><code>ALLOWED_ORIGIN</code> check on every request</td></tr>
+  <tr><td>XSS via AI output</td><td>HTML-escaped before markdown rendering; link protocol whitelist</td></tr>
+  <tr><td>Request flooding</td><td>Message count limit (20); content length limit (4000 chars/message)</td></tr>
+  <tr><td>Information disclosure</td><td>No stack traces in error responses; metadata-only logging</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  8. DEPLOYMENT                            -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="deploy">8. Deployment Architecture</h2>
+
+<div class="diagram">
+<span class="c">// Split deployment model</span>
+
+┌─────────────────────────────┐     ┌──────────────────────────────┐
+│  GitHub Pages               │     │  Vercel (portfolio-ai-proxy) │
+│  nguyenhoang88502.github.io │     │                              │
+│                             │     │  api/chat.js                 │
+│  Static HTML/CSS/JS         │────▶│  (serverless function)       │
+│  All project folders        │     │                              │
+│  assets/chat-widget.js      │     │  Env vars:                   │
+│                             │     │  - OPENAI_API_KEY            │
+│  Zero server-side code      │     │  - ALLOWED_ORIGIN            │
+└─────────────────────────────┘     └──────────────────────────────┘
+</div>
+
+<table>
+  <tr><th>Concern</th><th>Where It Lives</th></tr>
+  <tr><td>Static HTML/CSS/JS</td><td>GitHub Pages (free, auto-deploys on push to main)</td></tr>
+  <tr><td>AI chat backend</td><td>Vercel serverless function (free tier)</td></tr>
+  <tr><td>API secrets</td><td>Vercel environment variables</td></tr>
+  <tr><td>WMS data layer</td><td>Google Sheets + Google Apps Script webhook (separate deployment)</td></tr>
+  <tr><td>Python dashboard</td><td>Streamlit Cloud or local run (not hosted from GitHub Pages)</td></tr>
+</table>
+
+<div class="alert">
+  <strong>No build step.</strong> Push to <code>main</code> → GitHub Pages serves the updated files.
+  The only exception is <code>inspection_standard_tool/</code> which requires
+  <code>npm run build</code> before deploying its <code>dist/</code> output.
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  9. UPDATE GUIDES                         -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="update">9. Update Guides</h2>
+
+<h3 id="update-content">9.1 Add or Edit Portfolio Content</h3>
+
+<ol>
+  <li>Open <code>index.html</code></li>
+  <li>Find the section by HTML comment label (e.g. <code>&lt;!-- ══ EXPERIENCE ══ --&gt;</code>)</li>
+  <li><strong>Edit the HTML directly</strong> — the file is self-contained</li>
+  <li><strong>Add <code>data-i18n="section.key"</code></strong> to any new translatable text</li>
+  <li><strong>Update both <code>en</code> and <code>vi</code></strong> entries in the <code>I18N</code> dictionary (find the <code>&lt;script&gt;</code> block near the end of the file)</li>
+  <li>If the new content has metrics/numbers, wrap them in <code>&lt;strong&gt;</code></li>
+  <li>Test at 375px, 768px, 1440px widths</li>
+</ol>
+
+<h3 id="update-translation">9.2 Add a New Translation Key</h3>
+
+<ol>
+  <li>Choose a key following the <code>section.element</code> convention (e.g. <code>exp.newjob.b1</code>)</li>
+  <li>Add <code>data-i18n="key"</code> (plain text) or <code>data-i18n-html="key"</code> (text with <code>&lt;strong&gt;</code>) to the HTML element</li>
+  <li>Add <code>"key": "English text"</code> to <code>I18N.en</code></li>
+  <li>Add <code>"key": "Vietnamese text"</code> to <code>I18N.vi</code></li>
+  <li>The <code>applyLang()</code> function handles the rest automatically</li>
+</ol>
+
+<h3 id="update-chat">9.3 Update Chat Widget Context</h3>
+
+<ol>
+  <li><strong>To update suggested questions:</strong> edit the <code>suggested</code> arrays in <code>CHAT_I18N.en</code> and <code>CHAT_I18N.vi</code> in <code>assets/chat-widget.js</code></li>
+  <li><strong>To update intro text:</strong> edit <code>intro</code> in both <code>CHAT_I18N.en</code> and <code>CHAT_I18N.vi</code></li>
+  <li><strong>To update the AI's knowledge:</strong> deploy a new version of the Vercel Function with an updated system prompt in <code>api/chat.js</code>, or update <code>data/site-context.json</code> if the function imports it</li>
+  <li><strong>To update the AI endpoint:</strong> change <code>CHAT_API_URL</code> constant in <code>assets/chat-widget.js</code> line 1</li>
+</ol>
+
+<h3 id="update-skill">9.4 Add or Remove Skill/Tool Tags</h3>
+
+<ol>
+  <li>Find the skill card in <code>index.html</code> (look for <code>&lt;!-- ══ SKILLS ══ --&gt;</code>)</li>
+  <li>Add or remove <code>&lt;span class="skill-tag"&gt;Name&lt;/span&gt;</code> inside the card's <code>&lt;div&gt;</code></li>
+  <li>If adding a new card: copy an existing <code>col-md-6 col-lg-3</code> block, update the number, icon, title, and tags</li>
+  <li>Update <code>data-i18n</code> attribute on the <code>&lt;h5&gt;</code> and add translations</li>
+</ol>
+
+<h3 id="update-sidebar">9.5 Add a Nav Link to Mobile Sidebar</h3>
+
+<ol>
+  <li>Add the <code>&lt;li&gt;&lt;a&gt;</code> to <code>.nav-sidebar__links</code> in the sidebar <code>&lt;aside&gt;</code></li>
+  <li>Add the matching <code>&lt;li&gt;&lt;a&gt;</code> to the desktop <code>.d-none.d-lg-flex ul</code></li>
+  <li>Add <code>data-i18n="nav.newlink"</code> to both</li>
+  <li>Add translations to <code>I18N.en</code> and <code>I18N.vi</code></li>
+  <li>Add <code>data-section="newid"</code> for scroll-spy highlighting</li>
+</ol>
+
+<h3 id="update-fonts">9.6 Change Fonts</h3>
+
+<ol>
+  <li>Update the Google Fonts <code>&lt;link&gt;</code> in <code>&lt;head&gt;</code> (line ~14)</li>
+  <li>Search-replace <code>'Inter'</code> or <code>'Libre Baskerville'</code> in:
+    <ul>
+      <li><code>index.html</code> (CSS block + inline styles)</li>
+      <li><code>assets/chat-widget.css</code></li>
+    </ul>
+  </li>
+  <li><strong>Verify Vietnamese glyph support</strong> — test characters: ắ ằ ẳ ẵ ặ ố ồ ổ ỗ ộ ớ ờ ở ỡ ợ</li>
+</ol>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  10. QUICK REFERENCE                      -->
+<!-- ═══════════════════════════════════════ -->
+<h2 id="ref">10. Quick Reference</h2>
+
+<table>
+  <tr><th>What</th><th>Where</th></tr>
+  <tr><td>Main portfolio HTML</td><td><code>index.html</code> (single file, ~1500 lines)</td></tr>
+  <tr><td>CSS (all styles)</td><td><code>index.html</code> lines 17–800 (<code>&lt;style&gt;</code> block)</td></tr>
+  <tr><td>Design tokens</td><td><code>index.html</code> lines 19–31 (<code>:root</code>)</td></tr>
+  <tr><td>Responsive rules</td><td><code>index.html</code> lines 786–799 (<code>@media</code> blocks)</td></tr>
+  <tr><td>Cursor + scroll + navbar JS</td><td><code>index.html</code> first <code>&lt;script&gt;</code> block (~lines 1321–1418)</td></tr>
+  <tr><td>Mobile sidebar JS</td><td><code>index.html</code> inside first <code>&lt;script&gt;</code> (~lines 1383–1417)</td></tr>
+  <tr><td>i18n dictionary + toggle JS</td><td><code>index.html</code> second <code>&lt;script&gt;</code> block (~lines 1420–1580)</td></tr>
+  <tr><td>Chat widget frontend</td><td><code>assets/chat-widget.js</code> (~430 lines)</td></tr>
+  <tr><td>Chat widget styles</td><td><code>assets/chat-widget.css</code> (~470 lines)</td></tr>
+  <tr><td>Chat backend (Vercel)</td><td>Separate repo: <code>portfolio-ai-proxy</code> → <code>api/chat.js</code></td></tr>
+  <tr><td>Résumé source</td><td><code>resume.tex</code> (LaTeX)</td></tr>
+  <tr><td>Repo README</td><td><code>README.md</code></td></tr>
+  <tr><td>Chatbot deep-dive docs</td><td><code>AI_CHATBOT.md</code></td></tr>
+</table>
+
+<div class="card">
+  <h4>CDN Dependencies</h4>
+  <table>
+    <tr><th>Library</th><th>URL / Version</th><th>Used In</th></tr>
+    <tr><td>Bootstrap 5 CSS</td><td><code>cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css</code></td><td>index.html</td></tr>
+    <tr><td>Bootstrap Icons</td><td><code>cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css</code></td><td>index.html</td></tr>
+    <tr><td>Google Fonts (Inter)</td><td><code>fonts.googleapis.com/css2?family=Inter:...</code></td><td>index.html</td></tr>
+    <tr><td>Google Fonts (Libre Baskerville)</td><td><code>fonts.googleapis.com/css2?family=Libre+Baskerville:...</code></td><td>index.html</td></tr>
+    <tr><td>Bootstrap 5 JS</td><td><code>cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js</code></td><td>index.html</td></tr>
+  </table>
+</div>
+
+<footer>
+  <p>nguyenhoang88502.github.io — Architecture Reference — May 2026</p>
+  <p>To update this document, edit <code>ARCHITECTURE.html</code> directly. Each <code>&lt;h2&gt;</code> section is a self-contained module.</p>
+</footer>
+
+</div>
+</body>
+</html>
