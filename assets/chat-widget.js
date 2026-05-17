@@ -6,31 +6,64 @@ const chatState = {
   isSending: false
 };
 
-const suggestedQuestions = [
-  "What are Hoang's core technical skills and areas of expertise?",
-  "Tell me about his work as an NPI Intern at Wahl Clipper Vietnam.",
-  "Can you explain the architecture behind his Warehouse Management System?",
-  "Summarize Hoang's portfolio in 3 sentences."
-];
+const CHAT_I18N = {
+  en: {
+    launcher: "Ask Hoang AI",
+    headerKicker: "Portfolio Assistant",
+    headerTitle: "Ask about Hoang",
+    headerSub: "Manufacturing analytics, NPI tools, simulation, dashboards, and project fit.",
+    intro: "I can help visitors understand Hoang's portfolio, from production analytics and SPC to warehouse management, NPI workflow tools, Power BI dashboards, and assembly-line simulation.",
+    placeholder: "Ask about a project...",
+    thinking: "Thinking...",
+    offline: "Sorry, the AI is currently offline.",
+    suggested: [
+      "What are Hoang's core technical skills and areas of expertise?",
+      "Tell me about his work as an NPI Intern at Wahl Clipper Vietnam.",
+      "Can you explain the architecture behind his Warehouse Management System?",
+      "Summarize Hoang's portfolio in 3 sentences."
+    ]
+  },
+  vi: {
+    launcher: "Hỏi Hoang AI",
+    headerKicker: "Trợ lý Portfolio",
+    headerTitle: "Hỏi về Hoàng",
+    headerSub: "Phân tích sản xuất, công cụ NPI, mô phỏng, dashboard, và dự án phù hợp.",
+    intro: "Tôi có thể giúp bạn hiểu về portfolio của Hoàng, từ phân tích sản xuất và SPC đến quản lý kho, công cụ quy trình NPI, dashboard Power BI, và mô phỏng dây chuyền lắp ráp.",
+    placeholder: "Hỏi về một dự án...",
+    thinking: "Đang suy nghĩ...",
+    offline: "Xin lỗi, AI hiện đang ngoại tuyến.",
+    suggested: [
+      "Kỹ năng kỹ thuật và lĩnh vực chuyên môn cốt lõi của Hoàng là gì?",
+      "Kể về công việc thực tập NPI của Hoàng tại Wahl Clipper Vietnam.",
+      "Giải thích kiến trúc đằng sau Hệ thống Quản lý Kho của Hoàng.",
+      "Tóm tắt portfolio của Hoàng trong 3 câu."
+    ]
+  }
+};
+
+function chatLang() {
+  return (window.__siteLang === "vi") ? "vi" : "en";
+}
 
 function createChatElement() {
-  const root = document.createElement("div");
+  var t = CHAT_I18N[chatLang()];
+  var root = document.createElement("div");
   root.className = "portfolio-chat";
   root.innerHTML = `
     <div class="portfolio-chat__panel" role="dialog" aria-label="Portfolio assistant">
       <header class="portfolio-chat__header">
         <div class="portfolio-chat__mark" aria-hidden="true">NH</div>
         <div>
-          <p class="portfolio-chat__kicker">Portfolio Assistant</p>
-          <h2 class="portfolio-chat__title">Ask about Hoang</h2>
-          <p class="portfolio-chat__subtitle">Manufacturing analytics, NPI tools, simulation, dashboards, and project fit.</p>
+          <p class="portfolio-chat__kicker" data-chat-i18n="headerKicker">${t.headerKicker}</p>
+          <h2 class="portfolio-chat__title" data-chat-i18n="headerTitle">${t.headerTitle}</h2>
+          <p class="portfolio-chat__subtitle" data-chat-i18n="headerSub">${t.headerSub}</p>
         </div>
         <button class="portfolio-chat__close" type="button" aria-label="Close chat">&times;</button>
       </header>
 
       <div class="portfolio-chat__messages" role="log" aria-live="polite">
         <div class="portfolio-chat__intro">
-          I can help visitors understand Hoang's portfolio, from production analytics and SPC to warehouse management, NPI workflow tools, Power BI dashboards, and assembly-line simulation.
+          <span data-chat-i18n="intro">${t.intro}</span>
           <div class="portfolio-chat__prompts"></div>
         </div>
       </div>
@@ -40,7 +73,7 @@ function createChatElement() {
           class="portfolio-chat__input"
           rows="1"
           maxlength="1000"
-          placeholder="Ask about a project..."
+          placeholder="${t.placeholder}"
           aria-label="Message"
         ></textarea>
 
@@ -50,7 +83,7 @@ function createChatElement() {
 
     <button class="portfolio-chat__launcher" type="button" aria-label="Open portfolio assistant">
       <span class="portfolio-chat__launcher-icon" aria-hidden="true">AI</span>
-      <span>Ask Hoang AI</span>
+      <span data-chat-i18n="launcher">${t.launcher}</span>
     </button>
   `;
 
@@ -221,13 +254,15 @@ async function sendToAssistant() {
     return "The AI endpoint is not connected yet.";
   }
 
-  const response = await fetch(CHAT_API_URL, {
+  var lang = chatLang();
+  var response = await fetch(CHAT_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      messages: compactHistory()
+      messages: compactHistory(),
+      lang: lang
     })
   });
 
@@ -252,12 +287,14 @@ function submitPrompt(form, input, prompt) {
 }
 
 function initSuggestedPrompts(form, input, promptWrap) {
-  suggestedQuestions.forEach((question) => {
-    const button = document.createElement("button");
+  var questions = CHAT_I18N[chatLang()].suggested;
+  questions.forEach(function (question) {
+    var button = document.createElement("button");
     button.className = "portfolio-chat__prompt";
     button.type = "button";
     button.textContent = question;
-    button.addEventListener("click", () => submitPrompt(form, input, question));
+    button.setAttribute("data-chat-i18n-suggested", question);
+    button.addEventListener("click", function () { submitPrompt(form, input, question); });
     promptWrap.append(button);
   });
 }
@@ -318,10 +355,11 @@ function initChatWidget() {
 
     appendMessage(messages, "user", userText);
 
-    const statusMessage = appendMessage(messages, "status", "Thinking...");
+    var t = CHAT_I18N[chatLang()];
+    var statusMessage = appendMessage(messages, "status", t.thinking);
 
     try {
-      const assistantText = await sendToAssistant();
+      var assistantText = await sendToAssistant();
 
       statusMessage.remove();
 
@@ -339,7 +377,7 @@ function initChatWidget() {
       appendMessage(
         messages,
         "status",
-        "Sorry, the AI is currently offline."
+        t.offline
       );
     } finally {
       chatState.isSending = false;
@@ -348,6 +386,21 @@ function initChatWidget() {
       input.focus();
     }
   });
+
+  // Expose language-change handler
+  window.__setChatLang = function (lang) {
+    var t = CHAT_I18N[lang] || CHAT_I18N.en;
+    // Text-only elements
+    chat.querySelectorAll("[data-chat-i18n]").forEach(function (el) {
+      var key = el.getAttribute("data-chat-i18n");
+      if (t[key] !== undefined) el.textContent = t[key];
+    });
+    // Update placeholder
+    input.placeholder = t.placeholder;
+    // Re-render suggested prompts
+    promptWrap.innerHTML = "";
+    initSuggestedPrompts(form, input, promptWrap);
+  };
 }
 
 if (document.readyState === "loading") {

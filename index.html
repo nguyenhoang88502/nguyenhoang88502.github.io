@@ -98,6 +98,11 @@
     .gold { color: var(--gold); }
     .muted { color: var(--muted); }
 
+    strong {
+      font-weight: 600;
+      color: #e8dbbc;
+    }
+
     /* ── Navbar ── */
     #navbar {
       background: transparent;
@@ -145,6 +150,33 @@
     .nav-link.active-section::after { width: 60%; }
     .navbar-toggler { border: 1px solid var(--line); background: none; padding: .4rem .6rem; }
     .navbar-toggler:focus { box-shadow: none; }
+
+    /* Language toggle */
+    .lang-toggle {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .62rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: .32rem .7rem;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: color .2s, border-color .2s, background .2s;
+      margin-left: .5rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .lang-toggle:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+      background: rgba(200,146,42,.06);
+    }
+    .lang-toggle.active-lang {
+      color: var(--navy);
+      background: var(--gold);
+      border-color: var(--gold);
+    }
 
     /* ── Section scaffold ── */
     section { padding: clamp(4rem, 7vw, 7rem) 0; }
@@ -677,15 +709,18 @@
       <i class="bi bi-list fs-4" style="color:var(--gold);"></i>
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-      <ul class="navbar-nav gap-1">
-        <li class="nav-item"><a class="nav-link" href="#hero" data-section="hero">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="#Education" data-section="Education">Education</a></li>
-        <li class="nav-item"><a class="nav-link" href="#skills" data-section="skills">Skills</a></li>
-        <li class="nav-item"><a class="nav-link" href="#experience" data-section="experience">Experience</a></li>
-        <li class="nav-item"><a class="nav-link" href="#extra" data-section="extra">Activities</a></li>
-        <li class="nav-item"><a class="nav-link" href="#projects" data-section="projects">Projects</a></li>
-
-        <li class="nav-item"><a class="nav-link" href="#contacts" data-section="contacts">Contacts</a></li>
+      <ul class="navbar-nav gap-1 align-items-center">
+        <li class="nav-item"><a class="nav-link" href="#hero" data-section="hero" data-i18n="nav.about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#Education" data-section="Education" data-i18n="nav.education">Education</a></li>
+        <li class="nav-item"><a class="nav-link" href="#skills" data-section="skills" data-i18n="nav.skills">Skills</a></li>
+        <li class="nav-item"><a class="nav-link" href="#experience" data-section="experience" data-i18n="nav.experience">Experience</a></li>
+        <li class="nav-item"><a class="nav-link" href="#extra" data-section="extra" data-i18n="nav.activities">Activities</a></li>
+        <li class="nav-item"><a class="nav-link" href="#projects" data-section="projects" data-i18n="nav.projects">Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contacts" data-section="contacts" data-i18n="nav.contacts">Contacts</a></li>
+        <li class="nav-item d-flex align-items-center gap-1 ms-lg-2">
+          <button class="lang-toggle active-lang" data-lang="en" aria-label="Switch to Vietnamese">EN</button>
+          <button class="lang-toggle" data-lang="vi" aria-label="Switch to English">VI</button>
+        </li>
       </ul>
     </div>
   </div>
@@ -701,25 +736,25 @@
   <div class="container hero-content">
     <div class="row align-items-center g-4 g-lg-0">
       <div class="col-lg-7 order-2 order-lg-1">
-        <div class="hero-eyebrow">Industrial Systems Engineer</div>
+        <div class="hero-eyebrow" data-i18n="hero.eyebrow">Industrial Systems Engineer</div>
         <h1 class="hero-name">
           Nguyen<br/>
           <em>Huy Hoang</em>
         </h1>
-        <p class="hero-desc">
+        <p class="hero-desc" data-i18n-html="hero.desc">
           Industrial Systems Engineering student at HCMUT bridging manufacturing domain
-          expertise with full-stack development. I build data-driven tools — from Power BI
-          dashboards and Monte Carlo simulations to warehouse management systems and AI-powered
-          web apps — that optimize production, automate workflows, and turn operational data
+          expertise with <strong>full-stack development</strong>. I build <strong>data-driven tools</strong> — from <strong>Power BI
+          dashboards</strong> and <strong>Monte Carlo simulations</strong> to <strong>warehouse management systems</strong> and <strong>AI-powered
+          web apps</strong> — that <strong>optimize production</strong>, <strong>automate workflows</strong>, and turn operational data
           into actionable insights.
         </p>
         <div class="d-flex flex-wrap gap-3">
-          <a href="#contacts" class="btn-gold">Contact Me <i class="bi bi-arrow-right"></i></a>
+          <a href="#contacts" class="btn-gold"><span data-i18n="hero.cta">Contact Me</span> <i class="bi bi-arrow-right"></i></a>
           <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" class="btn-ghost">
             <i class="bi bi-linkedin"></i> LinkedIn
           </a>
           <a href="resume1.pdf" target="_blank" class="btn-ghost">
-            <i class="bi bi-file-earmark-person"></i> Résumé
+            <i class="bi bi-file-earmark-person"></i> <span data-i18n="hero.resume">Résumé</span>
           </a>
         </div>
       </div>
@@ -742,8 +777,8 @@
 <section id="Education">
   <div class="container">
     <div class="fade-up">
-      <span class="section-label">Academic Background</span>
-      <h2 class="section-title">Education &amp; Certifications</h2>
+      <span class="section-label" data-i18n="edu.label">Academic Background</span>
+      <h2 class="section-title" data-i18n="edu.title">Education &amp; Certifications</h2>
       <div class="divider"></div>
     </div>
     <div class="row g-4 fade-up">
@@ -756,14 +791,14 @@
               <div style="color:var(--muted);font-size:.8rem;">HCMUT · Bach Khoa</div>
             </div>
           </div>
-          <p style="color:#6a84a0;font-size:.88rem;margin-bottom:1.5rem;">Bachelor of Engineering — Industrial Systems Engineering</p>
+          <p style="color:#6a84a0;font-size:.88rem;margin-bottom:1.5rem;" data-i18n="edu.degree">Bachelor of Engineering — Industrial Systems Engineering</p>
           <hr style="border-color:rgba(200,146,42,.12);margin:0 0 1.2rem;" />
           <div class="d-flex justify-content-between mb-2" style="font-size:.85rem;">
-            <span style="color:var(--muted);">Expected Graduation</span>
+            <span style="color:var(--muted);" data-i18n="edu.grad">Expected Graduation</span>
             <span style="color:var(--cream);font-weight:600;">2027</span>
           </div>
           <div class="d-flex justify-content-between" style="font-size:.85rem;">
-            <span style="color:var(--muted);">GPA (2025–2026)</span>
+            <span style="color:var(--muted);" data-i18n="edu.gpa">GPA (2025–2026)</span>
             <span style="color:var(--gold);font-weight:600;">3.3 / 4.0</span>
           </div>
         </div>
@@ -773,7 +808,7 @@
           <div class="d-flex align-items-start gap-3 mb-3">
             <div class="skill-icon" style="flex-shrink:0;margin-top:2px;"><i class="bi bi-patch-check-fill"></i></div>
             <div>
-              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;">Certifications</h5>
+              <h5 style="color:var(--cream);font-family:'Cormorant',serif;font-size:1.2rem;font-weight:600;" data-i18n="edu.certs">Certifications</h5>
             </div>
           </div>
           <div class="mb-4">
@@ -782,7 +817,7 @@
               <span style="color:var(--gold);font-weight:600;">935 / 990</span>
             </div>
             <div class="cert-bar-wrap"><div class="cert-bar" style="width:95%;"></div></div>
-            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Full Professional Proficiency</div>
+            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;" data-i18n="edu.english">Full Professional Proficiency</div>
           </div>
           <div>
             <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
@@ -802,8 +837,8 @@
 <section id="skills">
   <div class="container">
     <div class="fade-up">
-      <span class="section-label">Technical Competencies</span>
-      <h2 class="section-title">Skills &amp; Tools</h2>
+      <span class="section-label" data-i18n="skills.label">Technical Competencies</span>
+      <h2 class="section-title" data-i18n="skills.title">Skills &amp; Tools</h2>
       <div class="divider"></div>
     </div>
     <div class="row g-4">
@@ -811,7 +846,7 @@
         <div class="skill-card">
           <div class="skill-num">01</div>
           <div class="skill-icon"><i class="bi bi-bar-chart-fill"></i></div>
-          <h5>Data &amp; Visualization</h5>
+          <h5 data-i18n="skills.data">Data &amp; Visualization</h5>
           <div>
             <span class="skill-tag">SQL (Foundational)</span>
             <span class="skill-tag">Power BI</span>
@@ -828,7 +863,7 @@
         <div class="skill-card">
           <div class="skill-num">02</div>
           <div class="skill-icon"><i class="bi bi-gear-fill"></i></div>
-          <h5>Optimization &amp; Lean</h5>
+          <h5 data-i18n="skills.opt">Optimization &amp; Lean</h5>
           <div>
             <span class="skill-tag">Lean Six Sigma (DMAIC)</span>
             <span class="skill-tag">SPC</span>
@@ -845,7 +880,7 @@
         <div class="skill-card">
           <div class="skill-num">03</div>
           <div class="skill-icon"><i class="bi bi-cpu-fill"></i></div>
-          <h5>Tools &amp; Automation</h5>
+          <h5 data-i18n="skills.tools">Tools &amp; Automation</h5>
           <div>
             <span class="skill-tag">Google Apps Script</span>
             <span class="skill-tag">Power Automate</span>
@@ -861,7 +896,7 @@
         <div class="skill-card">
           <div class="skill-num">04</div>
           <div class="skill-icon"><i class="bi bi-code-slash"></i></div>
-          <h5>Software &amp; App Development</h5>
+          <h5 data-i18n="skills.dev">Software &amp; App Development</h5>
           <div>
             <span class="skill-tag">HTML / CSS / JavaScript</span>
             <span class="skill-tag">Python (pandas, Streamlit, Plotly, scikit-learn)</span>
@@ -884,30 +919,30 @@
 <section id="experience" style="background:var(--navy3);">
   <div class="container">
     <div class="fade-up">
-      <span class="section-label">Professional History</span>
-      <h2 class="section-title">Work Experience</h2>
+      <span class="section-label" data-i18n="exp.label">Professional History</span>
+      <h2 class="section-title" data-i18n="exp.title">Work Experience</h2>
       <div class="divider"></div>
     </div>
     <div class="row">
       <div class="col-lg-9">
         <div class="timeline">
           <div class="timeline-item fade-up delay-1">
-            <div class="timeline-date">Mar 2026 — Present</div>
-            <div class="timeline-title">Wahl Clipper Vietnam</div>
-            <div class="timeline-role">New Product Introduction (NPI) Intern · Cần Giuộc, Long An</div>
+            <div class="timeline-date" data-i18n="exp.wahl.date">Mar 2026 — Present</div>
+            <div class="timeline-title" data-i18n="exp.wahl.company">Wahl Clipper Vietnam</div>
+            <div class="timeline-role" data-i18n="exp.wahl.role">New Product Introduction (NPI) Intern · Cần Giuộc, Long An</div>
             <ul class="timeline-body">
-              <li>Modeled trimmer assembly line capacity using Arena and Crystal Ball to run Monte Carlo simulations (5,000 trials) to forecast daily output and eliminate bottleneck cycle times, directly optimizing production flow.</li>
-              <li>Designed and deployed a warehouse management system (WMS) for the NPI warehouse with real-time inventory tracking, warehouse layout visualization, and XLSX inbound/outbound batch processing powered by a Google Apps Script webhook.</li>
-              <li>Architected a data warehouse and decision support dashboard for NPI material staging, enabling SKU location tracking and optimizing floor-level storage allocations using data mining and ML-driven insights.</li>
-              <li>Detected critical data mismatches between legacy and updated BOMs across multiple product iterations; reconciled records and standardized documentation, eliminating procurement integration errors and enabling on-time Mass Production.</li>
+              <li data-i18n-html="exp.wahl.b1">Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to <strong>forecast daily output</strong> and <strong>eliminate bottleneck cycle times</strong>, directly optimizing production flow.</li>
+              <li data-i18n-html="exp.wahl.b2">Designed and deployed a <strong>warehouse management system (WMS)</strong> for the NPI warehouse with <strong>real-time inventory tracking</strong>, warehouse layout visualization, and <strong>XLSX inbound/outbound batch processing</strong> powered by a Google Apps Script webhook.</li>
+              <li data-i18n-html="exp.wahl.b3">Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using <strong>data mining</strong> and <strong>ML-driven insights</strong>.</li>
+              <li data-i18n-html="exp.wahl.b4">Detected critical data mismatches between legacy and updated BOMs across multiple product iterations; <strong>reconciled records</strong> and <strong>standardized documentation</strong>, <strong>eliminating procurement integration errors</strong> and enabling <strong>on-time Mass Production</strong>.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-2">
-            <div class="timeline-date">Jul 2024 — Nov 2024</div>
+            <div class="timeline-date" data-i18n="exp.seven.date">Jul 2024 — Nov 2024</div>
             <div class="timeline-title">7-Eleven Vietnam</div>
-            <div class="timeline-role">Store Assistant</div>
+            <div class="timeline-role" data-i18n="exp.seven.role">Store Assistant</div>
             <ul class="timeline-body">
-              <li>Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting.</li>
+              <li data-i18n="exp.seven.b1">Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting.</li>
             </ul>
           </div>
         </div>
@@ -920,37 +955,37 @@
 <section id="extra" style="background:var(--navy);">
   <div class="container">
     <div class="fade-up">
-      <span class="section-label">Beyond the Classroom</span>
-      <h2 class="section-title">Extracurricular Activities</h2>
+      <span class="section-label" data-i18n="extra.label">Beyond the Classroom</span>
+      <h2 class="section-title" data-i18n="extra.title">Extracurricular Activities</h2>
       <div class="divider"></div>
     </div>
     <div class="row">
       <div class="col-lg-9">
         <div class="timeline">
           <div class="timeline-item fade-up delay-1">
-            <div class="timeline-date">Nov 2025 — Present</div>
-            <div class="timeline-title">Bach Khoa Ambassador Club</div>
-            <div class="timeline-role">Project Leader — BKFC @ Nguyen Huu Canh High School</div>
+            <div class="timeline-date" data-i18n="extra.bkfc.date">Nov 2025 — Present</div>
+            <div class="timeline-title" data-i18n="extra.bkfc.title">Bach Khoa Ambassador Club</div>
+            <div class="timeline-role" data-i18n="extra.bkfc.role">Project Leader — BKFC @ Nguyen Huu Canh High School</div>
             <ul class="timeline-body">
-              <li>Redesigned a 6-month university orientation strategy using content performance analytics, growing total views to 12,363 with 90.1% reach from non-followers.</li>
-              <li>Pivoted to short-form video after analyzing engagement data across post types — driving 68.6% of total campaign views while cutting production time per unit of reach.</li>
+              <li data-i18n-html="extra.bkfc.b1">Redesigned a <strong>6-month</strong> university orientation strategy using <strong>content performance analytics</strong>, growing total views to <strong>12,363</strong> with <strong>90.1% reach from non-followers</strong>.</li>
+              <li data-i18n-html="extra.bkfc.b2">Pivoted to <strong>short-form video</strong> after analyzing engagement data across post types — driving <strong>68.6% of total campaign views</strong> while <strong>cutting production time</strong> per unit of reach.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-2">
-            <div class="timeline-date">Sep 2024 — Present</div>
-            <div class="timeline-title">Play &amp; Learn English Club</div>
-            <div class="timeline-role">HR Member</div>
+            <div class="timeline-date" data-i18n="extra.plec.date">Sep 2024 — Present</div>
+            <div class="timeline-title" data-i18n="extra.plec.title">Play &amp; Learn English Club</div>
+            <div class="timeline-role" data-i18n="extra.plec.role">HR Member</div>
             <ul class="timeline-body">
-              <li>Redesigned project workflows and introduced standardized tracking templates across a 15-member team, improving administrative efficiency by 150% and reducing missed deadlines.</li>
+              <li data-i18n-html="extra.plec.b1">Redesigned project workflows and introduced <strong>standardized tracking templates</strong> across a <strong>15-member team</strong>, improving administrative efficiency by <strong>150%</strong> and <strong>eliminating missed deadlines</strong>.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-3">
-            <div class="timeline-date">Jun 2025 — Nov 2025</div>
-            <div class="timeline-title">Mechanical Engineering Faculty Youth Union, HCMUT</div>
-            <div class="timeline-role">Event MC &amp; Coordinator (Traditional Camp) · STEM Team Member (Green Summer)</div>
+            <div class="timeline-date" data-i18n="extra.ymu.date">Jun 2025 — Nov 2025</div>
+            <div class="timeline-title" data-i18n="extra.ymu.title">Mechanical Engineering Faculty Youth Union, HCMUT</div>
+            <div class="timeline-role" data-i18n="extra.ymu.role">Event MC &amp; Coordinator (Traditional Camp) · STEM Team Member (Green Summer)</div>
             <ul class="timeline-body">
-              <li>Built comprehensive MC runbooks and coordinated all award ceremonies and logistics for a 90-participant camp night from scratch — zero scheduling disruptions.</li>
-              <li>Structured STEM project milestones with clear owners and checkpoints, achieving 100% on-time completion across all deliverables ahead of schedule.</li>
+              <li data-i18n-html="extra.ymu.b1">Built comprehensive MC runbooks and coordinated all award ceremonies and logistics for a <strong>90-participant</strong> camp night from scratch — <strong>zero scheduling disruptions</strong>.</li>
+              <li data-i18n-html="extra.ymu.b2">Structured STEM project milestones with clear owners and checkpoints, achieving <strong>100% on-time completion</strong> across all deliverables <strong>ahead of schedule</strong>.</li>
             </ul>
           </div>
         </div>
@@ -963,16 +998,16 @@
 <section id="projects">
   <div class="container">
     <div class="fade-up">
-      <span class="section-label">Portfolio</span>
-      <h2 class="section-title">Projects</h2>
+      <span class="section-label" data-i18n="projects.label">Portfolio</span>
+      <h2 class="section-title" data-i18n="projects.title">Projects</h2>
       <div class="divider"></div>
     </div>
     <div class="project-grid">
       <div class="project-card fade-up delay-1">
         <div class="proj-num">01</div>
-        <div class="proj-cat">Data Warehouse &amp; BI</div>
-        <div class="proj-title"><a href="manufacturing-failure-analytics-pipeline/">Manufacturing Failure Analytics Pipeline</a></div>
-        <p class="proj-desc">Built a complete analytics pipeline for AI4I machine failure data: preprocessing, PostgreSQL star schema, ETL, OLAP outputs, Streamlit dashboard, and an optional XGBoost prediction model.</p>
+        <div class="proj-cat" data-i18n="proj.01.cat">Data Warehouse &amp; BI</div>
+        <div class="proj-title"><a href="manufacturing-failure-analytics-pipeline/" data-i18n="proj.01.title">Manufacturing Failure Analytics Pipeline</a></div>
+        <p class="proj-desc" data-i18n="proj.01.desc">Built a complete analytics pipeline for AI4I machine failure data: preprocessing, PostgreSQL star schema, ETL, OLAP outputs, Streamlit dashboard, and an optional XGBoost prediction model.</p>
         <div class="proj-footer">
           <span class="proj-badge">ETL &amp; OLAP</span>
           <span class="proj-badge">Streamlit</span>
@@ -983,9 +1018,9 @@
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">02</div>
-        <div class="proj-cat">Data Analysis</div>
-        <div class="proj-title"><a href="dashboard/">Data Visualization &amp; Dashboarding Projects</a></div>
-        <p class="proj-desc">Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics, trends, and performance indicators for decision-making.</p>
+        <div class="proj-cat" data-i18n="proj.02.cat">Data Analysis</div>
+        <div class="proj-title"><a href="dashboard/" data-i18n="proj.02.title">Data Visualization &amp; Dashboarding Projects</a></div>
+        <p class="proj-desc" data-i18n="proj.02.desc">Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics, trends, and performance indicators for decision-making.</p>
         <div class="proj-footer">
           <span class="proj-badge">Dashboard Design</span>
           <span class="proj-year">2025-2026</span>
@@ -995,9 +1030,9 @@
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">03</div>
-        <div class="proj-cat">Warehouse &amp; Operations</div>
-        <div class="proj-title"><a href="WMS/">WMS — Warehouse Management System</a></div>
-        <p class="proj-desc">Built an interactive warehouse management dashboard with real-time inventory tracking, warehouse layout visualization, XLSX inbound/outbound batch processing, and cycle count management — all running as a static web app connected to Google Apps Script.</p>
+        <div class="proj-cat" data-i18n="proj.03.cat">Warehouse &amp; Operations</div>
+        <div class="proj-title"><a href="WMS/" data-i18n="proj.03.title">WMS — Warehouse Management System</a></div>
+        <p class="proj-desc" data-i18n-html="proj.03.desc">Built an interactive warehouse management dashboard with <strong>real-time inventory tracking</strong>, warehouse layout visualization, <strong>XLSX inbound/outbound batch processing</strong>, and cycle count management — all running as a <strong>static web app</strong> connected to Google Apps Script.</p>
         <div class="proj-footer">
           <span class="proj-badge">Inventory</span>
           <span class="proj-badge">Dashboard</span>
@@ -1009,9 +1044,9 @@
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">04</div>
-        <div class="proj-cat">Simulation</div>
-        <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim">Trimmer Assembly Line Simulator</a></div>
-        <p class="proj-desc">Engineered an end-to-end web simulator for the Trimmer assembly line at Wahl Vietnam. Integrates live time-study collection with Monte Carlo and Discrete Event Simulation (DES) to auto-generate Yamazumi charts, analyze VA/NVA ratios, and optimize shift capacity against customer demand.</p>
+        <div class="proj-cat" data-i18n="proj.04.cat">Simulation</div>
+        <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim" data-i18n="proj.04.title">Trimmer Assembly Line Simulator</a></div>
+        <p class="proj-desc" data-i18n="proj.04.desc">Engineered an end-to-end web simulator for the Trimmer assembly line at Wahl Vietnam. Integrates live time-study collection with Monte Carlo and Discrete Event Simulation (DES) to auto-generate Yamazumi charts, analyze VA/NVA ratios, and optimize shift capacity against customer demand.</p>
         <div class="proj-footer">
           <span class="proj-badge">Monte Carlo</span>
           <span class="proj-badge">Time Study</span>
@@ -1022,9 +1057,9 @@
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">05</div>
-        <div class="proj-cat">Decision Analysis</div>
-        <div class="proj-title"><a href="decisionanalysis/">AHP Customer Segmentation Analysis</a></div>
-        <p class="proj-desc">Applied Analytic Hierarchy Process to evaluate core customer segments across revenue potential, market growth, customer loyalty, and strategic fit.</p>
+        <div class="proj-cat" data-i18n="proj.05.cat">Decision Analysis</div>
+        <div class="proj-title"><a href="decisionanalysis/" data-i18n="proj.05.title">AHP Customer Segmentation Analysis</a></div>
+        <p class="proj-desc" data-i18n="proj.05.desc">Applied Analytic Hierarchy Process to evaluate core customer segments across revenue potential, market growth, customer loyalty, and strategic fit.</p>
         <div class="proj-footer">
           <span class="proj-badge">Analytical Model</span>
           <span class="proj-year">Oct 2025</span>
@@ -1034,9 +1069,9 @@
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">06</div>
-        <div class="proj-cat">Technical Design</div>
-        <div class="proj-title"><a href="autocad2d/">AutoCAD 2D Engineering Graphics</a></div>
-        <p class="proj-desc">Developed orthographic projections, section views, and technical drawings with complex layer structures, line weights, and dimensioning to engineering standards.</p>
+        <div class="proj-cat" data-i18n="proj.06.cat">Technical Design</div>
+        <div class="proj-title"><a href="autocad2d/" data-i18n="proj.06.title">AutoCAD 2D Engineering Graphics</a></div>
+        <p class="proj-desc" data-i18n="proj.06.desc">Developed orthographic projections, section views, and technical drawings with complex layer structures, line weights, and dimensioning to engineering standards.</p>
         <div class="proj-footer">
           <span class="proj-badge">Technical Skill</span>
           <span class="proj-year">2024</span>
@@ -1046,9 +1081,9 @@
 
       <div class="project-card fade-up delay-3">
         <div class="proj-num">07</div>
-        <div class="proj-cat">Human Factors</div>
-        <div class="proj-title"><a href="ergonomic/">Ergonomic Kitchen Workspace Design</a></div>
-        <p class="proj-desc">Applied anthropometric data and ergonomic principles to optimize kitchen layouts, movement efficiency, storage accessibility, and safety standards.</p>
+        <div class="proj-cat" data-i18n="proj.07.cat">Human Factors</div>
+        <div class="proj-title"><a href="ergonomic/" data-i18n="proj.07.title">Ergonomic Kitchen Workspace Design</a></div>
+        <p class="proj-desc" data-i18n="proj.07.desc">Applied anthropometric data and ergonomic principles to optimize kitchen layouts, movement efficiency, storage accessibility, and safety standards.</p>
         <div class="proj-footer">
           <span class="proj-badge">Group Project</span>
           <span class="proj-year">2025</span>
@@ -1058,9 +1093,9 @@
 
       <div class="project-card fade-up delay-1">
         <div class="proj-num">08</div>
-        <div class="proj-cat">Systems Engineering</div>
-        <div class="proj-title"><a href="systemdesign/">Co-working Space Cafe System Design</a></div>
-        <p class="proj-desc">Designed a 24/7 cafe integrated with workspace functionality. System life-cycle analysis, pricing strategy (20k-60k VND), and operational process optimization.</p>
+        <div class="proj-cat" data-i18n="proj.08.cat">Systems Engineering</div>
+        <div class="proj-title"><a href="systemdesign/" data-i18n="proj.08.title">Co-working Space Cafe System Design</a></div>
+        <p class="proj-desc" data-i18n-html="proj.08.desc">Designed a <strong>24/7 cafe</strong> integrated with workspace functionality. System life-cycle analysis, <strong>pricing strategy (20k-60k VND)</strong>, and operational process optimization.</p>
         <div class="proj-footer">
           <span class="proj-badge">Detail Design</span>
           <span class="proj-year">Nov 2025</span>
@@ -1070,9 +1105,9 @@
 
       <div class="project-card fade-up delay-2">
         <div class="proj-num">09</div>
-        <div class="proj-cat">Leadership Campaign</div>
-        <div class="proj-title"><a href="BKFC/">BK FC Career Orientation Project</a></div>
-        <p class="proj-desc">Led a Bach Khoa career orientation campaign for Nguyen Huu Canh High School, reaching 200+ grade 12 students directly and growing online campaign views by 932% through short-form content strategy.</p>
+        <div class="proj-cat" data-i18n="proj.09.cat">Leadership Campaign</div>
+        <div class="proj-title"><a href="BKFC/" data-i18n="proj.09.title">BK FC Career Orientation Project</a></div>
+        <p class="proj-desc" data-i18n-html="proj.09.desc">Led a Bach Khoa career orientation campaign for Nguyen Huu Canh High School, reaching <strong>200+ grade 12 students</strong> directly and growing online campaign views by <strong>932%</strong> through short-form content strategy.</p>
         <div class="proj-footer">
           <span class="proj-badge">Project Leader</span>
           <span class="proj-year">2025-2026</span>
@@ -1088,8 +1123,8 @@
 <section id="contacts">
   <div class="container">
     <div class="fade-up text-center mb-5">
-      <span class="section-label">Let's Connect</span>
-      <h2 class="section-title">Get In Touch</h2>
+      <span class="section-label" data-i18n="contact.label">Let's Connect</span>
+      <h2 class="section-title" data-i18n="contact.title">Get In Touch</h2>
       <div class="divider mx-auto"></div>
     </div>
     <div class="row g-3 justify-content-center">
@@ -1097,7 +1132,7 @@
         <a href="mailto:nguyenhoang88502@gmail.com" class="contact-link">
           <i class="bi bi-envelope-fill contact-icon"></i>
           <div>
-            <div class="contact-label">Email</div>
+            <div class="contact-label" data-i18n="contact.email">Email</div>
             <div class="contact-value">nguyenhoang88502@gmail.com</div>
           </div>
         </a>
@@ -1106,7 +1141,7 @@
         <a href="tel:+84369412005" class="contact-link">
           <i class="bi bi-telephone-fill contact-icon"></i>
           <div>
-            <div class="contact-label">Phone</div>
+            <div class="contact-label" data-i18n="contact.phone">Phone</div>
             <div class="contact-value">+84 369 412 005</div>
           </div>
         </a>
@@ -1124,7 +1159,7 @@
         <div class="contact-link" style="cursor:default;">
           <i class="bi bi-geo-alt-fill contact-icon"></i>
           <div>
-            <div class="contact-label">Location</div>
+            <div class="contact-label" data-i18n="contact.location">Location</div>
             <div class="contact-value">Ho Chi Minh City, Vietnam</div>
           </div>
         </div>
@@ -1214,5 +1249,243 @@
 </script>
 <link rel="stylesheet" href="assets/chat-widget.css" />
 <script src="assets/chat-widget.js" defer></script>
+<script>
+/* ══ LANGUAGE TOGGLE ══ */
+const I18N = {
+  en: {
+    "nav.about": "About",
+    "nav.education": "Education",
+    "nav.skills": "Skills",
+    "nav.experience": "Experience",
+    "nav.activities": "Activities",
+    "nav.projects": "Projects",
+    "nav.contacts": "Contacts",
+    "hero.eyebrow": "Industrial Systems Engineer",
+    "hero.desc": `Industrial Systems Engineering student at HCMUT bridging manufacturing domain
+          expertise with <strong>full-stack development</strong>. I build <strong>data-driven tools</strong> — from <strong>Power BI
+          dashboards</strong> and <strong>Monte Carlo simulations</strong> to <strong>warehouse management systems</strong> and <strong>AI-powered
+          web apps</strong> — that <strong>optimize production</strong>, <strong>automate workflows</strong>, and turn operational data
+          into actionable insights.`,
+    "hero.cta": "Contact Me",
+    "hero.resume": "Résumé",
+    "edu.label": "Academic Background",
+    "edu.title": "Education & Certifications",
+    "edu.degree": "Bachelor of Engineering — Industrial Systems Engineering",
+    "edu.grad": "Expected Graduation",
+    "edu.gpa": "GPA (2025–2026)",
+    "edu.certs": "Certifications",
+    "edu.english": "Full Professional Proficiency",
+    "skills.label": "Technical Competencies",
+    "skills.title": "Skills & Tools",
+    "skills.data": "Data & Visualization",
+    "skills.opt": "Optimization & Lean",
+    "skills.tools": "Tools & Automation",
+    "skills.dev": "Software & App Development",
+    "exp.label": "Professional History",
+    "exp.title": "Work Experience",
+    "exp.wahl.date": "Mar 2026 — Present",
+    "exp.wahl.company": "Wahl Clipper Vietnam",
+    "exp.wahl.role": "New Product Introduction (NPI) Intern · Cần Giuộc, Long An",
+    "exp.wahl.b1": `Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to <strong>forecast daily output</strong> and <strong>eliminate bottleneck cycle times</strong>, directly optimizing production flow.`,
+    "exp.wahl.b2": `Designed and deployed a <strong>warehouse management system (WMS)</strong> for the NPI warehouse with <strong>real-time inventory tracking</strong>, warehouse layout visualization, and <strong>XLSX inbound/outbound batch processing</strong> powered by a Google Apps Script webhook.`,
+    "exp.wahl.b3": `Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using <strong>data mining</strong> and <strong>ML-driven insights</strong>.`,
+    "exp.wahl.b4": `Detected critical data mismatches between legacy and updated BOMs across multiple product iterations; <strong>reconciled records</strong> and <strong>standardized documentation</strong>, <strong>eliminating procurement integration errors</strong> and enabling <strong>on-time Mass Production</strong>.`,
+    "exp.seven.date": "Jul 2024 — Nov 2024",
+    "exp.seven.role": "Store Assistant",
+    "exp.seven.b1": "Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting.",
+    "extra.label": "Beyond the Classroom",
+    "extra.title": "Extracurricular Activities",
+    "extra.bkfc.date": "Nov 2025 — Present",
+    "extra.bkfc.title": "Bach Khoa Ambassador Club",
+    "extra.bkfc.role": "Project Leader — BKFC @ Nguyen Huu Canh High School",
+    "extra.bkfc.b1": `Redesigned a <strong>6-month</strong> university orientation strategy using <strong>content performance analytics</strong>, growing total views to <strong>12,363</strong> with <strong>90.1% reach from non-followers</strong>.`,
+    "extra.bkfc.b2": `Pivoted to <strong>short-form video</strong> after analyzing engagement data across post types — driving <strong>68.6% of total campaign views</strong> while <strong>cutting production time</strong> per unit of reach.`,
+    "extra.plec.date": "Sep 2024 — Present",
+    "extra.plec.title": "Play & Learn English Club",
+    "extra.plec.role": "HR Member",
+    "extra.plec.b1": `Redesigned project workflows and introduced <strong>standardized tracking templates</strong> across a <strong>15-member team</strong>, improving administrative efficiency by <strong>150%</strong> and <strong>eliminating missed deadlines</strong>.`,
+    "extra.ymu.date": "Jun 2025 — Nov 2025",
+    "extra.ymu.title": "Mechanical Engineering Faculty Youth Union, HCMUT",
+    "extra.ymu.role": "Event MC & Coordinator (Traditional Camp) · STEM Team Member (Green Summer)",
+    "extra.ymu.b1": `Built comprehensive MC runbooks and coordinated all award ceremonies and logistics for a <strong>90-participant</strong> camp night from scratch — <strong>zero scheduling disruptions</strong>.`,
+    "extra.ymu.b2": `Structured STEM project milestones with clear owners and checkpoints, achieving <strong>100% on-time completion</strong> across all deliverables <strong>ahead of schedule</strong>.`,
+    "projects.label": "Portfolio",
+    "projects.title": "Projects",
+    "proj.01.cat": "Data Warehouse & BI",
+    "proj.01.title": "Manufacturing Failure Analytics Pipeline",
+    "proj.01.desc": "Built a complete analytics pipeline for AI4I machine failure data: preprocessing, PostgreSQL star schema, ETL, OLAP outputs, Streamlit dashboard, and an optional XGBoost prediction model.",
+    "proj.02.cat": "Data Analysis",
+    "proj.02.title": "Data Visualization & Dashboarding Projects",
+    "proj.02.desc": "Transformed raw analytical datasets into interactive Power BI dashboards highlighting key metrics, trends, and performance indicators for decision-making.",
+    "proj.03.cat": "Warehouse & Operations",
+    "proj.03.title": "WMS — Warehouse Management System",
+    "proj.03.desc": `Built an interactive warehouse management dashboard with <strong>real-time inventory tracking</strong>, warehouse layout visualization, <strong>XLSX inbound/outbound batch processing</strong>, and cycle count management — all running as a <strong>static web app</strong> connected to Google Apps Script.`,
+    "proj.04.cat": "Simulation",
+    "proj.04.title": "Trimmer Assembly Line Simulator",
+    "proj.04.desc": "Engineered an end-to-end web simulator for the Trimmer assembly line at Wahl Vietnam. Integrates live time-study collection with Monte Carlo and Discrete Event Simulation (DES) to auto-generate Yamazumi charts, analyze VA/NVA ratios, and optimize shift capacity against customer demand.",
+    "proj.05.cat": "Decision Analysis",
+    "proj.05.title": "AHP Customer Segmentation Analysis",
+    "proj.05.desc": "Applied Analytic Hierarchy Process to evaluate core customer segments across revenue potential, market growth, customer loyalty, and strategic fit.",
+    "proj.06.cat": "Technical Design",
+    "proj.06.title": "AutoCAD 2D Engineering Graphics",
+    "proj.06.desc": "Developed orthographic projections, section views, and technical drawings with complex layer structures, line weights, and dimensioning to engineering standards.",
+    "proj.07.cat": "Human Factors",
+    "proj.07.title": "Ergonomic Kitchen Workspace Design",
+    "proj.07.desc": "Applied anthropometric data and ergonomic principles to optimize kitchen layouts, movement efficiency, storage accessibility, and safety standards.",
+    "proj.08.cat": "Systems Engineering",
+    "proj.08.title": "Co-working Space Cafe System Design",
+    "proj.08.desc": `Designed a <strong>24/7 cafe</strong> integrated with workspace functionality. System life-cycle analysis, <strong>pricing strategy (20k-60k VND)</strong>, and operational process optimization.`,
+    "proj.09.cat": "Leadership Campaign",
+    "proj.09.title": "BK FC Career Orientation Project",
+    "proj.09.desc": `Led a Bach Khoa career orientation campaign for Nguyen Huu Canh High School, reaching <strong>200+ grade 12 students</strong> directly and growing online campaign views by <strong>932%</strong> through short-form content strategy.`,
+    "contact.label": "Let's Connect",
+    "contact.title": "Get In Touch",
+    "contact.email": "Email",
+    "contact.phone": "Phone",
+    "contact.location": "Location",
+    "footer.tagline": "© 2026 · Built with Bootstrap 5"
+  },
+  vi: {
+    "nav.about": "Giới thiệu",
+    "nav.education": "Học vấn",
+    "nav.skills": "Kỹ năng",
+    "nav.experience": "Kinh nghiệm",
+    "nav.activities": "Hoạt động",
+    "nav.projects": "Dự án",
+    "nav.contacts": "Liên hệ",
+    "hero.eyebrow": "Kỹ sư Hệ thống Công nghiệp",
+    "hero.desc": `Sinh viên Kỹ thuật Hệ thống Công nghiệp tại HCMUT, kết nối chuyên môn sản xuất với <strong>phát triển full-stack</strong>. Tôi xây dựng <strong>công cụ dựa trên dữ liệu</strong> — từ <strong>dashboard Power BI</strong> và <strong>mô phỏng Monte Carlo</strong> đến <strong>hệ thống quản lý kho</strong> và <strong>ứng dụng web AI</strong> — nhằm <strong>tối ưu hóa sản xuất</strong>, <strong>tự động hóa quy trình</strong>, và biến dữ liệu vận hành thành thông tin hữu ích.`,
+    "hero.cta": "Liên hệ",
+    "hero.resume": "Hồ sơ",
+    "edu.label": "Học vấn",
+    "edu.title": "Học vấn & Chứng chỉ",
+    "edu.degree": "Kỹ sư — Kỹ thuật Hệ thống Công nghiệp",
+    "edu.grad": "Dự kiến tốt nghiệp",
+    "edu.gpa": "GPA (2025–2026)",
+    "edu.certs": "Chứng chỉ",
+    "edu.english": "Thành thạo chuyên nghiệp",
+    "skills.label": "Năng lực kỹ thuật",
+    "skills.title": "Kỹ năng & Công cụ",
+    "skills.data": "Dữ liệu & Trực quan hóa",
+    "skills.opt": "Tối ưu hóa & Lean",
+    "skills.tools": "Công cụ & Tự động hóa",
+    "skills.dev": "Phát triển Phần mềm & Ứng dụng",
+    "exp.label": "Lịch sử chuyên môn",
+    "exp.title": "Kinh nghiệm làm việc",
+    "exp.wahl.date": "Thg 3 2026 — Nay",
+    "exp.wahl.company": "Wahl Clipper Vietnam",
+    "exp.wahl.role": "Thực tập sinh NPI · Cần Giuộc, Long An",
+    "exp.wahl.b1": `Mô hình hóa năng lực dây chuyền lắp ráp tông-đơ bằng <strong>Arena</strong> và <strong>Crystal Ball</strong>, chạy <strong>mô phỏng Monte Carlo (5.000 lần thử)</strong> để <strong>dự báo sản lượng hàng ngày</strong> và <strong>loại bỏ thời gian chu kỳ tắc nghẽn</strong>, trực tiếp tối ưu hóa dòng sản xuất.`,
+    "exp.wahl.b2": `Thiết kế và triển khai <strong>hệ thống quản lý kho (WMS)</strong> cho kho NPI với <strong>theo dõi tồn kho thời gian thực</strong>, trực quan hóa sơ đồ kho, và <strong>xử lý hàng loạt XLSX nhập/xuất</strong> thông qua Google Apps Script webhook.`,
+    "exp.wahl.b3": `Kiến trúc <strong>data warehouse</strong> và <strong>dashboard hỗ trợ quyết định</strong> cho khu vực NPI, cho phép <strong>theo dõi vị trí SKU</strong> và tối ưu hóa phân bổ lưu trữ cấp sàn bằng <strong>khai phá dữ liệu</strong> và <strong>phân tích học máy</strong>.`,
+    "exp.wahl.b4": `Phát hiện sai lệch dữ liệu quan trọng giữa BOM cũ và mới qua nhiều phiên bản sản phẩm; <strong>đối chiếu hồ sơ</strong> và <strong>chuẩn hóa tài liệu</strong>, <strong>loại bỏ lỗi tích hợp mua hàng</strong> và đảm bảo <strong>phê duyệt Sản xuất Hàng loạt đúng hạn</strong>.`,
+    "exp.seven.date": "Thg 7 2024 — Thg 11 2024",
+    "exp.seven.role": "Nhân viên cửa hàng",
+    "exp.seven.b1": "Quản lý vận hành bán lẻ hàng ngày, bổ sung tồn kho, và đảm bảo độ chính xác giao dịch tại cửa hàng tiện lợi có lưu lượng khách cao.",
+    "extra.label": "Ngoại khóa",
+    "extra.title": "Hoạt động ngoại khóa",
+    "extra.bkfc.date": "Thg 11 2025 — Nay",
+    "extra.bkfc.title": "CLB Đại sứ Bách Khoa",
+    "extra.bkfc.role": "Trưởng nhóm Dự án — BKFC @ THPT Nguyễn Hữu Cảnh",
+    "extra.bkfc.b1": `Thiết kế lại chiến lược hướng nghiệp đại học <strong>6 tháng</strong> sử dụng <strong>phân tích hiệu suất nội dung</strong>, tăng tổng lượt xem lên <strong>12.363</strong> với <strong>90,1% tiếp cận từ người không theo dõi</strong>.`,
+    "extra.bkfc.b2": `Chuyển hướng sang <strong>video ngắn</strong> sau khi phân tích dữ liệu tương tác — thúc đẩy <strong>68,6% tổng lượt xem chiến dịch</strong> trong khi <strong>cắt giảm thời gian sản xuất</strong> trên mỗi đơn vị tiếp cận.`,
+    "extra.plec.date": "Thg 9 2024 — Nay",
+    "extra.plec.title": "CLB Play & Learn English",
+    "extra.plec.role": "Thành viên HR",
+    "extra.plec.b1": `Thiết kế lại quy trình dự án và giới thiệu <strong>mẫu theo dõi chuẩn hóa</strong> cho <strong>nhóm 15 thành viên</strong>, cải thiện hiệu suất hành chính <strong>150%</strong> và <strong>loại bỏ hoàn toàn trễ hạn</strong>.`,
+    "extra.ymu.date": "Thg 6 2025 — Thg 11 2025",
+    "extra.ymu.title": "Đoàn Khoa Cơ Khí, HCMUT",
+    "extra.ymu.role": "MC & Điều phối sự kiện (Trại Truyền thống) · Thành viên STEM (Mùa hè Xanh)",
+    "extra.ymu.b1": `Xây dựng kịch bản MC toàn diện và điều phối tất cả lễ trao giải và hậu cần cho đêm trại <strong>90 người tham gia</strong> từ đầu — <strong>không gián đoạn lịch trình</strong>.`,
+    "extra.ymu.b2": `Cấu trúc các mốc dự án STEM với chủ sở hữu và điểm kiểm tra rõ ràng, đạt <strong>100% hoàn thành đúng hạn</strong> trên tất cả các hạng mục <strong>trước thời hạn</strong>.`,
+    "projects.label": "Danh mục",
+    "projects.title": "Dự án",
+    "proj.01.cat": "Data Warehouse & BI",
+    "proj.01.title": "Hệ thống Phân tích Lỗi Sản xuất",
+    "proj.01.desc": "Xây dựng pipeline phân tích hoàn chỉnh cho dữ liệu lỗi máy AI4I: tiền xử lý, star schema PostgreSQL, ETL, đầu ra OLAP, dashboard Streamlit, và mô hình dự đoán XGBoost.",
+    "proj.02.cat": "Phân tích Dữ liệu",
+    "proj.02.title": "Dự án Trực quan hóa Dữ liệu & Dashboard",
+    "proj.02.desc": "Chuyển đổi dữ liệu phân tích thô thành dashboard Power BI tương tác, làm nổi bật các chỉ số, xu hướng và chỉ báo hiệu suất chính phục vụ ra quyết định.",
+    "proj.03.cat": "Kho vận & Vận hành",
+    "proj.03.title": "WMS — Hệ thống Quản lý Kho",
+    "proj.03.desc": `Xây dựng dashboard quản lý kho tương tác với <strong>theo dõi tồn kho thời gian thực</strong>, trực quan hóa sơ đồ kho, <strong>xử lý hàng loạt XLSX nhập/xuất</strong>, và quản lý kiểm kê chu kỳ — tất cả chạy như một <strong>ứng dụng web tĩnh</strong> kết nối Google Apps Script.`,
+    "proj.04.cat": "Mô phỏng",
+    "proj.04.title": "Trình Mô phỏng Dây chuyền Lắp ráp Tông-đơ",
+    "proj.04.desc": "Thiết kế trình mô phỏng web end-to-end cho dây chuyền lắp ráp Tông-đơ tại Wahl Vietnam. Tích hợp thu thập time-study trực tiếp với Monte Carlo và Mô phỏng Sự kiện Rời rạc (DES) để tự động tạo biểu đồ Yamazumi, phân tích tỷ lệ VA/NVA, và tối ưu hóa năng lực ca làm việc.",
+    "proj.05.cat": "Phân tích Quyết định",
+    "proj.05.title": "Phân tích Phân khúc Khách hàng AHP",
+    "proj.05.desc": "Áp dụng Quy trình Phân tích Thứ bậc (AHP) để đánh giá các phân khúc khách hàng cốt lõi qua tiềm năng doanh thu, tăng trưởng thị trường, lòng trung thành và sự phù hợp chiến lược.",
+    "proj.06.cat": "Thiết kế Kỹ thuật",
+    "proj.06.title": "Đồ họa Kỹ thuật AutoCAD 2D",
+    "proj.06.desc": "Phát triển hình chiếu trực giao, mặt cắt, và bản vẽ kỹ thuật với cấu trúc layer phức tạp, độ dày nét vẽ và đo kích thước theo tiêu chuẩn kỹ thuật.",
+    "proj.07.cat": "Yếu tố Con người",
+    "proj.07.title": "Thiết kế Không gian Bếp Công thái học",
+    "proj.07.desc": "Áp dụng dữ liệu nhân trắc học và nguyên lý công thái học để tối ưu hóa bố trí bếp, hiệu suất di chuyển, khả năng tiếp cận lưu trữ và tiêu chuẩn an toàn.",
+    "proj.08.cat": "Kỹ thuật Hệ thống",
+    "proj.08.title": "Thiết kế Hệ thống Cafe Co-working Space",
+    "proj.08.desc": `Thiết kế <strong>cafe 24/7</strong> tích hợp chức năng không gian làm việc. Phân tích vòng đời hệ thống, <strong>chiến lược giá (20k-60k VND)</strong>, và tối ưu hóa quy trình vận hành.`,
+    "proj.09.cat": "Chiến dịch Lãnh đạo",
+    "proj.09.title": "Dự án Hướng nghiệp BK FC",
+    "proj.09.desc": `Dẫn dắt chiến dịch hướng nghiệp Bách Khoa cho THPT Nguyễn Hữu Cảnh, tiếp cận trực tiếp <strong>hơn 200 học sinh lớp 12</strong> và tăng lượt xem chiến dịch trực tuyến <strong>932%</strong> thông qua chiến lược nội dung video ngắn.`,
+    "contact.label": "Kết nối",
+    "contact.title": "Liên hệ",
+    "contact.email": "Email",
+    "contact.phone": "Điện thoại",
+    "contact.location": "Địa điểm",
+    "footer.tagline": "© 2026 · Xây dựng với Bootstrap 5"
+  }
+};
+
+let currentLang = localStorage.getItem("lang") || "en";
+window.__siteLang = currentLang;
+
+function applyLang(lang) {
+  window.__siteLang = lang;
+  document.documentElement.lang = lang;
+
+  // Text nodes
+  document.querySelectorAll("[data-i18n]").forEach(function (el) {
+    var key = el.getAttribute("data-i18n");
+    var dict = I18N[lang];
+    if (dict && dict[key] !== undefined) {
+      el.textContent = dict[key];
+    }
+  });
+
+  // HTML content (with <strong> tags etc.)
+  document.querySelectorAll("[data-i18n-html]").forEach(function (el) {
+    var key = el.getAttribute("data-i18n-html");
+    var dict = I18N[lang];
+    if (dict && dict[key] !== undefined) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  // Toggle buttons
+  document.querySelectorAll(".lang-toggle").forEach(function (btn) {
+    btn.classList.toggle("active-lang", btn.getAttribute("data-lang") === lang);
+  });
+
+  // Chat widget suggested questions — re-render if widget is loaded
+  if (window.__setChatLang) {
+    window.__setChatLang(lang);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  applyLang(currentLang);
+
+  document.querySelectorAll(".lang-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var lang = btn.getAttribute("data-lang");
+      if (lang && lang !== currentLang) {
+        currentLang = lang;
+        localStorage.setItem("lang", lang);
+        applyLang(lang);
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>
