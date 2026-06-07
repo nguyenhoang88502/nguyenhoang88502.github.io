@@ -278,6 +278,94 @@ img{display:block;max-width:100%}
   text-transform:uppercase;
 }
 .artifact p{margin:0 0 18px;font-size:20px;line-height:1.25;font-weight:760}
+.feature-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(310px,.75fr);
+  gap:18px;
+  align-items:stretch;
+}
+.video-card,.evidence-card,.source-card{
+  background:#fff;
+  border:5px solid var(--orange);
+  border-radius:8px;
+  box-shadow:10px 10px 0 rgba(3,3,145,.12);
+  overflow:hidden;
+}
+.video-card{display:flex;flex-direction:column}
+.video-card video{
+  width:100%;
+  aspect-ratio:16/9;
+  display:block;
+  background:var(--deep-blue);
+  object-fit:cover;
+}
+.video-copy{padding:18px 20px 20px}
+.video-copy h3,.source-card h3{
+  margin:0 0 10px;
+  font-family:var(--title);
+  font-size:42px;
+  line-height:.9;
+  color:var(--red);
+  text-transform:uppercase;
+}
+.video-copy p,.source-card p{
+  margin:0 0 18px;
+  font-size:20px;
+  line-height:1.25;
+  font-weight:760;
+}
+.feature-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.feature-stat{
+  min-height:156px;
+  padding:17px;
+  background:var(--paper);
+  border:5px solid var(--blue);
+  border-radius:8px;
+  box-shadow:8px 8px 0 rgba(255,175,0,.35);
+}
+.feature-stat b{
+  display:block;
+  margin:0 0 12px;
+  font-family:var(--title);
+  font-size:clamp(40px,5vw,66px);
+  line-height:.82;
+  color:var(--accent,var(--red));
+}
+.feature-stat p{margin:0;font-size:18px;line-height:1.22;font-weight:820}
+.evidence-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+}
+.evidence-card{
+  min-height:238px;
+  padding:20px;
+}
+.evidence-card b{
+  display:block;
+  margin:0 0 12px;
+  font-family:var(--title);
+  font-size:clamp(46px,6vw,78px);
+  line-height:.82;
+  color:var(--accent,var(--red));
+}
+.evidence-card p{margin:0;font-size:20px;line-height:1.25;font-weight:780}
+.source-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin-top:18px;
+}
+.source-card{
+  padding:20px;
+  border-color:var(--blue);
+  box-shadow:10px 10px 0 rgba(255,175,0,.35);
+}
+.source-card .button{margin-top:2px}
 .poster-wall{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -374,7 +462,8 @@ footer{padding:0 24px 42px}
   .nav{justify-content:flex-start}
   .hero,.section-head{grid-template-columns:1fr}
   .hero-bee{justify-self:start;width:210px}
-  .metric-grid,.poster-wall,.artifact-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .metric-grid,.poster-wall,.artifact-row,.feature-grid,.evidence-grid,.source-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .video-card{grid-column:1/-1}
   .case-card.large,.case-card.small{grid-column:span 3}
   .poster-frame iframe{transform:translateX(-50%) scale(.34)}
 }
@@ -382,8 +471,8 @@ footer{padding:0 24px 42px}
   .brand-logo{width:220px;height:auto}
   .shell{padding:22px 16px 44px}
   .hero h2{font-size:56px}
-  .hero p,.section-head p,.case-card p,.artifact p{font-size:19px}
-  .metric-grid,.poster-wall,.artifact-row,.case-grid{grid-template-columns:1fr}
+  .hero p,.section-head p,.case-card p,.artifact p,.video-copy p,.source-card p{font-size:19px}
+  .metric-grid,.poster-wall,.artifact-row,.case-grid,.feature-grid,.feature-stats,.evidence-grid,.source-row{grid-template-columns:1fr}
   .case-card.large,.case-card.small{grid-column:auto}
   .artifact{grid-template-columns:1fr}
   .poster-frame iframe{transform:translateX(-50%) scale(.31)}
@@ -420,9 +509,9 @@ footer{padding:0 24px 42px}
       <p>Project Leader work for the Bach Khoa Ambassador Club at Nguyen Huu Canh High School: direct career orientation, short-form content, and a reusable poster-caption library for TN THPT and ĐGNL exam milestones.</p>
       <div class="toolbar">
         <span class="pill blue">Project Leader</span>
-        <span class="pill">6,347 views</span>
-        <span class="pill">89.3% non-followers</span>
-        <span class="pill">12 posters</span>
+        <span class="pill">8,653 reel views</span>
+        <span class="pill">83.1% non-followers</span>
+        <span class="pill">15 exported posts</span>
       </div>
     </div>
     <img class="hero-bee" src="BKFC%20post/assets/illustrations/bee-main.png" alt="BKFC bee mascot">
@@ -438,9 +527,9 @@ footer{padding:0 24px 42px}
     </div>
 
     <div class="metric-grid">
-      <article class="metric accent-red" data-no="01"><b>6,347</b><p>Total campaign views from the orientation content.</p></article>
-      <article class="metric accent-blue" data-no="02"><b>89.3%</b><p>Reach acquired from non-followers, showing new-audience exposure.</p></article>
-      <article class="metric accent-green" data-no="03"><b>73.5%</b><p>Total views driven by short-form video after the content pivot.</p></article>
+      <article class="metric accent-red" data-no="01"><b>13,745</b><p>Total campaign views from the exported content dataset.</p></article>
+      <article class="metric accent-blue" data-no="02"><b>83.1%</b><p>Reach acquired from non-followers, showing new-audience exposure.</p></article>
+      <article class="metric accent-green" data-no="03"><b>8,653</b><p>Views from the Vũ Trụ Bách Khoa reel, the strongest tracked post.</p></article>
       <article class="metric accent-purple" data-no="04"><b>12</b><p>Poster-caption pairs for exam reminders and next-step guidance.</p></article>
     </div>
   </section>
@@ -501,6 +590,86 @@ footer{padding:0 24px 42px}
           <p>The full BKFC post pack with 12 HTML posters, captions, icons, and schedule data.</p>
           <a class="button blue" href="BKFC%20post/">Open library</a>
         </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="universe">
+    <div class="section-head">
+      <div>
+        <span class="label">Feature reel</span>
+        <h2>Vũ Trụ Bách Khoa.</h2>
+      </div>
+      <p>The campaign's strongest piece was a 190-second short-form video introducing HCMUT through an approachable “universe” concept.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="video-card">
+        <video controls preload="metadata" poster="BKFC%20post/Vũ%20Trụ%20Bách%20Khoa/vu-tru-bach-khoa-poster.jpg">
+          <source src="BKFC%20post/Vũ%20Trụ%20Bách%20Khoa/Vũ%20Trụ%20Bách%20Khoa.mp4" type="video/mp4">
+        </video>
+        <div class="video-copy">
+          <h3 data-copy-key="featureTitle">Feature reel</h3>
+          <p data-copy-key="featureCopy">I planned the concept, filming flow, and supporting copy around a student-friendly metaphor instead of a generic school introduction.</p>
+          <a class="button blue" href="https://www.facebook.com/reel/949199417487197/" target="_blank" rel="noopener" data-copy-key="featureButton">Open reel</a>
+        </div>
+      </article>
+      <div class="feature-stats" aria-label="Vũ Trụ Bách Khoa performance">
+        <article class="feature-stat accent-red"><b>8,653</b><p data-copy-key="featureStatViews">Views on the Vũ Trụ Bách Khoa reel.</p></article>
+        <article class="feature-stat accent-blue"><b>6,974</b><p data-copy-key="featureStatViewers">Viewers reached by the reel.</p></article>
+        <article class="feature-stat accent-green"><b>99,524</b><p data-copy-key="featureStatWatch">Watch seconds recorded in the export.</p></article>
+        <article class="feature-stat accent-purple"><b>135</b><p data-copy-key="featureStatReact">Reactions on the strongest tracked post.</p></article>
+      </div>
+    </div>
+    <div class="source-row">
+      <article class="source-card">
+        <h3 data-copy-key="conceptTitle">Concept deck</h3>
+        <p data-copy-key="conceptCopy">The concept file for the “universe” metaphor, school mapping, and content direction.</p>
+        <a class="button blue" href="BKFC%20post/Vũ%20Trụ%20Bách%20Khoa/Vũ%20Trụ%20Bách%20Khoa%20Concept.docx" target="_blank" rel="noopener" data-copy-key="conceptButton">Open concept</a>
+      </article>
+      <article class="source-card">
+        <h3 data-copy-key="shootTitle">Shoot plan</h3>
+        <p data-copy-key="shootCopy">The filming plan used to keep scenes, roles, and production timing organized.</p>
+        <a class="button blue" href="BKFC%20post/Vũ%20Trụ%20Bách%20Khoa/Kế%20hoạch%20ghi%20hình%20Vũ%20trụ%20Bách%20Khoa.docx" target="_blank" rel="noopener" data-copy-key="shootButton">Open plan</a>
+      </article>
+      <article class="source-card">
+        <h3 data-copy-key="reelSourceTitle">Source reel</h3>
+        <p data-copy-key="reelSourceCopy">The local MP4 artifact for review, embedded above with metadata preload.</p>
+        <a class="button blue" href="BKFC%20post/Vũ%20Trụ%20Bách%20Khoa/Vũ%20Trụ%20Bách%20Khoa.mp4" target="_blank" rel="noopener" data-copy-key="reelSourceButton">Open video</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="analytics">
+    <div class="section-head">
+      <div>
+        <span class="label">Analytics evidence</span>
+        <h2>Numbers, not vibes.</h2>
+      </div>
+      <p>The page now includes the PDF dashboard and CSV export, so the case study points back to actual campaign evidence.</p>
+    </div>
+    <div class="evidence-grid">
+      <article class="evidence-card accent-red"><b>5,698</b><p data-copy-key="evidence90">90-day views shown in the analytics dashboard PDF.</p></article>
+      <article class="evidence-card accent-blue"><b>47.3%</b><p data-copy-key="evidenceReels">Views from Reels in the dashboard format mix.</p></article>
+      <article class="evidence-card accent-green"><b>45.5%</b><p data-copy-key="evidencePhotos">Views from photo posts, keeping the campaign balanced across formats.</p></article>
+      <article class="evidence-card accent-purple"><b>8,610</b><p data-copy-key="evidenceViewers">Total viewers across the 15-row CSV export.</p></article>
+      <article class="evidence-card accent-pink"><b>115</b><p data-copy-key="evidenceInteractions">Total interactions captured in the exported post data.</p></article>
+      <article class="evidence-card accent-red"><b>196</b><p data-copy-key="evidenceReactions">Total reactions across the exported post list.</p></article>
+    </div>
+    <div class="source-row">
+      <article class="source-card">
+        <h3 data-copy-key="pdfTitle">Analytics PDF</h3>
+        <p data-copy-key="pdfCopy">One-page dashboard summary covering views, non-follower reach, and content type mix.</p>
+        <a class="button blue" href="BKFC%20post/BKFC%20analytics.pdf" target="_blank" rel="noopener" data-copy-key="pdfButton">Open PDF</a>
+      </article>
+      <article class="source-card">
+        <h3 data-copy-key="csvTitle">CSV export</h3>
+        <p data-copy-key="csvCopy">Post-level export from Jan 01, 2026 to Jun 07, 2026, used for the totals on this page.</p>
+        <a class="button blue" href="BKFC%20post/Jan-01-2026_Jun-07-2026_N%E1%BB%99i%20dung_Th%E1%BB%9Di%20gian%20%C4%91%C4%83ng_T%C3%B3m%20t%E1%BA%AFt_939396779124362.csv" target="_blank" rel="noopener" data-copy-key="csvButton">Open CSV</a>
+      </article>
+      <article class="source-card">
+        <h3 data-copy-key="mixTitle">Format mix</h3>
+        <p data-copy-key="mixCopy">PDF split: 47.3% Reels, 45.5% photos, 7% links, and 0.1% other/text.</p>
+        <a class="button blue" href="#posters" data-copy-key="mixButton">See posters</a>
       </article>
     </div>
   </section>
@@ -815,6 +984,132 @@ const copy = {
   }
 };
 
+copy.vi = {
+  ...copy.vi,
+  pills: ["Project Leader", "8,653 reel views", "83.1% non-followers", "15 exported posts"],
+  labels: ["Case study", "Mình đã làm gì", "Artifacts", "Feature reel", "Analytics evidence", "Poster previews", "Full archive"],
+  sectionTitles: [
+    "Không chỉ là một buổi tới trường.",
+    "Content, vận hành, và artifact.",
+    "Mở sản phẩm của dự án.",
+    "Vũ Trụ Bách Khoa.",
+    "Số liệu, không nói suông.",
+    "Cùng một visual system.",
+    "12 posts, 12 captions."
+  ],
+  sectionCopy: [
+    "Chiến dịch cần hữu ích trước, trong, và sau buổi tư vấn. Mình tổ chức thông điệp quanh nhu cầu học sinh, mốc tuyển sinh, và định dạng nội dung mà học sinh thật sự muốn mở.",
+    "Điểm chính không phải là khoe xây một hệ thống lớn. Đây là một campaign gọn, có output nhìn thấy được và có quyết định nội dung dựa trên số liệu.",
+    "Hai output cụ thể được gắn với case study này.",
+    "Nội dung mạnh nhất của campaign là video ngắn 190 giây giới thiệu HCMUT bằng concept “vũ trụ” gần gũi với học sinh.",
+    "Trang này đã gắn thêm PDF dashboard và CSV export để case study dựa vào evidence thật của campaign.",
+    "Trang project dùng đúng ngôn ngữ visual của poster pack: nền giấy grid màu kem, đỏ BKFC, xanh đậm, viền cam, card dày, và bee assets.",
+    "Các card này theo cấu trúc poster library index và link trực tiếp tới poster HTML cùng caption files."
+  ],
+  metrics: [
+    "Tổng lượt xem từ dataset nội dung đã export.",
+    "Reach đến từ non-followers, cho thấy nội dung chạm tới audience mới.",
+    "Views từ reel Vũ Trụ Bách Khoa, post mạnh nhất trong dữ liệu.",
+    "Cặp poster-caption cho nhắc lịch thi và hướng dẫn bước tiếp theo."
+  ],
+  extra: {
+    featureTitle: "Feature reel",
+    featureCopy: "Mình lên concept, flow ghi hình, và copy hỗ trợ quanh một ẩn dụ dễ hiểu với học sinh thay vì chỉ giới thiệu trường theo kiểu chung chung.",
+    featureButton: "Mở reel",
+    featureStatViews: "Views của reel Vũ Trụ Bách Khoa.",
+    featureStatViewers: "Viewers mà reel tiếp cận được.",
+    featureStatWatch: "Số giây xem được ghi trong export.",
+    featureStatReact: "Reactions của post mạnh nhất trong dữ liệu.",
+    conceptTitle: "Concept deck",
+    conceptCopy: "File concept cho ẩn dụ “vũ trụ”, mapping các trường/khoa, và hướng nội dung.",
+    conceptButton: "Mở concept",
+    shootTitle: "Kế hoạch ghi hình",
+    shootCopy: "Kế hoạch quay giúp giữ rõ scene, vai trò, và timing sản xuất.",
+    shootButton: "Mở kế hoạch",
+    reelSourceTitle: "Source reel",
+    reelSourceCopy: "File MP4 local để review, đã embed phía trên với preload metadata.",
+    reelSourceButton: "Mở video",
+    evidence90: "Views trong 90 ngày theo dashboard analytics PDF.",
+    evidenceReels: "Tỷ trọng views đến từ Reels trong dashboard.",
+    evidencePhotos: "Views từ photo posts, giúp campaign không lệch hẳn một format.",
+    evidenceViewers: "Tổng viewers trong CSV export 15 dòng.",
+    evidenceInteractions: "Tổng interactions trong dữ liệu post export.",
+    evidenceReactions: "Tổng reactions trên danh sách post đã export.",
+    pdfTitle: "Analytics PDF",
+    pdfCopy: "Dashboard một trang về views, non-follower reach, và content type mix.",
+    pdfButton: "Mở PDF",
+    csvTitle: "CSV export",
+    csvCopy: "Dữ liệu post-level từ 01/01/2026 đến 07/06/2026, dùng để tính các tổng trên trang.",
+    csvButton: "Mở CSV",
+    mixTitle: "Format mix",
+    mixCopy: "PDF split: 47.3% Reels, 45.5% photos, 7% links, và 0.1% other/text.",
+    mixButton: "Xem posters"
+  }
+};
+
+copy.en = {
+  ...copy.en,
+  pills: ["Project Leader", "8,653 reel views", "83.1% non-followers", "15 exported posts"],
+  labels: ["Case study", "What I did", "Artifacts", "Feature reel", "Analytics evidence", "Poster previews", "Full archive"],
+  sectionTitles: [
+    "Not just a school visit.",
+    "Content, operations, and artifacts.",
+    "Open the work.",
+    "Vũ Trụ Bách Khoa.",
+    "Numbers, not vibes.",
+    "Same visual system.",
+    "12 posts, 12 captions."
+  ],
+  sectionCopy: [
+    "The campaign needed to be useful before, during, and after consultation. I organized the message around student needs, admission milestones, and content formats that students would actually open.",
+    "The point was not to brag about building a giant system. It was a compact campaign with visible outputs and measured content decisions.",
+    "These are the two concrete project outputs connected to this case study.",
+    "The campaign's strongest piece was a 190-second short-form video introducing HCMUT through an approachable universe concept.",
+    "The page now includes the PDF dashboard and CSV export, so the case study points back to actual campaign evidence.",
+    "The project page uses the exact poster-pack language: cream grid paper, BKFC red, deep blue, orange borders, chunky cards, and bee assets.",
+    "These cards follow the structure of the poster library index and link directly to the HTML poster pages and caption files."
+  ],
+  metrics: [
+    "Total campaign views from the exported content dataset.",
+    "Reach acquired from non-followers, showing new-audience exposure.",
+    "Views from the Vũ Trụ Bách Khoa reel, the strongest tracked post.",
+    "Poster-caption pairs for exam reminders and next-step guidance."
+  ],
+  extra: {
+    featureTitle: "Feature reel",
+    featureCopy: "I planned the concept, filming flow, and supporting copy around a student-friendly metaphor instead of a generic school introduction.",
+    featureButton: "Open reel",
+    featureStatViews: "Views on the Vũ Trụ Bách Khoa reel.",
+    featureStatViewers: "Viewers reached by the reel.",
+    featureStatWatch: "Watch seconds recorded in the export.",
+    featureStatReact: "Reactions on the strongest tracked post.",
+    conceptTitle: "Concept deck",
+    conceptCopy: "The concept file for the universe metaphor, school mapping, and content direction.",
+    conceptButton: "Open concept",
+    shootTitle: "Shoot plan",
+    shootCopy: "The filming plan used to keep scenes, roles, and production timing organized.",
+    shootButton: "Open plan",
+    reelSourceTitle: "Source reel",
+    reelSourceCopy: "The local MP4 artifact for review, embedded above with metadata preload.",
+    reelSourceButton: "Open video",
+    evidence90: "90-day views shown in the analytics dashboard PDF.",
+    evidenceReels: "Views from Reels in the dashboard format mix.",
+    evidencePhotos: "Views from photo posts, keeping the campaign balanced across formats.",
+    evidenceViewers: "Total viewers across the 15-row CSV export.",
+    evidenceInteractions: "Total interactions captured in the exported post data.",
+    evidenceReactions: "Total reactions across the exported post list.",
+    pdfTitle: "Analytics PDF",
+    pdfCopy: "One-page dashboard summary covering views, non-follower reach, and content type mix.",
+    pdfButton: "Open PDF",
+    csvTitle: "CSV export",
+    csvCopy: "Post-level export from Jan 01, 2026 to Jun 07, 2026, used for the totals on this page.",
+    csvButton: "Open CSV",
+    mixTitle: "Format mix",
+    mixCopy: "PDF split: 47.3% Reels, 45.5% photos, 7% links, and 0.1% other/text.",
+    mixButton: "See posters"
+  }
+};
+
 function setText(nodes, values, setter = (node, value) => { node.textContent = value; }) {
   nodes.forEach((node, index) => {
     if (values[index] !== undefined) setter(node, values[index]);
@@ -834,6 +1129,10 @@ function applyLanguage(lang) {
   setText([...document.querySelectorAll(".section-head h2")], t.sectionTitles);
   setText([...document.querySelectorAll(".section-head > p")], t.sectionCopy);
   setText([...document.querySelectorAll(".metric p")], t.metrics);
+  document.querySelectorAll("[data-copy-key]").forEach(node => {
+    const value = t.extra && t.extra[node.dataset.copyKey];
+    if (value !== undefined) node.textContent = value;
+  });
   document.querySelectorAll(".case-card").forEach((card, index) => {
     const item = t.caseCards[index];
     if (!item) return;
