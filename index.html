@@ -643,7 +643,6 @@
       background: var(--card-bg);
       border: 1px solid var(--line);
       border-radius: 6px;
-      padding: clamp(1.2rem, 2.5vw, 1.8rem);
       display: flex;
       flex-direction: column;
       position: relative;
@@ -666,6 +665,30 @@
     }
     .project-card:hover::before { opacity: 1; }
 
+    .proj-thumb {
+      display: block;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(200,146,42,.1);
+      background: var(--navy2);
+    }
+    .proj-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .45s ease, filter .45s ease;
+    }
+    .project-card:hover .proj-thumb img {
+      transform: scale(1.035);
+      filter: saturate(1.08) contrast(1.04);
+    }
+    .proj-content {
+      padding: clamp(1.1rem, 2.4vw, 1.6rem);
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
     .proj-num {
       font-family: 'Libre Baskerville', serif;
       font-size: .75rem;
@@ -869,17 +892,15 @@
   <div class="container hero-content">
     <div class="row align-items-center g-4 g-lg-0">
       <div class="col-lg-7 order-2 order-lg-1">
-        <div class="hero-eyebrow" data-i18n="hero.eyebrow">Industrial Systems Engineer</div>
+        <div class="hero-eyebrow" data-i18n="hero.eyebrow">Industrial Systems Engineering Student</div>
         <h1 class="hero-name">
           Nguyen<br/>
           <em>Huy Hoang</em>
         </h1>
         <p class="hero-desc" data-i18n-html="hero.desc">
-          Industrial Systems Engineering student at HCMUT bridging manufacturing domain
-          expertise with <strong>full-stack development</strong>. I build <strong>data-driven tools</strong> — from <strong>Power BI
-          dashboards</strong> and <strong>Monte Carlo simulations</strong> to <strong>warehouse management systems</strong> and <strong>AI-powered
-          web apps</strong> — that <strong>optimize production</strong>, <strong>automate workflows</strong>, and turn operational data
-          into actionable insights.
+          Industrial Systems Engineering student targeting a <strong>Data Analytics in Manufacturing</strong> role. My work focuses on
+          <strong>quantitative modeling</strong>, <strong>process automation</strong>, and <strong>manufacturing decision support</strong> —
+          including <strong>Arena</strong>, <strong>Monte Carlo</strong>, <strong>Power BI</strong>, warehouse tools, and data dashboards.
         </p>
         <div class="d-flex flex-wrap gap-3">
           <a href="#contacts" class="btn-gold"><span data-i18n="hero.cta">Contact Me</span> <i class="bi bi-arrow-right"></i></a>
@@ -981,7 +1002,7 @@
           <div class="skill-icon"><i class="bi bi-bar-chart-fill"></i></div>
           <h5 data-i18n="skills.data">Data &amp; Visualization</h5>
           <div>
-            <span class="skill-tag">SQL (Foundational)</span>
+            <span class="skill-tag">SQL</span>
             <span class="skill-tag">Power BI</span>
             <span class="skill-tag">Data Warehouse Design</span>
             <span class="skill-tag">OLAP</span>
@@ -996,16 +1017,16 @@
         <div class="skill-card">
           <div class="skill-num">02</div>
           <div class="skill-icon"><i class="bi bi-gear-fill"></i></div>
-          <h5 data-i18n="skills.opt">Optimization &amp; Lean</h5>
+          <h5 data-i18n="skills.opt">Quality &amp; Manufacturing</h5>
           <div>
-            <span class="skill-tag">Lean Six Sigma (DMAIC)</span>
             <span class="skill-tag">SPC</span>
-            <span class="skill-tag">Control Charts</span>
-            <span class="skill-tag">Kaizen</span>
+            <span class="skill-tag">DMAIC</span>
             <span class="skill-tag">FMEA</span>
             <span class="skill-tag">Line Balancing</span>
-            <span class="skill-tag">Cycle Time Analysis</span>
+            <span class="skill-tag">SOP Development</span>
+            <span class="skill-tag">Minitab</span>
             <span class="skill-tag">AutoCAD 2D</span>
+            <span class="skill-tag">Lean Six Sigma</span>
           </div>
         </div>
       </div>
@@ -1019,9 +1040,12 @@
             <span class="skill-tag">Power Automate</span>
             <span class="skill-tag">Power Apps</span>
             <span class="skill-tag">MS Dynamics 365 (ERP)</span>
-            <span class="skill-tag">MS Project</span>
+            <span class="skill-tag">MS Project (Gantt, Critical Path)</span>
             <span class="skill-tag">GitHub</span>
             <span class="skill-tag">Pentaho Data Integration</span>
+            <span class="skill-tag">Arena</span>
+            <span class="skill-tag">Crystal Ball</span>
+            <span class="skill-tag">Monte Carlo</span>
           </div>
         </div>
       </div>
@@ -1064,10 +1088,9 @@
             <div class="timeline-title" data-i18n="exp.wahl.company">Wahl Clipper Vietnam</div>
             <div class="timeline-role" data-i18n="exp.wahl.role">New Product Introduction (NPI) Intern · Cần Giuộc, Long An</div>
             <ul class="timeline-body">
-              <li data-i18n-html="exp.wahl.b1">Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to <strong>forecast daily output</strong> and <strong>eliminate bottleneck cycle times</strong>, directly optimizing production flow.</li>
+              <li data-i18n-html="exp.wahl.b1">Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to forecast daily output and eliminate bottleneck cycle times, directly optimizing production flow.</li>
               <li data-i18n-html="exp.wahl.b2">Designed and deployed a <strong>warehouse management system (WMS)</strong> for the NPI warehouse with <strong>real-time inventory tracking</strong>, warehouse layout visualization, and <strong>XLSX inbound/outbound batch processing</strong> powered by a Google Apps Script webhook.</li>
-              <li data-i18n-html="exp.wahl.b3">Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using <strong>data mining</strong> and <strong>ML-driven insights</strong>.</li>
-              <li data-i18n-html="exp.wahl.b4">Detected critical data mismatches between legacy and updated BOMs across multiple product iterations; <strong>reconciled records</strong> and <strong>standardized documentation</strong>, <strong>eliminating procurement integration errors</strong> and enabling <strong>on-time Mass Production</strong>.</li>
+              <li data-i18n-html="exp.wahl.b3">Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using data mining and ML-driven insights.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-2">
@@ -1100,8 +1123,8 @@
             <div class="timeline-title" data-i18n="extra.bkfc.title">Bach Khoa Ambassador Club</div>
             <div class="timeline-role" data-i18n="extra.bkfc.role">Project Leader — BKFC @ Nguyen Huu Canh High School</div>
             <ul class="timeline-body">
-              <li data-i18n-html="extra.bkfc.b1">Redesigned a <strong>6-month</strong> university orientation strategy using <strong>content performance analytics</strong>, growing total views to <strong>12,363</strong> with <strong>90.1% reach from non-followers</strong>.</li>
-              <li data-i18n-html="extra.bkfc.b2">Pivoted to <strong>short-form video</strong> after analyzing engagement data across post types — driving <strong>68.6% of total campaign views</strong> while <strong>cutting production time</strong> per unit of reach.</li>
+              <li data-i18n-html="extra.bkfc.b1">Redesigned a <strong>6-month</strong> university orientation strategy using <strong>content performance analytics</strong>, achieving <strong>6,347 total views</strong> and acquiring <strong>89.3% of reach from non-followers</strong>.</li>
+              <li data-i18n-html="extra.bkfc.b2">Pivoted campaign to <strong>short-form video</strong> after diagnosing engagement data, driving <strong>73.5% of total views</strong> while reducing production time per unit of reach.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-2">
@@ -1109,7 +1132,7 @@
             <div class="timeline-title" data-i18n="extra.plec.title">Play &amp; Learn English Club</div>
             <div class="timeline-role" data-i18n="extra.plec.role">HR Member</div>
             <ul class="timeline-body">
-              <li data-i18n-html="extra.plec.b1">Redesigned project workflows and introduced <strong>standardized tracking templates</strong> across a <strong>15-member team</strong>, improving administrative efficiency by <strong>150%</strong> and <strong>eliminating missed deadlines</strong>.</li>
+              <li data-i18n-html="extra.plec.b1">Redesigned workflow bottlenecks for a <strong>15-member team</strong> using standardized tracking templates, delivering a <strong>150% improvement</strong> in administrative efficiency and eliminating missed project deadlines.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-3">
@@ -1117,8 +1140,8 @@
             <div class="timeline-title" data-i18n="extra.ymu.title">Mechanical Engineering Faculty Youth Union, HCMUT</div>
             <div class="timeline-role" data-i18n="extra.ymu.role">Event MC &amp; Coordinator (Traditional Camp) · STEM Team Member (Green Summer)</div>
             <ul class="timeline-body">
-              <li data-i18n-html="extra.ymu.b1">Built comprehensive MC runbooks and coordinated all award ceremonies and logistics for a <strong>90-participant</strong> camp night from scratch — <strong>zero scheduling disruptions</strong>.</li>
-              <li data-i18n-html="extra.ymu.b2">Structured STEM project milestones with clear owners and checkpoints, achieving <strong>100% on-time completion</strong> across all deliverables <strong>ahead of schedule</strong>.</li>
+              <li data-i18n-html="extra.ymu.b1">Developed MC runbooks and logistics frameworks for a <strong>90-participant</strong> traditional camp, executing award ceremonies with <strong>zero scheduling disruptions</strong>.</li>
+              <li data-i18n-html="extra.ymu.b2">Structured STEM project milestones with defined owners and checkpoints, delivering <strong>100% on-time completion</strong> and finishing ahead of schedule.</li>
             </ul>
           </div>
         </div>
@@ -1137,35 +1160,49 @@
     </div>
     <div class="project-grid">
       <div class="project-card fade-up delay-1">
+        <a href="manufacturing-failure-analytics-pipeline/" class="proj-thumb" aria-label="Open Manufacturing Failure Analytics Pipeline">
+          <img src="assets/project-thumbnails/manufacturing-analytics.png" alt="Manufacturing failure analytics dashboard preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">01</div>
         <div class="proj-cat" data-i18n="proj.01.cat">Data Warehouse &amp; BI</div>
         <div class="proj-title"><a href="manufacturing-failure-analytics-pipeline/" data-i18n="proj.01.title">Manufacturing Failure Analytics Pipeline</a></div>
-        <p class="proj-desc" data-i18n-html="proj.01.desc"><strong>Built</strong> a complete <strong>analytics pipeline</strong> for <strong>AI4I</strong> machine failure data: <strong>preprocessing</strong>, <strong>PostgreSQL star schema</strong>, <strong>ETL</strong>, <strong>OLAP</strong> outputs, <strong>Streamlit dashboard</strong>, and an optional <strong>XGBoost prediction model</strong>.</p>
+        <p class="proj-desc" data-i18n-html="proj.01.desc">Manufacturing failure analytics project using <strong>AI4I</strong> machine failure data, combining <strong>preprocessing</strong>, <strong>PostgreSQL star schema</strong>, <strong>ETL</strong>, <strong>OLAP</strong> outputs, <strong>Streamlit dashboard</strong>, and an optional <strong>XGBoost prediction model</strong>.</p>
         <div class="proj-footer">
           <span class="proj-badge">ETL &amp; OLAP</span>
           <span class="proj-badge">Streamlit</span>
           <span class="proj-year">2026</span>
           <a href="manufacturing-failure-analytics-pipeline/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-2">
+        <a href="dashboard/" class="proj-thumb" aria-label="Open Data Visualization and Dashboarding Projects">
+          <img src="assets/project-thumbnails/power-bi-dashboard.png" alt="Power BI manufacturing dashboard preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">02</div>
         <div class="proj-cat" data-i18n="proj.02.cat">Data Analysis</div>
         <div class="proj-title"><a href="dashboard/" data-i18n="proj.02.title">Data Visualization &amp; Dashboarding Projects</a></div>
-        <p class="proj-desc" data-i18n-html="proj.02.desc"><strong>Transformed</strong> raw analytical datasets into interactive <strong>Power BI dashboards</strong> highlighting <strong>key metrics</strong>, <strong>trends</strong>, and <strong>performance indicators</strong> for decision-making.</p>
+        <p class="proj-desc" data-i18n-html="proj.02.desc">Manufacturing performance and downtime dashboard showcase in <strong>Power BI</strong>, focused on <strong>key metrics</strong>, <strong>trends</strong>, and operational performance indicators.</p>
         <div class="proj-footer">
           <span class="proj-badge">Dashboard Design</span>
           <span class="proj-year">2025-2026</span>
           <a href="dashboard/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-2">
+        <a href="WMS/" class="proj-thumb" aria-label="Open WMS Warehouse Management System">
+          <img src="assets/project-thumbnails/wms.png" alt="Warehouse management system preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">03</div>
         <div class="proj-cat" data-i18n="proj.03.cat">Warehouse &amp; Operations</div>
         <div class="proj-title"><a href="WMS/" data-i18n="proj.03.title">WMS — Warehouse Management System</a></div>
-        <p class="proj-desc" data-i18n-html="proj.03.desc"><strong>Built</strong> an interactive <strong>warehouse management dashboard</strong> with <strong>real-time inventory tracking</strong>, <strong>warehouse layout visualization</strong>, <strong>XLSX inbound/outbound batch processing</strong>, and <strong>cycle count management</strong> — all running as a <strong>static web app</strong> connected to <strong>Google Apps Script</strong>.</p>
+        <p class="proj-desc" data-i18n-html="proj.03.desc">Portfolio-friendly public copy of the <strong>warehouse management system</strong>, including <strong>real-time inventory tracking</strong>, <strong>warehouse layout visualization</strong>, <strong>XLSX inbound/outbound processing</strong>, and <strong>cycle count management</strong>.</p>
         <div class="proj-footer">
           <span class="proj-badge">Inventory</span>
           <span class="proj-badge">Dashboard</span>
@@ -1173,78 +1210,109 @@
           <span class="proj-year">2026</span>
           <a href="WMS/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-2">
+        <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-thumb" aria-label="Open Trimmer Assembly Line Simulator">
+          <img src="assets/project-thumbnails/opf-simulator.png" alt="Trimmer assembly line simulator preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">04</div>
         <div class="proj-cat" data-i18n="proj.04.cat">Simulation</div>
         <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim" data-i18n="proj.04.title">Trimmer Assembly Line Simulator</a></div>
-        <p class="proj-desc" data-i18n-html="proj.04.desc"><strong>Engineered</strong> an <strong>end-to-end web simulator</strong> for the Trimmer assembly line at Wahl Vietnam. <strong>Integrates</strong> live <strong>time-study</strong> collection with <strong>Monte Carlo</strong> and <strong>Discrete Event Simulation (DES)</strong> to <strong>auto-generate</strong> <strong>Yamazumi charts</strong>, <strong>analyze</strong> <strong>VA/NVA ratios</strong>, and <strong>optimize</strong> <strong>shift capacity</strong> against customer demand.</p>
+        <p class="proj-desc" data-i18n-html="proj.04.desc">Trimmer assembly line simulation project with <strong>time-study</strong> collection, <strong>Monte Carlo</strong>, <strong>Discrete Event Simulation (DES)</strong>, <strong>Yamazumi charts</strong>, <strong>VA/NVA ratio</strong> analysis, and shift capacity review.</p>
         <div class="proj-footer">
           <span class="proj-badge">Monte Carlo</span>
           <span class="proj-badge">Time Study</span>
           <span class="proj-year">2026</span>
           <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-2">
+        <a href="decisionanalysis/" class="proj-thumb" aria-label="Open AHP Customer Segmentation Analysis">
+          <img src="assets/project-thumbnails/ahp-analysis.png" alt="AHP decision analysis preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">05</div>
         <div class="proj-cat" data-i18n="proj.05.cat">Decision Analysis</div>
         <div class="proj-title"><a href="decisionanalysis/" data-i18n="proj.05.title">AHP Customer Segmentation Analysis</a></div>
-        <p class="proj-desc" data-i18n-html="proj.05.desc"><strong>Applied</strong> <strong>Analytic Hierarchy Process</strong> to evaluate core <strong>customer segments</strong> across <strong>revenue potential</strong>, <strong>market growth</strong>, <strong>customer loyalty</strong>, and <strong>strategic fit</strong>.</p>
+        <p class="proj-desc" data-i18n-html="proj.05.desc">AHP strategic decision analysis for EVLotus, ranking market segment, outreach channel, supplier, and flagship vehicle choices across weighted criteria.</p>
         <div class="proj-footer">
           <span class="proj-badge">Analytical Model</span>
           <span class="proj-year">Oct 2025</span>
           <a href="decisionanalysis/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-2">
+        <a href="autocad2d/" class="proj-thumb" aria-label="Open AutoCAD 2D Engineering Graphics">
+          <img src="assets/project-thumbnails/autocad-2d.png" alt="AutoCAD 2D engineering drawing preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">06</div>
         <div class="proj-cat" data-i18n="proj.06.cat">Technical Design</div>
         <div class="proj-title"><a href="autocad2d/" data-i18n="proj.06.title">AutoCAD 2D Engineering Graphics</a></div>
-        <p class="proj-desc" data-i18n-html="proj.06.desc"><strong>Developed</strong> <strong>orthographic projections</strong>, <strong>section views</strong>, and <strong>technical drawings</strong> with complex <strong>layer structures</strong>, <strong>line weights</strong>, and <strong>dimensioning</strong> to engineering standards.</p>
+        <p class="proj-desc" data-i18n-html="proj.06.desc">AutoCAD 2D engineering graphics showcase with <strong>orthographic projections</strong>, <strong>section views</strong>, exported drawing sheets, and technical drawing previews.</p>
         <div class="proj-footer">
           <span class="proj-badge">Technical Skill</span>
           <span class="proj-year">2024</span>
           <a href="autocad2d/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-3">
+        <a href="ergonomic/" class="proj-thumb" aria-label="Open Ergonomic Kitchen Workspace Design">
+          <img src="assets/project-thumbnails/ergonomic-kitchen.png" alt="Ergonomic kitchen workspace project preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">07</div>
         <div class="proj-cat" data-i18n="proj.07.cat">Human Factors</div>
         <div class="proj-title"><a href="ergonomic/" data-i18n="proj.07.title">Ergonomic Kitchen Workspace Design</a></div>
-        <p class="proj-desc" data-i18n-html="proj.07.desc"><strong>Applied</strong> <strong>anthropometric data</strong> and <strong>ergonomic principles</strong> to <strong>optimize</strong> <strong>kitchen layouts</strong>, <strong>movement efficiency</strong>, <strong>storage accessibility</strong>, and <strong>safety standards</strong>.</p>
+        <p class="proj-desc" data-i18n-html="proj.07.desc">Human factors design study applying <strong>anthropometry</strong>, workflow sequencing, and <strong>5S storage logic</strong> to reduce strain in a kitchen workspace.</p>
         <div class="proj-footer">
           <span class="proj-badge">Group Project</span>
           <span class="proj-year">2025</span>
           <a href="ergonomic/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-1">
+        <a href="systemdesign/" class="proj-thumb" aria-label="Open Co-working Space Cafe System Design">
+          <img src="assets/project-thumbnails/system-design.png" alt="Co-working cafe system design preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">08</div>
         <div class="proj-cat" data-i18n="proj.08.cat">Systems Engineering</div>
         <div class="proj-title"><a href="systemdesign/" data-i18n="proj.08.title">Co-working Space Cafe System Design</a></div>
-        <p class="proj-desc" data-i18n-html="proj.08.desc"><strong>Designed</strong> a <strong>24/7 cafe</strong> integrated with <strong>workspace functionality</strong>. <strong>System life-cycle analysis</strong>, <strong>pricing strategy (20k-60k VND)</strong>, and <strong>operational process optimization</strong>.</p>
+        <p class="proj-desc" data-i18n-html="proj.08.desc">Systems engineering concept for a <strong>24/7 co-working cafe</strong>, covering service targets, floor layouts, operating subsystems, pricing assumptions, and ROI planning.</p>
         <div class="proj-footer">
           <span class="proj-badge">Detail Design</span>
           <span class="proj-year">Nov 2025</span>
           <a href="systemdesign/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
         </div>
+        </div>
       </div>
 
       <div class="project-card fade-up delay-2">
+        <a href="BKFC/" class="proj-thumb" aria-label="Open BK FC Career Orientation Project">
+          <img src="assets/project-thumbnails/bkfc.png" alt="BK FC career orientation project preview" />
+        </a>
+        <div class="proj-content">
         <div class="proj-num">09</div>
         <div class="proj-cat" data-i18n="proj.09.cat">Leadership Campaign</div>
         <div class="proj-title"><a href="BKFC/" data-i18n="proj.09.title">BK FC Career Orientation Project</a></div>
-        <p class="proj-desc" data-i18n-html="proj.09.desc"><strong>Led</strong> a <strong>Bach Khoa career orientation campaign</strong> for Nguyen Huu Canh High School, reaching <strong>200+ grade 12 students</strong> directly and growing online campaign views by <strong>932%</strong> through <strong>short-form content strategy</strong>.</p>
+        <p class="proj-desc" data-i18n-html="proj.09.desc"><strong>Project Leader</strong> for a Bach Khoa career orientation campaign at Nguyen Huu Canh High School, combining direct consultation, content analytics, short-form video, and a small admission-support tool.</p>
         <div class="proj-footer">
           <span class="proj-badge">Project Leader</span>
           <span class="proj-year">2025-2026</span>
           <a href="BKFC/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+        </div>
         </div>
       </div>
     </div>
@@ -1433,12 +1501,10 @@ const I18N = {
     "nav.activities": "Activities",
     "nav.projects": "Projects",
     "nav.contacts": "Contacts",
-    "hero.eyebrow": "Industrial Systems Engineer",
-    "hero.desc": `Industrial Systems Engineering student at HCMUT bridging manufacturing domain
-          expertise with <strong>full-stack development</strong>. I build <strong>data-driven tools</strong> — from <strong>Power BI
-          dashboards</strong> and <strong>Monte Carlo simulations</strong> to <strong>warehouse management systems</strong> and <strong>AI-powered
-          web apps</strong> — that <strong>optimize production</strong>, <strong>automate workflows</strong>, and turn operational data
-          into actionable insights.`,
+    "hero.eyebrow": "Industrial Systems Engineering Student",
+    "hero.desc": `Industrial Systems Engineering student targeting a <strong>Data Analytics in Manufacturing</strong> role. My work focuses on
+          <strong>quantitative modeling</strong>, <strong>process automation</strong>, <strong>QC framework implementation</strong>,
+          and <strong>workflow efficiency improvements</strong> across manufacturing and operations projects.`,
     "hero.cta": "Contact Me",
     "hero.resume": "Résumé",
     "edu.label": "Academic Background",
@@ -1451,7 +1517,7 @@ const I18N = {
     "skills.label": "Technical Competencies",
     "skills.title": "Skills & Tools",
     "skills.data": "Data & Visualization",
-    "skills.opt": "Optimization & Lean",
+    "skills.opt": "Quality & Manufacturing",
     "skills.tools": "Tools & Automation",
     "skills.dev": "Software & App Development",
     "exp.label": "Professional History",
@@ -1459,10 +1525,9 @@ const I18N = {
     "exp.wahl.date": "Mar 2026 — Present",
     "exp.wahl.company": "Wahl Clipper Vietnam",
     "exp.wahl.role": "New Product Introduction (NPI) Intern · Cần Giuộc, Long An",
-    "exp.wahl.b1": `Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to <strong>forecast daily output</strong> and <strong>eliminate bottleneck cycle times</strong>, directly optimizing production flow.`,
+    "exp.wahl.b1": `Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to forecast daily output and eliminate bottleneck cycle times, directly optimizing production flow.`,
     "exp.wahl.b2": `Designed and deployed a <strong>warehouse management system (WMS)</strong> for the NPI warehouse with <strong>real-time inventory tracking</strong>, warehouse layout visualization, and <strong>XLSX inbound/outbound batch processing</strong> powered by a Google Apps Script webhook.`,
-    "exp.wahl.b3": `Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using <strong>data mining</strong> and <strong>ML-driven insights</strong>.`,
-    "exp.wahl.b4": `Detected critical data mismatches between legacy and updated BOMs across multiple product iterations; <strong>reconciled records</strong> and <strong>standardized documentation</strong>, <strong>eliminating procurement integration errors</strong> and enabling <strong>on-time Mass Production</strong>.`,
+    "exp.wahl.b3": `Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using data mining and ML-driven insights.`,
     "exp.seven.date": "Jul 2024 — Nov 2024",
     "exp.seven.role": "Store Assistant",
     "exp.seven.b1": "Managed daily retail operations, inventory replenishment, and transaction accuracy in a high-footfall convenience setting.",
@@ -1471,46 +1536,46 @@ const I18N = {
     "extra.bkfc.date": "Nov 2025 — Present",
     "extra.bkfc.title": "Bach Khoa Ambassador Club",
     "extra.bkfc.role": "Project Leader — BKFC @ Nguyen Huu Canh High School",
-    "extra.bkfc.b1": `Redesigned a <strong>6-month</strong> university orientation strategy using <strong>content performance analytics</strong>, growing total views to <strong>12,363</strong> with <strong>90.1% reach from non-followers</strong>.`,
-    "extra.bkfc.b2": `Pivoted to <strong>short-form video</strong> after analyzing engagement data across post types — driving <strong>68.6% of total campaign views</strong> while <strong>cutting production time</strong> per unit of reach.`,
+    "extra.bkfc.b1": `Redesigned a <strong>6-month</strong> university orientation strategy using <strong>content performance analytics</strong>, achieving <strong>6,347 total views</strong> and acquiring <strong>89.3% of reach from non-followers</strong>.`,
+    "extra.bkfc.b2": `Pivoted campaign to <strong>short-form video</strong> after diagnosing engagement data, driving <strong>73.5% of total views</strong> while reducing production time per unit of reach.`,
     "extra.plec.date": "Sep 2024 — Present",
     "extra.plec.title": "Play & Learn English Club",
     "extra.plec.role": "HR Member",
-    "extra.plec.b1": `Redesigned project workflows and introduced <strong>standardized tracking templates</strong> across a <strong>15-member team</strong>, improving administrative efficiency by <strong>150%</strong> and <strong>eliminating missed deadlines</strong>.`,
+    "extra.plec.b1": `Redesigned workflow bottlenecks for a <strong>15-member team</strong> using standardized tracking templates, delivering a <strong>150% improvement</strong> in administrative efficiency and eliminating missed project deadlines.`,
     "extra.ymu.date": "Jun 2025 — Nov 2025",
     "extra.ymu.title": "Mechanical Engineering Faculty Youth Union, HCMUT",
     "extra.ymu.role": "Event MC & Coordinator (Traditional Camp) · STEM Team Member (Green Summer)",
-    "extra.ymu.b1": `Built comprehensive MC runbooks and coordinated all award ceremonies and logistics for a <strong>90-participant</strong> camp night from scratch — <strong>zero scheduling disruptions</strong>.`,
-    "extra.ymu.b2": `Structured STEM project milestones with clear owners and checkpoints, achieving <strong>100% on-time completion</strong> across all deliverables <strong>ahead of schedule</strong>.`,
+    "extra.ymu.b1": `Developed MC runbooks and logistics frameworks for a <strong>90-participant</strong> traditional camp, executing award ceremonies with <strong>zero scheduling disruptions</strong>.`,
+    "extra.ymu.b2": `Structured STEM project milestones with defined owners and checkpoints, delivering <strong>100% on-time completion</strong> and finishing ahead of schedule.`,
     "projects.label": "Portfolio",
     "projects.title": "Projects",
     "proj.01.cat": "Data Warehouse & BI",
     "proj.01.title": "Manufacturing Failure Analytics Pipeline",
-    "proj.01.desc": "<strong>Built</strong> a complete <strong>analytics pipeline</strong> for <strong>AI4I</strong> machine failure data: <strong>preprocessing</strong>, <strong>PostgreSQL star schema</strong>, <strong>ETL</strong>, <strong>OLAP</strong> outputs, <strong>Streamlit dashboard</strong>, and an optional <strong>XGBoost prediction model</strong>.",
+    "proj.01.desc": "Manufacturing failure analytics project using <strong>AI4I</strong> machine failure data, combining <strong>preprocessing</strong>, <strong>PostgreSQL star schema</strong>, <strong>ETL</strong>, <strong>OLAP</strong> outputs, <strong>Streamlit dashboard</strong>, and an optional <strong>XGBoost prediction model</strong>.",
     "proj.02.cat": "Data Analysis",
     "proj.02.title": "Data Visualization & Dashboarding Projects",
-    "proj.02.desc": "<strong>Transformed</strong> raw analytical datasets into interactive <strong>Power BI dashboards</strong> highlighting <strong>key metrics</strong>, <strong>trends</strong>, and <strong>performance indicators</strong> for decision-making.",
+    "proj.02.desc": "Manufacturing performance and downtime dashboard showcase in <strong>Power BI</strong>, focused on <strong>key metrics</strong>, <strong>trends</strong>, and operational performance indicators.",
     "proj.03.cat": "Warehouse & Operations",
     "proj.03.title": "WMS — Warehouse Management System",
-    "proj.03.desc": `<strong>Built</strong> an interactive <strong>warehouse management dashboard</strong> with <strong>real-time inventory tracking</strong>, <strong>warehouse layout visualization</strong>, <strong>XLSX inbound/outbound batch processing</strong>, and <strong>cycle count management</strong> — all running as a <strong>static web app</strong> connected to <strong>Google Apps Script</strong>.`,
+    "proj.03.desc": `Portfolio-friendly public copy of the <strong>warehouse management system</strong>, including <strong>real-time inventory tracking</strong>, <strong>warehouse layout visualization</strong>, <strong>XLSX inbound/outbound processing</strong>, and <strong>cycle count management</strong>.`,
     "proj.04.cat": "Simulation",
     "proj.04.title": "Trimmer Assembly Line Simulator",
-    "proj.04.desc": "<strong>Engineered</strong> an <strong>end-to-end web simulator</strong> for the Trimmer assembly line at Wahl Vietnam. <strong>Integrates</strong> live <strong>time-study</strong> collection with <strong>Monte Carlo</strong> and <strong>Discrete Event Simulation (DES)</strong> to <strong>auto-generate</strong> <strong>Yamazumi charts</strong>, <strong>analyze</strong> <strong>VA/NVA ratios</strong>, and <strong>optimize</strong> <strong>shift capacity</strong> against customer demand.",
+    "proj.04.desc": "Trimmer assembly line simulation project with <strong>time-study</strong> collection, <strong>Monte Carlo</strong>, <strong>Discrete Event Simulation (DES)</strong>, <strong>Yamazumi charts</strong>, <strong>VA/NVA ratio</strong> analysis, and shift capacity review.",
     "proj.05.cat": "Decision Analysis",
     "proj.05.title": "AHP Customer Segmentation Analysis",
-    "proj.05.desc": "<strong>Applied</strong> <strong>Analytic Hierarchy Process</strong> to evaluate core <strong>customer segments</strong> across <strong>revenue potential</strong>, <strong>market growth</strong>, <strong>customer loyalty</strong>, and <strong>strategic fit</strong>.",
+    "proj.05.desc": "AHP strategic decision analysis for EVLotus, ranking market segment, outreach channel, supplier, and flagship vehicle choices across weighted criteria.",
     "proj.06.cat": "Technical Design",
     "proj.06.title": "AutoCAD 2D Engineering Graphics",
-    "proj.06.desc": "<strong>Developed</strong> <strong>orthographic projections</strong>, <strong>section views</strong>, and <strong>technical drawings</strong> with complex <strong>layer structures</strong>, <strong>line weights</strong>, and <strong>dimensioning</strong> to engineering standards.",
+    "proj.06.desc": "AutoCAD 2D engineering graphics showcase with <strong>orthographic projections</strong>, <strong>section views</strong>, exported drawing sheets, and technical drawing previews.",
     "proj.07.cat": "Human Factors",
     "proj.07.title": "Ergonomic Kitchen Workspace Design",
-    "proj.07.desc": "<strong>Applied</strong> <strong>anthropometric data</strong> and <strong>ergonomic principles</strong> to <strong>optimize</strong> <strong>kitchen layouts</strong>, <strong>movement efficiency</strong>, <strong>storage accessibility</strong>, and <strong>safety standards</strong>.",
+    "proj.07.desc": "Human factors design study applying <strong>anthropometry</strong>, workflow sequencing, and <strong>5S storage logic</strong> to reduce strain in a kitchen workspace.",
     "proj.08.cat": "Systems Engineering",
     "proj.08.title": "Co-working Space Cafe System Design",
-    "proj.08.desc": `<strong>Designed</strong> a <strong>24/7 cafe</strong> integrated with <strong>workspace functionality</strong>. <strong>System life-cycle analysis</strong>, <strong>pricing strategy (20k-60k VND)</strong>, and <strong>operational process optimization</strong>.`,
+    "proj.08.desc": `Systems engineering concept for a <strong>24/7 co-working cafe</strong>, covering service targets, floor layouts, operating subsystems, pricing assumptions, and ROI planning.`,
     "proj.09.cat": "Leadership Campaign",
     "proj.09.title": "BK FC Career Orientation Project",
-    "proj.09.desc": `<strong>Led</strong> a <strong>Bach Khoa career orientation campaign</strong> for Nguyen Huu Canh High School, reaching <strong>200+ grade 12 students</strong> directly and growing online campaign views by <strong>932%</strong> through <strong>short-form content strategy</strong>.`,
+    "proj.09.desc": `<strong>Project Leader</strong> for a Bach Khoa career orientation campaign at Nguyen Huu Canh High School, combining direct consultation, content analytics, short-form video, and a small admission-support tool.`,
     "contact.label": "Let's Connect",
     "contact.title": "Get In Touch",
     "contact.email": "Email",
@@ -1526,8 +1591,8 @@ const I18N = {
     "nav.activities": "Hoạt động",
     "nav.projects": "Dự án",
     "nav.contacts": "Liên hệ",
-    "hero.eyebrow": "Kỹ sư Hệ thống Công nghiệp",
-    "hero.desc": `Sinh viên Kỹ thuật Hệ thống Công nghiệp tại HCMUT, kết nối chuyên môn sản xuất với <strong>phát triển full-stack</strong>. Tôi xây dựng <strong>công cụ dựa trên dữ liệu</strong> — từ <strong>dashboard Power BI</strong> và <strong>mô phỏng Monte Carlo</strong> đến <strong>hệ thống quản lý kho</strong> và <strong>ứng dụng web AI</strong> — nhằm <strong>tối ưu hóa sản xuất</strong>, <strong>tự động hóa quy trình</strong>, và biến dữ liệu vận hành thành thông tin hữu ích.`,
+    "hero.eyebrow": "Sinh viên Kỹ thuật Hệ thống Công nghiệp",
+    "hero.desc": `Sinh viên Kỹ thuật Hệ thống Công nghiệp, định hướng vai trò <strong>Data Analytics trong sản xuất</strong>. Công việc của tôi tập trung vào <strong>mô hình định lượng</strong>, <strong>tự động hóa quy trình</strong>, <strong>triển khai framework QC</strong>, và <strong>cải thiện hiệu suất workflow</strong> trong các dự án sản xuất và vận hành.`,
     "hero.cta": "Liên hệ",
     "hero.resume": "Hồ sơ",
     "edu.label": "Học vấn",
@@ -1540,7 +1605,7 @@ const I18N = {
     "skills.label": "Năng lực kỹ thuật",
     "skills.title": "Kỹ năng & Công cụ",
     "skills.data": "Dữ liệu & Trực quan hóa",
-    "skills.opt": "Tối ưu hóa & Lean",
+    "skills.opt": "Chất lượng & Sản xuất",
     "skills.tools": "Công cụ & Tự động hóa",
     "skills.dev": "Phát triển Phần mềm & Ứng dụng",
     "exp.label": "Lịch sử chuyên môn",
@@ -1548,10 +1613,9 @@ const I18N = {
     "exp.wahl.date": "Thg 3 2026 — Nay",
     "exp.wahl.company": "Wahl Clipper Vietnam",
     "exp.wahl.role": "Thực tập sinh NPI · Cần Giuộc, Long An",
-    "exp.wahl.b1": `Mô hình hóa năng lực dây chuyền lắp ráp tông-đơ bằng <strong>Arena</strong> và <strong>Crystal Ball</strong>, chạy <strong>mô phỏng Monte Carlo (5.000 lần thử)</strong> để <strong>dự báo sản lượng hàng ngày</strong> và <strong>loại bỏ thời gian chu kỳ tắc nghẽn</strong>, trực tiếp tối ưu hóa dòng sản xuất.`,
+    "exp.wahl.b1": `Mô hình hóa năng lực dây chuyền lắp ráp tông-đơ bằng <strong>Arena</strong> và <strong>Crystal Ball</strong> để chạy <strong>mô phỏng Monte Carlo (5.000 lần thử)</strong>, dự báo sản lượng hằng ngày và loại bỏ thời gian chu kỳ gây nghẽn, trực tiếp tối ưu hóa dòng sản xuất.`,
     "exp.wahl.b2": `Thiết kế và triển khai <strong>hệ thống quản lý kho (WMS)</strong> cho kho NPI với <strong>theo dõi tồn kho thời gian thực</strong>, trực quan hóa sơ đồ kho, và <strong>xử lý hàng loạt XLSX nhập/xuất</strong> thông qua Google Apps Script webhook.`,
-    "exp.wahl.b3": `Kiến trúc <strong>data warehouse</strong> và <strong>dashboard hỗ trợ quyết định</strong> cho khu vực NPI, cho phép <strong>theo dõi vị trí SKU</strong> và tối ưu hóa phân bổ lưu trữ cấp sàn bằng <strong>khai phá dữ liệu</strong> và <strong>phân tích học máy</strong>.`,
-    "exp.wahl.b4": `Phát hiện sai lệch dữ liệu quan trọng giữa BOM cũ và mới qua nhiều phiên bản sản phẩm; <strong>đối chiếu hồ sơ</strong> và <strong>chuẩn hóa tài liệu</strong>, <strong>loại bỏ lỗi tích hợp mua hàng</strong> và đảm bảo <strong>phê duyệt Sản xuất Hàng loạt đúng hạn</strong>.`,
+    "exp.wahl.b3": `Kiến trúc <strong>data warehouse</strong> và <strong>dashboard hỗ trợ quyết định</strong> cho khu vực NPI, cho phép <strong>theo dõi vị trí SKU</strong> và tối ưu hóa phân bổ lưu trữ cấp sàn bằng data mining và ML-driven insights.`,
     "exp.seven.date": "Thg 7 2024 — Thg 11 2024",
     "exp.seven.role": "Nhân viên cửa hàng",
     "exp.seven.b1": "Quản lý vận hành bán lẻ hàng ngày, bổ sung tồn kho, và đảm bảo độ chính xác giao dịch tại cửa hàng tiện lợi có lưu lượng khách cao.",
@@ -1560,46 +1624,46 @@ const I18N = {
     "extra.bkfc.date": "Thg 11 2025 — Nay",
     "extra.bkfc.title": "CLB Đại sứ Bách Khoa",
     "extra.bkfc.role": "Trưởng nhóm Dự án — BKFC @ THPT Nguyễn Hữu Cảnh",
-    "extra.bkfc.b1": `Thiết kế lại chiến lược hướng nghiệp đại học <strong>6 tháng</strong> sử dụng <strong>phân tích hiệu suất nội dung</strong>, tăng tổng lượt xem lên <strong>12.363</strong> với <strong>90,1% tiếp cận từ người không theo dõi</strong>.`,
-    "extra.bkfc.b2": `Chuyển hướng sang <strong>video ngắn</strong> sau khi phân tích dữ liệu tương tác — thúc đẩy <strong>68,6% tổng lượt xem chiến dịch</strong> trong khi <strong>cắt giảm thời gian sản xuất</strong> trên mỗi đơn vị tiếp cận.`,
+    "extra.bkfc.b1": `Thiết kế lại chiến lược hướng nghiệp đại học <strong>6 tháng</strong> sử dụng <strong>phân tích hiệu suất nội dung</strong>, đạt <strong>6.347 tổng lượt xem</strong> và <strong>89,3% tiếp cận từ người không theo dõi</strong>.`,
+    "extra.bkfc.b2": `Chuyển hướng chiến dịch sang <strong>video ngắn</strong> sau khi phân tích dữ liệu tương tác, tạo ra <strong>73,5% tổng lượt xem</strong> đồng thời giảm thời gian sản xuất trên mỗi đơn vị tiếp cận.`,
     "extra.plec.date": "Thg 9 2024 — Nay",
     "extra.plec.title": "CLB Play & Learn English",
     "extra.plec.role": "Thành viên HR",
-    "extra.plec.b1": `Thiết kế lại quy trình dự án và giới thiệu <strong>mẫu theo dõi chuẩn hóa</strong> cho <strong>nhóm 15 thành viên</strong>, cải thiện hiệu suất hành chính <strong>150%</strong> và <strong>loại bỏ hoàn toàn trễ hạn</strong>.`,
+    "extra.plec.b1": `Thiết kế lại các điểm nghẽn quy trình cho <strong>nhóm 15 thành viên</strong> bằng mẫu theo dõi chuẩn hóa, tạo ra <strong>cải thiện 150%</strong> về hiệu suất hành chính và loại bỏ trễ hạn dự án.`,
     "extra.ymu.date": "Thg 6 2025 — Thg 11 2025",
     "extra.ymu.title": "Đoàn Khoa Cơ Khí, HCMUT",
     "extra.ymu.role": "MC & Điều phối sự kiện (Trại Truyền thống) · Thành viên STEM (Mùa hè Xanh)",
-    "extra.ymu.b1": `Xây dựng kịch bản MC toàn diện và điều phối tất cả lễ trao giải và hậu cần cho đêm trại <strong>90 người tham gia</strong> từ đầu — <strong>không gián đoạn lịch trình</strong>.`,
-    "extra.ymu.b2": `Cấu trúc các mốc dự án STEM với chủ sở hữu và điểm kiểm tra rõ ràng, đạt <strong>100% hoàn thành đúng hạn</strong> trên tất cả các hạng mục <strong>trước thời hạn</strong>.`,
+    "extra.ymu.b1": `Phát triển kịch bản MC và khung hậu cần cho trại truyền thống <strong>90 người tham gia</strong>, điều phối lễ trao giải với <strong>không gián đoạn lịch trình</strong>.`,
+    "extra.ymu.b2": `Cấu trúc các mốc dự án STEM với người phụ trách và điểm kiểm tra rõ ràng, đạt <strong>100% hoàn thành đúng hạn</strong> và kết thúc trước thời hạn.`,
     "projects.label": "Danh mục",
     "projects.title": "Dự án",
     "proj.01.cat": "Data Warehouse & BI",
     "proj.01.title": "Hệ thống Phân tích Lỗi Sản xuất",
-    "proj.01.desc": "<strong>Xây dựng</strong> pipeline phân tích hoàn chỉnh cho dữ liệu lỗi máy <strong>AI4I</strong>: <strong>tiền xử lý</strong>, <strong>star schema PostgreSQL</strong>, <strong>ETL</strong>, đầu ra <strong>OLAP</strong>, <strong>dashboard Streamlit</strong>, và mô hình dự đoán <strong>XGBoost</strong>.",
+    "proj.01.desc": "Dự án phân tích lỗi sản xuất sử dụng dữ liệu lỗi máy <strong>AI4I</strong>, kết hợp <strong>tiền xử lý</strong>, <strong>star schema PostgreSQL</strong>, <strong>ETL</strong>, đầu ra <strong>OLAP</strong>, <strong>dashboard Streamlit</strong>, và mô hình dự đoán <strong>XGBoost</strong>.",
     "proj.02.cat": "Phân tích Dữ liệu",
     "proj.02.title": "Dự án Trực quan hóa Dữ liệu & Dashboard",
-    "proj.02.desc": "<strong>Chuyển đổi</strong> dữ liệu phân tích thô thành <strong>dashboard Power BI</strong> tương tác, làm nổi bật các <strong>chỉ số</strong>, <strong>xu hướng</strong> và <strong>chỉ báo hiệu suất</strong> chính phục vụ ra quyết định.",
+    "proj.02.desc": "Showcase dashboard hiệu suất và downtime sản xuất bằng <strong>Power BI</strong>, tập trung vào <strong>chỉ số</strong>, <strong>xu hướng</strong>, và các chỉ báo hiệu suất vận hành.",
     "proj.03.cat": "Kho vận & Vận hành",
     "proj.03.title": "WMS — Hệ thống Quản lý Kho",
-    "proj.03.desc": `<strong>Xây dựng</strong> <strong>dashboard quản lý kho</strong> tương tác với <strong>theo dõi tồn kho thời gian thực</strong>, <strong>trực quan hóa sơ đồ kho</strong>, <strong>xử lý hàng loạt XLSX nhập/xuất</strong>, và <strong>quản lý kiểm kê chu kỳ</strong> — tất cả chạy như một <strong>ứng dụng web tĩnh</strong> kết nối <strong>Google Apps Script</strong>.`,
+    "proj.03.desc": `Bản public portfolio của <strong>hệ thống quản lý kho</strong>, gồm <strong>theo dõi tồn kho thời gian thực</strong>, <strong>trực quan hóa sơ đồ kho</strong>, <strong>xử lý XLSX nhập/xuất</strong>, và <strong>quản lý kiểm kê chu kỳ</strong>.`,
     "proj.04.cat": "Mô phỏng",
     "proj.04.title": "Trình Mô phỏng Dây chuyền Lắp ráp Tông-đơ",
-    "proj.04.desc": "<strong>Thiết kế</strong> <strong>trình mô phỏng web end-to-end</strong> cho dây chuyền lắp ráp Tông-đơ tại Wahl Vietnam. <strong>Tích hợp</strong> thu thập <strong>time-study</strong> trực tiếp với <strong>Monte Carlo</strong> và <strong>Mô phỏng Sự kiện Rời rạc (DES)</strong> để <strong>tự động tạo</strong> <strong>biểu đồ Yamazumi</strong>, <strong>phân tích</strong> <strong>tỷ lệ VA/NVA</strong>, và <strong>tối ưu hóa</strong> <strong>năng lực ca làm việc</strong>.",
+    "proj.04.desc": "Dự án mô phỏng dây chuyền lắp ráp tông-đơ với thu thập <strong>time-study</strong>, <strong>Monte Carlo</strong>, <strong>Mô phỏng Sự kiện Rời rạc (DES)</strong>, <strong>biểu đồ Yamazumi</strong>, phân tích <strong>tỷ lệ VA/NVA</strong>, và rà soát năng lực ca làm việc.",
     "proj.05.cat": "Phân tích Quyết định",
     "proj.05.title": "Phân tích Phân khúc Khách hàng AHP",
-    "proj.05.desc": "<strong>Áp dụng</strong> <strong>Quy trình Phân tích Thứ bậc (AHP)</strong> để đánh giá các <strong>phân khúc khách hàng</strong> cốt lõi qua <strong>tiềm năng doanh thu</strong>, <strong>tăng trưởng thị trường</strong>, <strong>lòng trung thành</strong> và <strong>sự phù hợp chiến lược</strong>.",
+    "proj.05.desc": "Phân tích quyết định chiến lược bằng AHP cho EVLotus, xếp hạng phân khúc thị trường, kênh tiếp cận, nhà cung cấp, và mẫu xe chủ lực theo các tiêu chí có trọng số.",
     "proj.06.cat": "Thiết kế Kỹ thuật",
     "proj.06.title": "Đồ họa Kỹ thuật AutoCAD 2D",
-    "proj.06.desc": "<strong>Phát triển</strong> <strong>hình chiếu trực giao</strong>, <strong>mặt cắt</strong>, và <strong>bản vẽ kỹ thuật</strong> với cấu trúc <strong>layer</strong> phức tạp, <strong>độ dày nét vẽ</strong> và <strong>đo kích thước</strong> theo tiêu chuẩn kỹ thuật.",
+    "proj.06.desc": "Showcase đồ họa kỹ thuật AutoCAD 2D với <strong>hình chiếu trực giao</strong>, <strong>mặt cắt</strong>, bản vẽ xuất file, và preview kỹ thuật.",
     "proj.07.cat": "Yếu tố Con người",
     "proj.07.title": "Thiết kế Không gian Bếp Công thái học",
-    "proj.07.desc": "<strong>Áp dụng</strong> <strong>dữ liệu nhân trắc học</strong> và <strong>nguyên lý công thái học</strong> để <strong>tối ưu hóa</strong> <strong>bố trí bếp</strong>, <strong>hiệu suất di chuyển</strong>, <strong>khả năng tiếp cận lưu trữ</strong> và <strong>tiêu chuẩn an toàn</strong>.",
+    "proj.07.desc": "Nghiên cứu thiết kế human factors áp dụng <strong>nhân trắc học</strong>, trình tự workflow, và logic lưu trữ <strong>5S</strong> để giảm strain trong không gian bếp.",
     "proj.08.cat": "Kỹ thuật Hệ thống",
     "proj.08.title": "Thiết kế Hệ thống Cafe Co-working Space",
-    "proj.08.desc": `<strong>Thiết kế</strong> <strong>cafe 24/7</strong> tích hợp <strong>chức năng không gian làm việc</strong>. <strong>Phân tích vòng đời hệ thống</strong>, <strong>chiến lược giá (20k-60k VND)</strong>, và <strong>tối ưu hóa quy trình vận hành</strong>.`,
+    "proj.08.desc": `Ý tưởng kỹ thuật hệ thống cho <strong>co-working cafe 24/7</strong>, bao gồm mục tiêu dịch vụ, layout mặt bằng, subsystem vận hành, giả định giá, và kế hoạch ROI.`,
     "proj.09.cat": "Chiến dịch Lãnh đạo",
     "proj.09.title": "Dự án Hướng nghiệp BK FC",
-    "proj.09.desc": `<strong>Dẫn dắt</strong> <strong>chiến dịch hướng nghiệp Bách Khoa</strong> cho THPT Nguyễn Hữu Cảnh, tiếp cận trực tiếp <strong>hơn 200 học sinh lớp 12</strong> và tăng lượt xem chiến dịch trực tuyến <strong>932%</strong> thông qua <strong>chiến lược nội dung video ngắn</strong>.`,
+    "proj.09.desc": `<strong>Project Leader</strong> cho chiến dịch hướng nghiệp Bách Khoa tại THPT Nguyễn Hữu Cảnh, kết hợp tư vấn trực tiếp, phân tích nội dung, video ngắn, và tool hỗ trợ tuyển sinh.`,
     "contact.label": "Kết nối",
     "contact.title": "Liên hệ",
     "contact.email": "Email",
