@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
@@ -64,7 +64,7 @@ img{display:block;max-width:100%}
   margin:0;
   font-family:var(--title);
   font-size:clamp(34px,5vw,68px);
-  line-height:.86;
+  line-height:1.1;
   color:var(--red);
   letter-spacing:0;
   text-transform:uppercase;
@@ -180,8 +180,8 @@ img{display:block;max-width:100%}
 }
 .metric{
   position:relative;
-  min-height:220px;
-  padding:20px;
+  min-height:260px;
+  padding:20px 56px 20px 20px;
   background:var(--paper);
   border:5px solid var(--orange);
   border-radius:8px;
@@ -191,22 +191,23 @@ img{display:block;max-width:100%}
 .metric::after{
   content:attr(data-no);
   position:absolute;
-  right:14px;
-  top:12px;
+  right:10px;
+  top:10px;
   font-family:var(--title);
-  font-size:48px;
+  font-size:42px;
   line-height:.8;
   color:rgba(9,34,90,.13);
+	pointer-events:none;
 }
 .metric b{
   display:block;
-  margin:0 0 18px;
+  margin:0 0 14px;
   font-family:var(--title);
-  font-size:clamp(48px,7vw,86px);
-  line-height:.82;
+  font-size:clamp(44px,6vw,74px);
+  line-height:1;
   color:var(--accent,var(--red));
 }
-.metric p{margin:0;font-size:20px;line-height:1.24;font-weight:790}
+.metric p{margin:0;font-size:18px;line-height:1.32;font-weight:790}
 .accent-red{--accent:#D40008}.accent-blue{--accent:#0A6BBD}.accent-green{--accent:#008A61}.accent-pink{--accent:#E52265}.accent-purple{--accent:#6B3FB5}
 .case-grid{
   display:grid;
@@ -468,7 +469,12 @@ footer{padding:0 24px 42px}
   .poster-frame iframe{transform:translateX(-50%) scale(.34)}
 }
 @media (max-width:720px){
-  .brand-logo{width:220px;height:auto}
+  .topbar-inner{padding:8px 12px;gap:10px}
+  .brand-lockup{gap:10px}
+  .brand-logo{width:130px;height:auto}
+  .brand-copy h1{font-size:clamp(22px,7vw,36px);line-height:1.05}
+  .brand-copy p{font-size:13px;margin:4px 0 0}
+  .nav a,.button,.lang-toggle button{min-height:36px;padding:8px 12px;font-size:14px;border-width:3px}
   .shell{padding:22px 16px 44px}
   .hero h2{font-size:56px}
   .hero p,.section-head p,.case-card p,.artifact p,.video-copy p,.source-card p{font-size:19px}
@@ -962,7 +968,7 @@ const copy = {
     metrics: [
       "Total campaign views from the orientation content.",
       "Reach acquired from non-followers, showing new-audience exposure.",
-      "Total views driven by short-form video after the content pivot.",
+      "Views from the Vũ Trụ Bách Khoa reel, the strongest tracked post.",
       "Poster-caption pairs for exam reminders and next-step guidance."
     ],
     caseCards: [
