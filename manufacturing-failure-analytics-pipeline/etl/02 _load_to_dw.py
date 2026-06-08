@@ -3,6 +3,7 @@ CO4031 BTL - Step 02: Load Cleaned Data to PostgreSQL
 Purpose: Load the transformed CSV into the staging.machine_data table
 """
 
+import os
 import pandas as pd
 from sqlalchemy import create_engine, text
 import warnings
@@ -14,7 +15,7 @@ warnings.filterwarnings('ignore')
 # ============================================================
 # Change these if your PostgreSQL settings are different:
 DB_USER = "postgres"
-DB_PASSWORD = "885028" # your PostgreSQL password
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "")  # Set via environment variable
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "co4031_dw"

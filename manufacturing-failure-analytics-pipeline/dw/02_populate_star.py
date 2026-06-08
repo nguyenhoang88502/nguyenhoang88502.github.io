@@ -3,6 +3,7 @@ CO4031 BTL - Step: Populate Star Schema from Staging
 Purpose: Reads from staging.machine_data, loads into dw.* tables
 """
 
+import os
 import pandas as pd
 from sqlalchemy import create_engine, text
 import numpy as np
@@ -16,7 +17,7 @@ warnings.filterwarnings('ignore')
 # CONNECTION CONFIGURATION
 # ============================================================
 DB_USER = "postgres"
-DB_PASSWORD = "885028" # Update this to your actual password!
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "")  # Set via environment variable
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "co4031_dw"
