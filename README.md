@@ -23,7 +23,7 @@ Because GitHub Pages is static, it cannot run private backend logic, hide API ke
 |-- index.html
 |-- tool.html
 |-- favicon.png
-|-- resume1.pdf
+|-- Nguyen_Huy_Hoang_Resume.pdf
 |-- DSC_4906a (1).jpg
 |-- README.md
 `-- project folders...
@@ -56,7 +56,7 @@ NPI tool directory for Wahl Clipper Vietnam-related workflows. It includes:
 ### Static Assets
 
 - `favicon.png`: site icon.
-- `resume1.pdf`: linked from the portfolio.
+- `Nguyen_Huy_Hoang_Resume.pdf`: public résumé linked from the portfolio.
 - `DSC_4906a (1).jpg`: profile or portfolio image asset.
 
 ## Repository Structure
@@ -79,7 +79,7 @@ NPI tool directory for Wahl Clipper Vietnam-related workflows. It includes:
 |-- index.html
 |-- tool.html
 |-- favicon.png
-|-- resume1.pdf
+|-- Nguyen_Huy_Hoang_Resume.pdf
 `-- README.md
 ```
 

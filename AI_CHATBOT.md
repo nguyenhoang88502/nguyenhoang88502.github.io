@@ -195,13 +195,20 @@ The system prompt instructs the assistant to decline:
 
 ## Adding Context
 
-The assistant's knowledge comes from the system prompt. Currently this is a static string in the Vercel Function. To make the assistant aware of new projects:
+The assistant combines the deployed portfolio's live text with the structured
+public context in the separate `portfolio-ai-proxy` repository:
 
-1. **Update the system prompt** in `api/chat.js` to mention the new project
-2. **Update `suggestedQuestions`** in `chat-widget.js` to add a relevant prompt button
-3. **Update the intro message** in `chat-widget.js` so visitors know the assistant covers the new topic
+1. **Update `data/site-context.json`** with verified public facts, calculations,
+   project order, and privacy rules
+2. **Update the system instructions** in `api/chat.js` only when the assistant's
+   behavior or boundaries need to change
+3. **Update `suggestedQuestions`** in `chat-widget.js` to add a relevant prompt button
+4. **Update the intro message** in `chat-widget.js` so visitors know the assistant covers the new topic
 
-For more comprehensive context, a `data/site-context.json` file can be imported by the Vercel Function and injected into the system prompt. This keeps project summaries in one place and avoids editing the function code for content changes.
+The context file is loaded by the Vercel Function and injected into the system
+prompt. Keep it public-safe: exclude private relationships, precise locations,
+internal paths, confidential company data, product identifiers, and unsupported
+claims.
 
 ## Streaming (Future)
 

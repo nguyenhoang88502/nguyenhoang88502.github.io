@@ -506,6 +506,12 @@
       background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt));
       border-radius: 1px;
     }
+    .credential-meta {
+      color: var(--muted);
+      font-size: .72rem;
+      line-height: 1.55;
+      margin-top: .35rem;
+    }
 
     /* ══ SKILLS ══ */
     #skills { background: var(--navy2); }
@@ -743,6 +749,15 @@
       transition: color .2s, transform .2s;
     }
     .proj-arrow:hover { color: var(--gold); transform: translateX(3px) translateY(-3px); }
+    .more-projects { margin-top: 1rem; }
+    .projects-more-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 2.5rem;
+    }
+    .projects-more-btn { cursor: pointer; }
+    .projects-more-btn .bi { transition: transform .25s ease; }
+    .projects-more-btn[aria-expanded="true"] .bi { transform: rotate(180deg); }
 
 
     /* ══ CONTACT ══ */
@@ -892,22 +907,20 @@
   <div class="container hero-content">
     <div class="row align-items-center g-4 g-lg-0">
       <div class="col-lg-7 order-2 order-lg-1">
-        <div class="hero-eyebrow" data-i18n="hero.eyebrow">Industrial Systems Engineering Student</div>
+        <div class="hero-eyebrow" data-i18n="hero.eyebrow">Industrial Systems Engineering · Manufacturing Analytics · NPI</div>
         <h1 class="hero-name">
           Nguyen<br/>
           <em>Huy Hoang</em>
         </h1>
         <p class="hero-desc" data-i18n-html="hero.desc">
-          Industrial Systems Engineering student targeting a <strong>Data Analytics in Manufacturing</strong> role. My work focuses on
-          <strong>quantitative modeling</strong>, <strong>process automation</strong>, and <strong>manufacturing decision support</strong> —
-          including <strong>Arena</strong>, <strong>Monte Carlo</strong>, <strong>Power BI</strong>, warehouse tools, and data dashboards.
+          Industrial Systems Engineering student at HCMUT bridging manufacturing domain expertise with pragmatic, data-driven solutions. I build smart tools—from Power BI dashboards and Monte Carlo simulations to scrappy warehouse systems and AI-assisted apps—to automate the boring stuff, optimize production, and turn messy operational data into clear, actionable insights. Currently, I apply this approach in NPI work, supporting manufacturing automation, quality engineering, BOM validation, and process improvement.
         </p>
         <div class="d-flex flex-wrap gap-3">
           <a href="#contacts" class="btn-gold"><span data-i18n="hero.cta">Contact Me</span> <i class="bi bi-arrow-right"></i></a>
           <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" class="btn-ghost">
             <i class="bi bi-linkedin"></i> LinkedIn
           </a>
-          <a href="resume1.pdf" target="_blank" class="btn-ghost">
+          <a href="Nguyen_Huy_Hoang_Resume.pdf" target="_blank" class="btn-ghost">
             <i class="bi bi-file-earmark-person"></i> <span data-i18n="hero.resume">Résumé</span>
           </a>
         </div>
@@ -952,7 +965,7 @@
             <span style="color:var(--cream);font-weight:600;">2027</span>
           </div>
           <div class="d-flex justify-content-between" style="font-size:.85rem;">
-            <span style="color:var(--muted);" data-i18n="edu.gpa">GPA (2025–2026)</span>
+            <span style="color:var(--muted);" data-i18n="edu.gpa">Recent academic-year GPA</span>
             <span style="color:var(--gold);font-weight:600;">3.3 / 4.0</span>
           </div>
         </div>
@@ -971,15 +984,20 @@
               <span style="color:var(--gold);font-weight:600;">935 / 990</span>
             </div>
             <div class="cert-bar-wrap"><div class="cert-bar" style="width:95%;"></div></div>
-            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;" data-i18n="edu.english">Full Professional Proficiency</div>
+            <div class="credential-meta" data-i18n-html="edu.toeicMeta">Accredited by <strong>IIG Vietnam</strong> · Professional working proficiency</div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
+              <span style="color:var(--cream);" data-i18n="edu.lssyb">Lean Six Sigma Yellow Belt</span>
+              <span style="color:var(--gold);font-weight:600;">22 Jul 2026</span>
+            </div>
+            <div class="credential-meta" data-i18n-html="edu.lssybMeta">Course provider: <strong>LSSI Learn</strong> · ASQ-aligned curriculum<br />Accredited by <strong>The Council for Six Sigma Certification (CSSC)</strong> · Certificate No. 189475716</div>
           </div>
           <div>
             <div class="d-flex justify-content-between mb-1" style="font-size:.85rem;">
-              <span style="color:var(--cream);">Microsoft Office Specialist (MOS) Associate</span>
-              <span style="color:var(--gold);font-weight:600;">Office 365</span>
+              <span style="color:var(--cream);" data-i18n="edu.mos">Microsoft Office Specialist (MOS) Associate</span>
             </div>
-            <div class="cert-bar-wrap"><div class="cert-bar" style="width:90%;"></div></div>
-            <div style="color:var(--muted);font-size:.72rem;margin-top:.3rem;">Office 365 &amp; Office 2019</div>
+            <div class="credential-meta" data-i18n-html="edu.mosMeta">Accredited by <strong>IIG Vietnam</strong> · Microsoft Office 365 &amp; Office 2019</div>
           </div>
         </div>
       </div>
@@ -1000,16 +1018,17 @@
         <div class="skill-card">
           <div class="skill-num">01</div>
           <div class="skill-icon"><i class="bi bi-bar-chart-fill"></i></div>
-          <h5 data-i18n="skills.data">Data &amp; Visualization</h5>
+          <h5 data-i18n="skills.data">Manufacturing Analytics</h5>
           <div>
-            <span class="skill-tag">SQL</span>
+            <span class="skill-tag">Excel</span>
             <span class="skill-tag">Power BI</span>
-            <span class="skill-tag">Data Warehouse Design</span>
-            <span class="skill-tag">OLAP</span>
-            <span class="skill-tag">Data Mining</span>
-            <span class="skill-tag">Dashboarding</span>
-            <span class="skill-tag">Excel (Advanced)</span>
-            <span class="skill-tag">Decision Support Systems</span>
+            <span class="skill-tag">SQL</span>
+            <span class="skill-tag">Python / pandas</span>
+            <span class="skill-tag">Minitab / SPC</span>
+            <span class="skill-tag">Monte Carlo</span>
+            <span class="skill-tag">Time Study</span>
+            <span class="skill-tag">Line Balancing / Yamazumi</span>
+            <span class="skill-tag">Capacity Analysis</span>
           </div>
         </div>
       </div>
@@ -1017,16 +1036,16 @@
         <div class="skill-card">
           <div class="skill-num">02</div>
           <div class="skill-icon"><i class="bi bi-gear-fill"></i></div>
-          <h5 data-i18n="skills.opt">Quality &amp; Manufacturing</h5>
+          <h5 data-i18n="skills.opt">Process &amp; Quality</h5>
           <div>
-            <span class="skill-tag">SPC</span>
-            <span class="skill-tag">DMAIC</span>
-            <span class="skill-tag">FMEA</span>
-            <span class="skill-tag">Line Balancing</span>
-            <span class="skill-tag">SOP Development</span>
-            <span class="skill-tag">Minitab</span>
-            <span class="skill-tag">AutoCAD 2D</span>
             <span class="skill-tag">Lean Six Sigma</span>
+            <span class="skill-tag">DMAIC / 5S</span>
+            <span class="skill-tag">PFMEA / DFMEA Support</span>
+            <span class="skill-tag">Control Plan / FAI</span>
+            <span class="skill-tag">ECN</span>
+            <span class="skill-tag">BOM Reconciliation</span>
+            <span class="skill-tag">SOP / WI Development</span>
+            <span class="skill-tag">NPI Stage-Gate Support</span>
           </div>
         </div>
       </div>
@@ -1034,18 +1053,16 @@
         <div class="skill-card">
           <div class="skill-num">03</div>
           <div class="skill-icon"><i class="bi bi-cpu-fill"></i></div>
-          <h5 data-i18n="skills.tools">Tools &amp; Automation</h5>
+          <h5 data-i18n="skills.tools">Automation &amp; Applications</h5>
           <div>
+            <span class="skill-tag">HTML / CSS / JavaScript</span>
+            <span class="skill-tag">React</span>
+            <span class="skill-tag">D3.js</span>
+            <span class="skill-tag">SheetJS / JSZip</span>
+            <span class="skill-tag">PowerShell 5.1</span>
+            <span class="skill-tag">Python / openpyxl</span>
             <span class="skill-tag">Google Apps Script</span>
-            <span class="skill-tag">Power Automate</span>
-            <span class="skill-tag">Power Apps</span>
-            <span class="skill-tag">MS Dynamics 365 (ERP)</span>
-            <span class="skill-tag">MS Project (Gantt, Critical Path)</span>
-            <span class="skill-tag">GitHub</span>
-            <span class="skill-tag">Pentaho Data Integration</span>
-            <span class="skill-tag">Arena</span>
-            <span class="skill-tag">Crystal Ball</span>
-            <span class="skill-tag">Monte Carlo</span>
+            <span class="skill-tag">Offline-first Browser Apps</span>
           </div>
         </div>
       </div>
@@ -1053,18 +1070,15 @@
         <div class="skill-card">
           <div class="skill-num">04</div>
           <div class="skill-icon"><i class="bi bi-code-slash"></i></div>
-          <h5 data-i18n="skills.dev">Software &amp; App Development</h5>
+          <h5 data-i18n="skills.dev">Enterprise &amp; Engineering Tools</h5>
           <div>
-            <span class="skill-tag">HTML / CSS / JavaScript</span>
-            <span class="skill-tag">Python (pandas, Streamlit, Plotly, scikit-learn)</span>
-            <span class="skill-tag">React / Vite</span>
-            <span class="skill-tag">PostgreSQL</span>
-            <span class="skill-tag">D3.js</span>
-            <span class="skill-tag">SheetJS / ExcelJS</span>
-            <span class="skill-tag">Ollama (LLama, Qwen)</span>
-            <span class="skill-tag">Web AI / AI Apps</span>
-            <span class="skill-tag">Machine Learning (XGBoost, SHAP)</span>
-            <span class="skill-tag">Claude Code / Cursor</span>
+            <span class="skill-tag">Microsoft Dynamics 365</span>
+            <span class="skill-tag">SharePoint / OneDrive</span>
+            <span class="skill-tag">Git / GitHub</span>
+            <span class="skill-tag">AutoCAD 2D</span>
+            <span class="skill-tag">Arena</span>
+            <span class="skill-tag">Crystal Ball</span>
+            <span class="skill-tag">MS Project</span>
           </div>
         </div>
       </div>
@@ -1088,9 +1102,12 @@
             <div class="timeline-title" data-i18n="exp.wahl.company">Wahl Clipper Vietnam</div>
             <div class="timeline-role" data-i18n="exp.wahl.role">New Product Introduction (NPI) Intern · Cần Giuộc, Long An</div>
             <ul class="timeline-body">
-              <li data-i18n-html="exp.wahl.b1">Modeled trimmer assembly line capacity using <strong>Arena</strong> and <strong>Crystal Ball</strong> to run <strong>Monte Carlo simulations (5,000 trials)</strong> to forecast daily output and eliminate bottleneck cycle times, directly optimizing production flow.</li>
-              <li data-i18n-html="exp.wahl.b2">Designed and deployed a <strong>warehouse management system (WMS)</strong> for the NPI warehouse with <strong>real-time inventory tracking</strong>, warehouse layout visualization, and <strong>XLSX inbound/outbound batch processing</strong> powered by a Google Apps Script webhook.</li>
-              <li data-i18n-html="exp.wahl.b3">Architected a <strong>data warehouse</strong> and <strong>decision support dashboard</strong> for NPI material staging, enabling <strong>SKU location tracking</strong> and optimizing floor-level storage allocations using data mining and ML-driven insights.</li>
+              <li data-i18n-html="exp.wahl.b1">Engineered an <strong>offline React/PowerShell inspection-standard application</strong> that searched a <strong>52,929-row BOM</strong> and connected images, PDF scans, and Excel templates, cutting preparation from approximately <strong>40 to 10 minutes (75%)</strong> while supporting a portfolio of <strong>420+ finished-good standards</strong>.</li>
+              <li data-i18n-html="exp.wahl.b2">Developed a <strong>carton-fit decision tool</strong> evaluating <strong>6 packing orientations and 125 ratio combinations</strong>; avoided <strong>71 operator-hours of trial-production downtime (4.26M VND)</strong> and saved technicians <strong>14 minutes per audit</strong>—equivalent to <strong>35–42 hours / 2.8–3.36M VND</strong> across 150–180 new finished-good audits.</li>
+              <li data-i18n-html="exp.wahl.b3">Built <strong>OPF Sim</strong> for mobile multi-cycle time studies and Monte Carlo line balancing, running up to <strong>100,000 scenarios</strong> with Yamazumi, VA/NVA, and takt-probability outputs and preserving an existing <strong>14-sheet Excel</strong> reporting template.</li>
+              <li data-i18n-html="exp.wahl.b4">Executed <strong>FAI, PFMEA, Control Plan, ECN, quality-batch, and D365 BOM/route</strong> work across <strong>30+ product platforms and 100+ SKU variants</strong>, including <strong>9+ localization drawing packages</strong> and documentation for <strong>30+ carton designs</strong>.</li>
+              <li data-i18n-html="exp.wahl.b5">Automated monthly <strong>CAPEX reporting for 18 projects</strong> with Python/openpyxl and built Power BI OPEX and downtime views for plan-versus-actual, variance, utilization, Pareto, and production-loss analysis.</li>
+              <li data-i18n-html="exp.wahl.b6">Implemented <strong>Digital 5S</strong> through a portable web app with a <strong>14-day cache</strong>, targeting <strong>under one minute for whole-drive searches</strong> with no server, internet connection, or administrator rights required.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-2">
@@ -1132,7 +1149,7 @@
             <div class="timeline-title" data-i18n="extra.plec.title">Play &amp; Learn English Club</div>
             <div class="timeline-role" data-i18n="extra.plec.role">HR Member</div>
             <ul class="timeline-body">
-              <li data-i18n-html="extra.plec.b1">Redesigned workflow bottlenecks for a <strong>15-member team</strong> using standardized tracking templates, delivering a <strong>150% improvement</strong> in administrative efficiency and eliminating missed project deadlines.</li>
+              <li data-i18n-html="extra.plec.b1">Standardized tracking and task ownership for a <strong>15-member team</strong>, improving deadline visibility and reducing missed handoffs.</li>
             </ul>
           </div>
           <div class="timeline-item fade-up delay-3">
@@ -1159,162 +1176,179 @@
       <div class="divider"></div>
     </div>
     <div class="project-grid">
-      <div class="project-card fade-up delay-1">
-        <a href="manufacturing-failure-analytics-pipeline/" class="proj-thumb" aria-label="Open Manufacturing Failure Analytics Pipeline">
-          <img src="assets/project-thumbnails/manufacturing-analytics.png" alt="Manufacturing failure analytics dashboard preview" />
-        </a>
+      <article class="project-card fade-up delay-1">
+        <a href="manufacturing-failure-analytics-pipeline/" class="proj-thumb" aria-label="Open Manufacturing Failure Analytics Pipeline"><img src="assets/project-thumbnails/manufacturing-analytics.png" alt="Manufacturing failure analytics dashboard preview" /></a>
         <div class="proj-content">
-        <div class="proj-num">01</div>
-        <div class="proj-cat" data-i18n="proj.01.cat">Data Warehouse &amp; BI</div>
-        <div class="proj-title"><a href="manufacturing-failure-analytics-pipeline/" data-i18n="proj.01.title">Manufacturing Failure Analytics Pipeline</a></div>
-        <p class="proj-desc" data-i18n-html="proj.01.desc">Manufacturing failure analytics project using <strong>AI4I</strong> machine failure data, combining <strong>preprocessing</strong>, <strong>PostgreSQL star schema</strong>, <strong>ETL</strong>, <strong>OLAP</strong> outputs, <strong>Streamlit dashboard</strong>, and an optional <strong>XGBoost prediction model</strong>.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">ETL &amp; OLAP</span>
-          <span class="proj-badge">Streamlit</span>
-          <span class="proj-year">2026</span>
-          <a href="manufacturing-failure-analytics-pipeline/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">01</div>
+          <div class="proj-cat" data-i18n="proj.08.cat">Academic Manufacturing Analytics</div>
+          <div class="proj-title"><a href="manufacturing-failure-analytics-pipeline/" data-i18n="proj.08.title">Manufacturing Failure Analytics Pipeline</a></div>
+          <p class="proj-desc" data-i18n-html="proj.08.desc">An academic end-to-end analytics project using the AI4I dataset: <strong>Python preprocessing, PostgreSQL star schema, ETL, OLAP, Streamlit dashboards, and optional XGBoost/SHAP modeling</strong> for failure-pattern exploration and manufacturing decision support.</p>
+          <div class="proj-footer"><span class="proj-badge" data-i18n="status.academic">Academic Project</span><span class="proj-badge">Python · SQL · BI</span><span class="proj-year">2026</span><a href="manufacturing-failure-analytics-pipeline/" class="proj-arrow" aria-label="Open analytics project"><i class="bi bi-arrow-up-right"></i></a></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-2">
-        <a href="dashboard/" class="proj-thumb" aria-label="Open Data Visualization and Dashboarding Projects">
-          <img src="assets/project-thumbnails/power-bi-dashboard.png" alt="Power BI manufacturing dashboard preview" />
-        </a>
+      <article class="project-card fade-up delay-2">
+        <div class="proj-thumb"><img src="assets/project-thumbnails/master-carton-fit-ui.png" alt="Privacy-safe Master Carton Fit Tool interface" /></div>
         <div class="proj-content">
-        <div class="proj-num">02</div>
-        <div class="proj-cat" data-i18n="proj.02.cat">Data Analysis</div>
-        <div class="proj-title"><a href="dashboard/" data-i18n="proj.02.title">Data Visualization &amp; Dashboarding Projects</a></div>
-        <p class="proj-desc" data-i18n-html="proj.02.desc">Manufacturing performance and downtime dashboard showcase in <strong>Power BI</strong>, focused on <strong>key metrics</strong>, <strong>trends</strong>, and operational performance indicators.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Dashboard Design</span>
-          <span class="proj-year">2025-2026</span>
-          <a href="dashboard/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">02</div>
+          <div class="proj-cat" data-i18n="proj.02.cat">Internal Tool · Packaging Engineering</div>
+          <div class="proj-title" data-i18n="proj.02.title">Master Carton Fit Tool</div>
+          <p class="proj-desc" data-i18n-html="proj.02.desc">Trial-production fit issues needed earlier NPI decisions. I built an <strong>offline browser application</strong> with Excel/CSV preprocessing, six-orientation packing, new-product checks, FG lookup, current-versus-suggested carton audits, ranked alternatives, synchronized 3D comparison, CSV/PDF exports, and <strong>batch set-cover analysis</strong> for shared-carton opportunities. Recommendations remain advisory until physical sample validation.</p>
+          <div class="proj-footer"><span class="proj-badge" data-i18n="status.internal">Internal Tool</span><span class="proj-badge">JavaScript · PowerShell</span><span class="proj-year">2026</span></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-2">
-        <a href="WMS/" class="proj-thumb" aria-label="Open WMS Warehouse Management System">
-          <img src="assets/project-thumbnails/wms.png" alt="Warehouse management system preview" />
-        </a>
+      <article class="project-card fade-up delay-2">
+        <div class="proj-thumb"><img src="assets/project-thumbnails/npi-opex-dashboard-ui.png" alt="Sanitized NPI OPEX Power BI dashboard interface" /></div>
         <div class="proj-content">
-        <div class="proj-num">03</div>
-        <div class="proj-cat" data-i18n="proj.03.cat">Warehouse &amp; Operations</div>
-        <div class="proj-title"><a href="WMS/" data-i18n="proj.03.title">WMS — Warehouse Management System</a></div>
-        <p class="proj-desc" data-i18n-html="proj.03.desc">Portfolio-friendly public copy of the <strong>warehouse management system</strong>, including <strong>real-time inventory tracking</strong>, <strong>warehouse layout visualization</strong>, <strong>XLSX inbound/outbound processing</strong>, and <strong>cycle count management</strong>.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Inventory</span>
-          <span class="proj-badge">Dashboard</span>
-          <span class="proj-badge">Layout</span>
-          <span class="proj-year">2026</span>
-          <a href="WMS/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">03</div>
+          <div class="proj-cat" data-i18n="proj.05.cat">Internal Reporting · CAPEX / OPEX</div>
+          <div class="proj-title" data-i18n="proj.05.title">NPI CAPEX &amp; OPEX Reporting</div>
+          <p class="proj-desc" data-i18n-html="proj.05.desc">I built a <strong>Python/openpyxl Excel workflow</strong> for monthly IR Plan versus PO Actual, KPI cards, PO status, and category analysis, alongside a Power BI OPEX overview for actual-versus-approved spend, utilization, variance, monthly trends, and category Pareto analysis. All public visuals and operational values are intentionally sanitized.</p>
+          <div class="proj-footer"><span class="proj-badge" data-i18n="status.internal">Internal Tool</span><span class="proj-badge">Python · openpyxl</span><span class="proj-year">2026</span></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-2">
-        <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-thumb" aria-label="Open Trimmer Assembly Line Simulator">
-          <img src="assets/project-thumbnails/opf-simulator.png" alt="Trimmer assembly line simulator preview" />
-        </a>
+      <article class="project-card fade-up delay-2">
+        <div class="proj-thumb"><img src="assets/project-thumbnails/inspection-standard-ui.png" alt="Inspection Standard Image Inserter app interface" /></div>
         <div class="proj-content">
-        <div class="proj-num">04</div>
-        <div class="proj-cat" data-i18n="proj.04.cat">Simulation</div>
-        <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim" data-i18n="proj.04.title">Trimmer Assembly Line Simulator</a></div>
-        <p class="proj-desc" data-i18n-html="proj.04.desc">Trimmer assembly line simulation project with <strong>time-study</strong> collection, <strong>Monte Carlo</strong>, <strong>Discrete Event Simulation (DES)</strong>, <strong>Yamazumi charts</strong>, <strong>VA/NVA ratio</strong> analysis, and shift capacity review.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Monte Carlo</span>
-          <span class="proj-badge">Time Study</span>
-          <span class="proj-year">2026</span>
-          <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">04</div>
+          <div class="proj-cat" data-i18n="proj.01.cat">Internal Tool · Inspection Automation</div>
+          <div class="proj-title" data-i18n="proj.01.title">Inspection Standard Tool</div>
+          <p class="proj-desc" data-i18n-html="proj.01.desc">QC document preparation required manual BOM matching, image handling, and Excel formatting. I built a <strong>React and PowerShell offline-first application</strong> with drag-and-drop images, PDF cropping, latest-weekly-BOM lookup across <strong>52,929 rows</strong>, caching, and template-based Excel generation. It reduced preparation time from approximately <strong>40 to 10 minutes</strong>.</p>
+          <div class="proj-footer"><span class="proj-badge" data-i18n="status.internal">Internal Tool</span><span class="proj-badge">React · SheetJS</span><span class="proj-year">2026</span></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-2">
-        <a href="decisionanalysis/" class="proj-thumb" aria-label="Open AHP Customer Segmentation Analysis">
-          <img src="assets/project-thumbnails/ahp-analysis.png" alt="AHP decision analysis preview" />
-        </a>
+      <article class="project-card fade-up delay-2">
+        <div class="proj-thumb"><img src="assets/project-thumbnails/engineering-file-search-ui.png" alt="Privacy-safe engineering file search interface" /></div>
         <div class="proj-content">
-        <div class="proj-num">05</div>
-        <div class="proj-cat" data-i18n="proj.05.cat">Decision Analysis</div>
-        <div class="proj-title"><a href="decisionanalysis/" data-i18n="proj.05.title">AHP Customer Segmentation Analysis</a></div>
-        <p class="proj-desc" data-i18n-html="proj.05.desc">AHP strategic decision analysis for EVLotus, ranking market segment, outreach channel, supplier, and flagship vehicle choices across weighted criteria.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Analytical Model</span>
-          <span class="proj-year">Oct 2025</span>
-          <a href="decisionanalysis/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">05</div>
+          <div class="proj-cat" data-i18n="proj.04.cat">Internal Tool · Digital 5S</div>
+          <div class="proj-title" data-i18n="proj.04.title">Engineering File Search Tool / Digital 5S</div>
+          <p class="proj-desc" data-i18n-html="proj.04.desc">I implemented <strong>Digital 5S through a portable web app</strong> with a <strong>14-day cache</strong>, targeting whole-drive searches in under one minute without requiring a server, internet connection, or administrator rights. The broader work also introduced a product-centric folder structure, searchable English drawing names, and a migration inventory.</p>
+          <div class="proj-footer"><span class="proj-badge" data-i18n="status.internal">Internal Tool</span><span class="proj-badge">PowerShell · HTML</span><span class="proj-year">2026</span></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-2">
+      <article class="project-card fade-up delay-2">
+        <a href="dashboard/" class="proj-thumb" aria-label="Open Data Visualization and Dashboarding Projects"><img src="assets/project-thumbnails/power-bi-dashboard.png" alt="Power BI manufacturing dashboard preview" /></a>
+        <div class="proj-content">
+          <div class="proj-num">06</div>
+          <div class="proj-cat" data-i18n="more.dashboard.cat">Data Analysis</div>
+          <div class="proj-title"><a href="dashboard/" data-i18n="more.dashboard.title">Data Visualization &amp; Dashboarding Projects</a></div>
+          <p class="proj-desc" data-i18n-html="more.dashboard.desc">Manufacturing performance and downtime dashboard showcase in <strong>Power BI</strong>, focused on key metrics, trends, and operational performance indicators.</p>
+          <div class="proj-footer"><span class="proj-badge">Dashboard Design</span><span class="proj-year">2025–2026</span><a href="dashboard/" class="proj-arrow" aria-label="Open dashboards"><i class="bi bi-arrow-up-right"></i></a></div>
+        </div>
+      </article>
+
+      <article class="project-card fade-up delay-2">
         <a href="autocad2d/" class="proj-thumb" aria-label="Open AutoCAD 2D Engineering Graphics">
           <img src="assets/project-thumbnails/autocad-2d.png" alt="AutoCAD 2D engineering drawing preview" />
         </a>
         <div class="proj-content">
-        <div class="proj-num">06</div>
-        <div class="proj-cat" data-i18n="proj.06.cat">Technical Design</div>
-        <div class="proj-title"><a href="autocad2d/" data-i18n="proj.06.title">AutoCAD 2D Engineering Graphics</a></div>
-        <p class="proj-desc" data-i18n-html="proj.06.desc">AutoCAD 2D engineering graphics showcase with <strong>orthographic projections</strong>, <strong>section views</strong>, exported drawing sheets, and technical drawing previews.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Technical Skill</span>
-          <span class="proj-year">2024</span>
-          <a href="autocad2d/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">07</div>
+          <div class="proj-cat" data-i18n="more.autocad.cat">Technical Design</div>
+          <div class="proj-title"><a href="autocad2d/" data-i18n="more.autocad.title">AutoCAD 2D Engineering Graphics</a></div>
+          <p class="proj-desc" data-i18n-html="more.autocad.desc">AutoCAD 2D engineering graphics showcase with <strong>orthographic projections</strong>, <strong>section views</strong>, exported drawing sheets, and technical drawing previews.</p>
+          <div class="proj-footer"><span class="proj-badge">Technical Skill</span><span class="proj-year">2024</span><a href="autocad2d/" class="proj-arrow" aria-label="Open AutoCAD project"><i class="bi bi-arrow-up-right"></i></a></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-3">
+      <article class="project-card fade-up delay-3">
+        <div class="proj-thumb"><img src="assets/project-thumbnails/npi-onboarding-ui.png" alt="Privacy-safe NPI onboarding package interface" /></div>
+        <div class="proj-content">
+          <div class="proj-num">08</div>
+          <div class="proj-cat" data-i18n="proj.06.cat">Knowledge Transfer · NPI</div>
+          <div class="proj-title" data-i18n="proj.06.title">NPI Intern Onboarding Package</div>
+          <p class="proj-desc" data-i18n-html="proj.06.desc">New interns needed a structured path through NPI concepts and working practices. I created a <strong>searchable, print-ready HTML package</strong> covering NPI and EPM overviews, documentation guidance, risk and problem solving, project tracking, a 30/60/90-day plan, quick-reference cards, and a training checklist, with A4 print support.</p>
+          <div class="proj-footer"><span class="proj-badge" data-i18n="status.internal">Internal Tool</span><span class="proj-badge">HTML · A4 Print</span><span class="proj-year">2026</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="project-grid more-projects" id="moreProjects" hidden aria-hidden="true">
+      <article class="project-card fade-up delay-1">
+        <a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-thumb" aria-label="Open Trimmer Assembly Line Simulator">
+          <img src="assets/project-thumbnails/opf-simulator.png" alt="Trimmer assembly line simulator preview" />
+        </a>
+        <div class="proj-content">
+          <div class="proj-num">09</div>
+          <div class="proj-cat" data-i18n="more.trimmer.cat">Simulation</div>
+          <div class="proj-title"><a href="https://nguyenhoang88502.github.io/OPF_sim" data-i18n="more.trimmer.title">Trimmer Assembly Line Simulator</a></div>
+          <p class="proj-desc" data-i18n-html="more.trimmer.desc">Trimmer assembly line simulation project with <strong>time-study</strong> collection, <strong>Monte Carlo</strong>, <strong>Discrete Event Simulation (DES)</strong>, <strong>Yamazumi charts</strong>, <strong>VA/NVA ratio</strong> analysis, and shift capacity review.</p>
+          <div class="proj-footer"><span class="proj-badge">Monte Carlo</span><span class="proj-badge">Time Study</span><span class="proj-year">2026</span><a href="https://nguyenhoang88502.github.io/OPF_sim" class="proj-arrow" aria-label="Open simulator"><i class="bi bi-arrow-up-right"></i></a></div>
+        </div>
+      </article>
+
+      <article class="project-card fade-up delay-2">
+        <a href="WMS/" class="proj-thumb" aria-label="Open WMS Warehouse Management System"><img src="assets/project-thumbnails/wms.png" alt="Warehouse management system preview" /></a>
+        <div class="proj-content">
+          <div class="proj-num">10</div>
+          <div class="proj-cat" data-i18n="more.wms.cat">Warehouse &amp; Operations</div>
+          <div class="proj-title"><a href="WMS/" data-i18n="more.wms.title">WMS — Warehouse Management System</a></div>
+          <p class="proj-desc" data-i18n-html="more.wms.desc">A portfolio-friendly warehouse management system with <strong>inventory tracking</strong>, warehouse layout visualization, XLSX inbound/outbound processing, and cycle-count management.</p>
+          <div class="proj-footer"><span class="proj-badge">Inventory</span><span class="proj-badge">Dashboard</span><span class="proj-year">2026</span><a href="WMS/" class="proj-arrow" aria-label="Open WMS"><i class="bi bi-arrow-up-right"></i></a></div>
+        </div>
+      </article>
+
+      <article class="project-card fade-up delay-2">
+        <a href="decisionanalysis/" class="proj-thumb" aria-label="Open AHP Customer Segmentation Analysis"><img src="assets/project-thumbnails/ahp-analysis.png" alt="AHP decision analysis preview" /></a>
+        <div class="proj-content">
+          <div class="proj-num">11</div>
+          <div class="proj-cat" data-i18n="more.ahp.cat">Decision Analysis</div>
+          <div class="proj-title"><a href="decisionanalysis/" data-i18n="more.ahp.title">AHP Customer Segmentation Analysis</a></div>
+          <p class="proj-desc" data-i18n-html="more.ahp.desc">A strategic AHP model ranking market segment, outreach channel, supplier, and flagship vehicle choices across weighted criteria.</p>
+          <div class="proj-footer"><span class="proj-badge">Analytical Model</span><span class="proj-year">2025</span><a href="decisionanalysis/" class="proj-arrow" aria-label="Open AHP analysis"><i class="bi bi-arrow-up-right"></i></a></div>
+        </div>
+      </article>
+
+      <article class="project-card fade-up delay-3">
         <a href="ergonomic/" class="proj-thumb" aria-label="Open Ergonomic Kitchen Workspace Design">
           <img src="assets/project-thumbnails/ergonomic-kitchen.png" alt="Ergonomic kitchen workspace project preview" />
         </a>
         <div class="proj-content">
-        <div class="proj-num">07</div>
-        <div class="proj-cat" data-i18n="proj.07.cat">Human Factors</div>
-        <div class="proj-title"><a href="ergonomic/" data-i18n="proj.07.title">Ergonomic Kitchen Workspace Design</a></div>
-        <p class="proj-desc" data-i18n-html="proj.07.desc">Human factors design study applying <strong>anthropometry</strong>, workflow sequencing, and <strong>5S storage logic</strong> to reduce strain in a kitchen workspace.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Group Project</span>
-          <span class="proj-year">2025</span>
-          <a href="ergonomic/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">12</div>
+          <div class="proj-cat" data-i18n="more.ergonomic.cat">Human Factors</div>
+          <div class="proj-title"><a href="ergonomic/" data-i18n="more.ergonomic.title">Ergonomic Kitchen Workspace Design</a></div>
+          <p class="proj-desc" data-i18n-html="more.ergonomic.desc">Human factors design study applying <strong>anthropometry</strong>, workflow sequencing, and <strong>5S storage logic</strong> to reduce strain in a kitchen workspace.</p>
+          <div class="proj-footer"><span class="proj-badge">Group Project</span><span class="proj-year">2025</span><a href="ergonomic/" class="proj-arrow" aria-label="Open ergonomics project"><i class="bi bi-arrow-up-right"></i></a></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-1">
+      <article class="project-card fade-up delay-1">
         <a href="systemdesign/" class="proj-thumb" aria-label="Open Co-working Space Cafe System Design">
           <img src="assets/project-thumbnails/system-design.png" alt="Co-working cafe system design preview" />
         </a>
         <div class="proj-content">
-        <div class="proj-num">08</div>
-        <div class="proj-cat" data-i18n="proj.08.cat">Systems Engineering</div>
-        <div class="proj-title"><a href="systemdesign/" data-i18n="proj.08.title">Co-working Space Cafe System Design</a></div>
-        <p class="proj-desc" data-i18n-html="proj.08.desc">Systems engineering concept for a <strong>24/7 co-working cafe</strong>, covering service targets, floor layouts, operating subsystems, pricing assumptions, and ROI planning.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Detail Design</span>
-          <span class="proj-year">Nov 2025</span>
-          <a href="systemdesign/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">13</div>
+          <div class="proj-cat" data-i18n="more.system.cat">Systems Engineering</div>
+          <div class="proj-title"><a href="systemdesign/" data-i18n="more.system.title">Co-working Space Cafe System Design</a></div>
+          <p class="proj-desc" data-i18n-html="more.system.desc">Systems engineering concept for a <strong>24/7 co-working cafe</strong>, covering service targets, floor layouts, operating subsystems, pricing assumptions, and ROI planning.</p>
+          <div class="proj-footer"><span class="proj-badge">Detail Design</span><span class="proj-year">2025</span><a href="systemdesign/" class="proj-arrow" aria-label="Open system design"><i class="bi bi-arrow-up-right"></i></a></div>
         </div>
-        </div>
-      </div>
+      </article>
 
-      <div class="project-card fade-up delay-2">
+      <article class="project-card fade-up delay-2">
         <a href="BKFC/" class="proj-thumb" aria-label="Open BK FC Career Orientation Project">
           <img src="assets/project-thumbnails/bkfc.png" alt="BK FC career orientation project preview" />
         </a>
         <div class="proj-content">
-        <div class="proj-num">09</div>
-        <div class="proj-cat" data-i18n="proj.09.cat">Leadership Campaign</div>
-        <div class="proj-title"><a href="BKFC/" data-i18n="proj.09.title">BK FC Career Orientation Project</a></div>
-        <p class="proj-desc" data-i18n-html="proj.09.desc"><strong>Project Leader</strong> for a Bach Khoa career orientation campaign at Nguyen Huu Canh High School, combining direct consultation, content analytics, short-form video, and a small admission-support tool.</p>
-        <div class="proj-footer">
-          <span class="proj-badge">Project Leader</span>
-          <span class="proj-year">2025-2026</span>
-          <a href="BKFC/" class="proj-arrow"><i class="bi bi-arrow-up-right"></i></a>
+          <div class="proj-num">14</div>
+          <div class="proj-cat" data-i18n="more.bkfc.cat">Leadership Campaign</div>
+          <div class="proj-title"><a href="BKFC/" data-i18n="more.bkfc.title">BK FC Career Orientation Project</a></div>
+          <p class="proj-desc" data-i18n-html="more.bkfc.desc"><strong>Project Leader</strong> for a Bach Khoa career-orientation campaign combining direct consultation, content analytics, short-form video, and a small admission-support tool.</p>
+          <div class="proj-footer"><span class="proj-badge">Project Leader</span><span class="proj-year">2025–2026</span><a href="BKFC/" class="proj-arrow" aria-label="Open BK FC project"><i class="bi bi-arrow-up-right"></i></a></div>
         </div>
-        </div>
-      </div>
+      </article>
+
+    </div>
+
+    <div class="projects-more-wrap">
+      <button class="btn-gold projects-more-btn" id="projectsMoreToggle" type="button" aria-expanded="false" aria-controls="moreProjects">
+        <span data-more-label>Show more projects</span>
+        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+      </button>
     </div>
   </div>
 </section>
@@ -1356,15 +1390,6 @@
           </div>
         </a>
       </div>
-      <div class="col-sm-6 col-lg-4 fade-up delay-4">
-        <div class="contact-link" style="cursor:default;">
-          <i class="bi bi-geo-alt-fill contact-icon"></i>
-          <div>
-            <div class="contact-label" data-i18n="contact.location">Location</div>
-            <div class="contact-value">Ho Chi Minh City, Vietnam</div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -1378,7 +1403,7 @@
       <div class="d-flex gap-3">
         <a href="mailto:nguyenhoang88502@gmail.com" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-envelope-fill"></i></a>
         <a href="https://linkedin.com/in/nguyenhoang88502" target="_blank" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-linkedin"></i></a>
-        <a href="resume1.pdf" target="_blank" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-file-earmark-person"></i></a>
+        <a href="Nguyen_Huy_Hoang_Resume.pdf" target="_blank" aria-label="Open résumé" style="color:var(--muted);font-size:1.1rem;transition:color .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="bi bi-file-earmark-person"></i></a>
       </div>
     </div>
   </div>
@@ -1390,10 +1415,12 @@
   /* ── Cursor ── */
   const cursor = document.getElementById('cursor');
   const ring   = document.getElementById('cursor-ring');
+  const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   let mx = -100, my = -100, rx = -100, ry = -100;
 
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  if (hasFinePointer) document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
   function animateCursor() {
+    if (!hasFinePointer) return;
     cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
     rx += (mx - rx) * .12; ry += (my - ry) * .12;
     ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
@@ -1402,7 +1429,7 @@
   animateCursor();
 
   /* Scale ring on interactive elements */
-  document.querySelectorAll('a, button').forEach(el => {
+  if (hasFinePointer) document.querySelectorAll('a, button').forEach(el => {
     el.addEventListener('mouseenter', () => {
       ring.style.width = '52px'; ring.style.height = '52px';
       ring.style.borderColor = 'rgba(200,146,42,.7)';
@@ -1673,8 +1700,230 @@ const I18N = {
   }
 };
 
+Object.assign(I18N.en, {
+  "nav.about": "About",
+  "nav.education": "Education",
+  "nav.skills": "Skills",
+  "nav.experience": "Experience",
+  "nav.activities": "Activities",
+  "nav.projects": "Projects",
+  "nav.contacts": "Contacts",
+  "hero.eyebrow": "Industrial Systems Engineering · Manufacturing Analytics · NPI",
+  "hero.desc": `Industrial Systems Engineering student at HCMUT bridging manufacturing domain expertise with pragmatic, data-driven solutions. I build smart tools—from Power BI dashboards and Monte Carlo simulations to scrappy warehouse systems and AI-assisted apps—to automate the boring stuff, optimize production, and turn messy operational data into clear, actionable insights. Currently, I apply this approach in NPI work, supporting manufacturing automation, quality engineering, BOM validation, and process improvement.`,
+  "hero.cta": "Contact Me",
+  "hero.resume": "Résumé",
+  "edu.label": "Academic Background",
+  "edu.title": "Education & Certifications",
+  "edu.degree": "Bachelor of Engineering — Industrial Systems Engineering",
+  "edu.grad": "Expected Graduation",
+  "edu.gpa": "Recent academic-year GPA",
+  "edu.certs": "Certifications & Credentials",
+  "edu.lssyb": "Lean Six Sigma Yellow Belt",
+  "edu.lssybNo": "Certificate No. 189475716",
+  "edu.lssybMeta": `Course provider: <strong>LSSI Learn</strong> · ASQ-aligned curriculum<br />Accredited by <strong>The Council for Six Sigma Certification (CSSC)</strong> · Certificate No. 189475716`,
+  "edu.mos": "Microsoft Office Specialist (MOS) Associate",
+  "edu.mosMeta": `Accredited by <strong>IIG Vietnam</strong> · Microsoft Office 365 & Office 2019`,
+  "edu.toeicMeta": `Accredited by <strong>IIG Vietnam</strong> · Professional working proficiency`,
+  "edu.english": "Professional working proficiency",
+  "skills.label": "Technical Competencies",
+  "skills.title": "Skills & Tools",
+  "skills.data": "Manufacturing Analytics",
+  "skills.opt": "Process & Quality",
+  "skills.tools": "Automation & Applications",
+  "skills.dev": "Enterprise & Engineering Tools",
+  "exp.label": "Professional History",
+  "exp.title": "Work Experience",
+  "exp.wahl.date": "Mar 2026 — Present",
+  "exp.wahl.company": "Wahl Clipper Vietnam",
+  "exp.wahl.role": "New Product Introduction (NPI) Intern · Cần Giuộc, Long An",
+  "exp.wahl.b1": `Engineered an <strong>offline React/PowerShell inspection-standard application</strong> that searched a <strong>52,929-row BOM</strong> and connected images, PDF scans, and Excel templates, cutting preparation from approximately <strong>40 to 10 minutes (75%)</strong> while supporting a portfolio of <strong>420+ finished-good standards</strong>.`,
+  "exp.wahl.b2": `Developed a <strong>carton-fit decision tool</strong> evaluating <strong>6 packing orientations and 125 ratio combinations</strong>; avoided <strong>71 operator-hours of trial-production downtime (4.26M VND)</strong> and saved technicians <strong>14 minutes per audit</strong>—equivalent to <strong>35–42 hours / 2.8–3.36M VND</strong> across 150–180 new finished-good audits.`,
+  "exp.wahl.b3": `Built <strong>OPF Sim</strong> for mobile multi-cycle time studies and Monte Carlo line balancing, running up to <strong>100,000 scenarios</strong> with Yamazumi, VA/NVA, and takt-probability outputs and preserving an existing <strong>14-sheet Excel</strong> reporting template.`,
+  "exp.wahl.b4": `Executed <strong>FAI, PFMEA, Control Plan, ECN, quality-batch, and D365 BOM/route</strong> work across <strong>30+ product platforms and 100+ SKU variants</strong>, including <strong>9+ localization drawing packages</strong> and documentation for <strong>30+ carton designs</strong>.`,
+  "exp.wahl.b5": `Automated monthly <strong>CAPEX reporting for 18 projects</strong> with Python/openpyxl and built Power BI OPEX and downtime views for plan-versus-actual, variance, utilization, Pareto, and production-loss analysis.`,
+  "exp.wahl.b6": `Implemented <strong>Digital 5S</strong> through a portable web app with a <strong>14-day cache</strong>, targeting <strong>under one minute for whole-drive searches</strong> with no server, internet connection, or administrator rights required.`,
+  "extra.plec.b1": `Standardized tracking and task ownership for a <strong>15-member team</strong>, improving deadline visibility and reducing missed handoffs.`,
+  "projects.label": "Manufacturing Portfolio",
+  "projects.title": "Selected Projects",
+  "proj.01.cat": "Internal Tool · Inspection Automation",
+  "proj.01.title": "Inspection Standard Tool",
+  "proj.01.desc": `QC document preparation required manual BOM matching, image handling, and Excel formatting. I built a <strong>React and PowerShell offline-first application</strong> with drag-and-drop images, PDF cropping, latest-weekly-BOM lookup across <strong>52,929 rows</strong>, caching, and template-based Excel generation. It reduced preparation time from approximately <strong>40 to 10 minutes</strong>.`,
+  "proj.02.cat": "Internal Tool · Packaging Engineering",
+  "proj.02.title": "Master Carton Fit Tool",
+  "proj.02.desc": `Trial-production fit issues needed earlier NPI decisions. I built an <strong>offline browser application</strong> with Excel/CSV preprocessing, six-orientation packing, new-product checks, FG lookup, current-versus-suggested carton audits, ranked alternatives, synchronized 3D comparison, CSV/PDF exports, and <strong>batch set-cover analysis</strong> for shared-carton opportunities. Recommendations remain advisory until physical sample validation.`,
+  "proj.03.cat": "Industrial Engineering Simulation",
+  "proj.03.title": "OPF Sim — IE Time Study & Line Balancing",
+  "proj.03.desc": `Static averages hid operator variability and required repeated data entry. I built a mobile multi-cycle stopwatch and browser simulator using <strong>localStorage, triangular Monte Carlo up to 100,000 scenarios, D3.js Yamazumi analysis, VA/semi-VA/NVA breakdown, takt probability, and before/after balancing</strong>. JSZip exports into an existing 14-sheet Excel template while preserving charts and formatting.`,
+  "proj.04.cat": "Internal Tool · Digital 5S",
+  "proj.04.title": "Engineering File Search Tool / Digital 5S",
+  "proj.04.desc": `I implemented <strong>Digital 5S through a portable web app</strong> with a <strong>14-day cache</strong>, targeting whole-drive searches in under one minute without requiring a server, internet connection, or administrator rights. The broader work also introduced a product-centric folder structure, searchable English drawing names, and a migration inventory.`,
+  "proj.05.cat": "Internal Reporting · CAPEX / OPEX",
+  "proj.05.title": "NPI CAPEX & OPEX Reporting",
+  "proj.05.desc": `I built a <strong>Python/openpyxl Excel workflow</strong> for monthly IR Plan versus PO Actual, KPI cards, PO status, and category analysis, alongside a Power BI OPEX overview for actual-versus-approved spend, utilization, variance, monthly trends, and category Pareto analysis. All public visuals and operational values are intentionally sanitized.`,
+  "proj.06.cat": "Knowledge Transfer · NPI",
+  "proj.06.title": "NPI Intern Onboarding Package",
+  "proj.06.desc": `New interns needed a structured path through NPI concepts and working practices. I created a <strong>searchable, print-ready HTML package</strong> covering NPI and EPM overviews, documentation guidance, risk and problem solving, project tracking, a 30/60/90-day plan, quick-reference cards, and a training checklist, with A4 print support.`,
+  "proj.07.cat": "Research and Thesis Framework in Development",
+  "proj.07.title": "EPM / EEM Thesis Working Package",
+  "proj.07.desc": `I am developing a connected ME4101–ME4367 thesis package around <strong>Early Product Management and Early Equipment Management</strong>: an evidence-based NPI gate framework, risk-based quality-batch validation, Green/Yellow/Red release logic, source mapping, and company-context analysis. This is an implementation-ready research draft; no pre/post result is claimed yet.`,
+  "proj.08.cat": "Academic Manufacturing Analytics",
+  "proj.08.title": "Manufacturing Failure Analytics Pipeline",
+  "proj.08.desc": `An academic end-to-end analytics project using the AI4I dataset: <strong>Python preprocessing, PostgreSQL star schema, ETL, OLAP, Streamlit dashboards, and optional XGBoost/SHAP modeling</strong> for failure-pattern exploration and manufacturing decision support.`,
+  "projects.more": "Show more projects",
+  "projects.less": "Show fewer projects",
+  "more.trimmer.cat": "Simulation",
+  "more.trimmer.title": "Trimmer Assembly Line Simulator",
+  "more.trimmer.desc": `Trimmer assembly line simulation project with <strong>time-study</strong> collection, <strong>Monte Carlo</strong>, <strong>Discrete Event Simulation (DES)</strong>, <strong>Yamazumi charts</strong>, <strong>VA/NVA ratio</strong> analysis, and shift capacity review.`,
+  "more.dashboard.cat": "Data Analysis",
+  "more.dashboard.title": "Data Visualization & Dashboarding Projects",
+  "more.dashboard.desc": `Manufacturing performance and downtime dashboard showcase in <strong>Power BI</strong>, focused on key metrics, trends, and operational performance indicators.`,
+  "more.wms.cat": "Warehouse & Operations",
+  "more.wms.title": "WMS — Warehouse Management System",
+  "more.wms.desc": `A portfolio-friendly warehouse management system with <strong>inventory tracking</strong>, warehouse layout visualization, XLSX inbound/outbound processing, and cycle-count management.`,
+  "more.ahp.cat": "Decision Analysis",
+  "more.ahp.title": "AHP Customer Segmentation Analysis",
+  "more.ahp.desc": `A strategic AHP model ranking market segment, outreach channel, supplier, and flagship vehicle choices across weighted criteria.`,
+  "more.ergonomic.cat": "Human Factors",
+  "more.ergonomic.title": "Ergonomic Kitchen Workspace Design",
+  "more.ergonomic.desc": `Human factors design study applying <strong>anthropometry</strong>, workflow sequencing, and <strong>5S storage logic</strong> to reduce strain in a kitchen workspace.`,
+  "more.system.cat": "Systems Engineering",
+  "more.system.title": "Co-working Space Cafe System Design",
+  "more.system.desc": `Systems engineering concept for a <strong>24/7 co-working cafe</strong>, covering service targets, floor layouts, operating subsystems, pricing assumptions, and ROI planning.`,
+  "more.bkfc.cat": "Leadership Campaign",
+  "more.bkfc.title": "BK FC Career Orientation Project",
+  "more.bkfc.desc": `<strong>Project Leader</strong> for a Bach Khoa career-orientation campaign combining direct consultation, content analytics, short-form video, and a small admission-support tool.`,
+  "more.autocad.cat": "Technical Design",
+  "more.autocad.title": "AutoCAD 2D Engineering Graphics",
+  "more.autocad.desc": `AutoCAD 2D engineering graphics showcase with <strong>orthographic projections</strong>, <strong>section views</strong>, exported drawing sheets, and technical drawing previews.`,
+  "status.internal": "Internal Tool",
+  "status.deployed": "Deployed",
+  "status.research": "Research in Progress",
+  "status.academic": "Academic Project",
+  "contact.label": "Let's Connect",
+  "contact.title": "Get In Touch",
+  "contact.email": "Email",
+  "contact.phone": "Phone",
+  "contact.location": "Location"
+});
+
+Object.assign(I18N.vi, {
+  "nav.about": "Giới thiệu",
+  "nav.education": "Học vấn",
+  "nav.skills": "Kỹ năng",
+  "nav.experience": "Kinh nghiệm",
+  "nav.activities": "Hoạt động",
+  "nav.projects": "Dự án",
+  "nav.contacts": "Liên hệ",
+  "hero.eyebrow": "Kỹ thuật Hệ thống Công nghiệp · Phân tích Sản xuất · NPI",
+  "hero.desc": `Sinh viên Kỹ thuật Hệ thống Công nghiệp tại HCMUT, kết nối kiến thức chuyên môn sản xuất với các giải pháp thực tiễn dựa trên dữ liệu. Tôi xây dựng các công cụ thông minh—từ dashboard Power BI và mô phỏng Monte Carlo đến hệ thống kho tinh gọn và ứng dụng hỗ trợ bởi AI—để tự động hóa công việc lặp lại, tối ưu sản xuất và chuyển dữ liệu vận hành lộn xộn thành insight rõ ràng, có thể hành động. Hiện tại, tôi áp dụng cách tiếp cận này trong công việc NPI, hỗ trợ tự động hóa sản xuất, kỹ thuật chất lượng, xác nhận BOM và cải tiến quy trình.`,
+  "hero.cta": "Liên hệ",
+  "hero.resume": "Hồ sơ",
+  "edu.label": "Nền tảng học thuật",
+  "edu.title": "Học vấn & Chứng chỉ",
+  "edu.degree": "Kỹ sư — Kỹ thuật Hệ thống Công nghiệp",
+  "edu.grad": "Dự kiến tốt nghiệp",
+  "edu.gpa": "GPA năm học gần nhất",
+  "edu.certs": "Chứng chỉ & Năng lực",
+  "edu.lssyb": "Lean Six Sigma Yellow Belt",
+  "edu.lssybNo": "Số chứng chỉ 189475716",
+  "edu.lssybMeta": `Đơn vị đào tạo: <strong>LSSI Learn</strong> · Chương trình theo định hướng ASQ<br />Được công nhận bởi <strong>The Council for Six Sigma Certification (CSSC)</strong> · Số chứng chỉ 189475716`,
+  "edu.mos": "Microsoft Office Specialist (MOS) Associate",
+  "edu.mosMeta": `Được công nhận bởi <strong>IIG Vietnam</strong> · Microsoft Office 365 & Office 2019`,
+  "edu.toeicMeta": `Được công nhận bởi <strong>IIG Vietnam</strong> · Năng lực làm việc chuyên nghiệp`,
+  "edu.english": "Năng lực làm việc chuyên nghiệp",
+  "skills.label": "Năng lực kỹ thuật",
+  "skills.title": "Kỹ năng & Công cụ",
+  "skills.data": "Phân tích Sản xuất",
+  "skills.opt": "Quy trình & Chất lượng",
+  "skills.tools": "Tự động hóa & Ứng dụng",
+  "skills.dev": "Công cụ Doanh nghiệp & Kỹ thuật",
+  "exp.label": "Hành trình chuyên môn",
+  "exp.title": "Kinh nghiệm làm việc",
+  "exp.wahl.date": "Tháng 3/2026 — Hiện tại",
+  "exp.wahl.company": "Wahl Clipper Vietnam",
+  "exp.wahl.role": "Thực tập sinh New Product Introduction (NPI) · Cần Giuộc, Long An",
+  "exp.wahl.b1": `Thiết kế <strong>ứng dụng React/PowerShell offline tạo tiêu chuẩn kiểm tra</strong>, tra cứu <strong>BOM 52.929 dòng</strong> và kết nối hình ảnh, bản quét PDF với mẫu Excel, giảm thời gian chuẩn bị từ khoảng <strong>40 xuống 10 phút (75%)</strong> trong khi hỗ trợ danh mục <strong>hơn 420 tiêu chuẩn thành phẩm</strong>.`,
+  "exp.wahl.b2": `Phát triển <strong>công cụ hỗ trợ quyết định độ vừa carton</strong>, đánh giá <strong>6 hướng xếp và 125 tổ hợp tỷ lệ</strong>; tránh <strong>71 giờ dừng chuyền của công nhân (4,26 triệu VND)</strong> và tiết kiệm cho kỹ thuật viên <strong>14 phút mỗi lần audit</strong>—tương đương <strong>35–42 giờ / 2,8–3,36 triệu VND</strong> cho 150–180 lượt audit thành phẩm mới.`,
+  "exp.wahl.b3": `Xây dựng <strong>OPF Sim</strong> cho time study nhiều chu kỳ trên điện thoại và cân bằng chuyền bằng Monte Carlo, chạy tới <strong>100.000 kịch bản</strong> với Yamazumi, VA/NVA, xác suất đạt takt và giữ nguyên mẫu báo cáo Excel <strong>14 sheet</strong>.`,
+  "exp.wahl.b4": `Thực hiện <strong>FAI, PFMEA, Control Plan, ECN, quality batch và kiểm tra BOM/route trên D365</strong> cho <strong>hơn 30 nền tảng và hơn 100 biến thể SKU</strong>, bao gồm <strong>hơn 9 bộ bản vẽ localization</strong> và tài liệu cho <strong>hơn 30 thiết kế carton</strong>.`,
+  "exp.wahl.b5": `Tự động hóa <strong>báo cáo CAPEX hàng tháng cho 18 dự án</strong> bằng Python/openpyxl và xây dựng dashboard Power BI OPEX/downtime cho kế hoạch so với thực tế, sai lệch, mức sử dụng, Pareto và phân tích tổn thất sản xuất.`,
+  "exp.wahl.b6": `Triển khai <strong>Digital 5S</strong> bằng ứng dụng web di động với <strong>cache 14 ngày</strong>, đặt mục tiêu <strong>tìm kiếm toàn ổ đĩa dưới một phút</strong> mà không cần máy chủ, kết nối internet hay quyền quản trị viên.`,
+  "extra.plec.b1": `Chuẩn hóa theo dõi và phân công trách nhiệm cho <strong>nhóm 15 thành viên</strong>, cải thiện khả năng theo dõi hạn và giảm bỏ sót bàn giao.`,
+  "projects.label": "Danh mục Sản xuất",
+  "projects.title": "Dự án Tiêu biểu",
+  "proj.01.cat": "Công cụ Nội bộ · Tự động hóa Kiểm tra",
+  "proj.01.title": "Công cụ Tạo Tiêu chuẩn Kiểm tra",
+  "proj.01.desc": `Việc chuẩn bị tài liệu QC cần đối chiếu BOM, xử lý ảnh và định dạng Excel thủ công. Tôi xây dựng <strong>ứng dụng React và PowerShell offline-first</strong> với kéo-thả ảnh, cắt PDF, đọc BOM tuần mới nhất gồm <strong>52.929 dòng</strong>, bộ nhớ đệm và xuất Excel theo mẫu. Công cụ giảm thời gian chuẩn bị từ khoảng <strong>40 xuống 10 phút</strong>.`,
+  "proj.02.cat": "Công cụ Nội bộ · Kỹ thuật Bao bì",
+  "proj.02.title": "Công cụ Kiểm tra Độ vừa Thùng Carton",
+  "proj.02.desc": `Các vấn đề độ vừa trong sản xuất thử cần được hỗ trợ quyết định NPI sớm hơn. Tôi xây dựng <strong>ứng dụng trình duyệt offline</strong> với tiền xử lý Excel/CSV, sáu hướng xếp, kiểm tra sản phẩm mới, tra cứu FG, audit carton hiện tại so với phương án đề xuất, xếp hạng lựa chọn, so sánh 3D đồng bộ, xuất CSV/PDF và <strong>phân tích set-cover hàng loạt</strong> để tìm cơ hội dùng chung carton. Khuyến nghị chỉ mang tính tư vấn cho đến khi được xác nhận bằng mẫu vật lý.`,
+  "proj.03.cat": "Mô phỏng Kỹ thuật Công nghiệp",
+  "proj.03.title": "OPF Sim — Time Study & Cân bằng Chuyền IE",
+  "proj.03.desc": `Giá trị trung bình tĩnh che khuất biến động người vận hành và yêu cầu nhập lại dữ liệu. Tôi xây dựng stopwatch nhiều chu kỳ trên điện thoại và trình mô phỏng dùng <strong>localStorage, Monte Carlo tam giác tới 100.000 kịch bản, Yamazumi bằng D3.js, phân tích VA/semi-VA/NVA, xác suất đạt takt và so sánh trước/sau cân bằng</strong>. JSZip xuất vào mẫu Excel 14 sheet và giữ nguyên biểu đồ, định dạng.`,
+  "proj.04.cat": "Công cụ Nội bộ · Digital 5S",
+  "proj.04.title": "Công cụ Tìm kiếm Tài liệu Kỹ thuật / Digital 5S",
+  "proj.04.desc": `Tôi triển khai <strong>Digital 5S bằng ứng dụng web di động</strong> với <strong>cache 14 ngày</strong>, đặt mục tiêu tìm kiếm toàn ổ đĩa dưới một phút mà không cần máy chủ, kết nối internet hay quyền quản trị viên. Công việc còn bao gồm cấu trúc thư mục theo sản phẩm, tên bản vẽ tiếng Anh có thể tìm kiếm và danh mục phục vụ di chuyển dữ liệu.`,
+  "proj.05.cat": "Báo cáo Nội bộ · CAPEX / OPEX",
+  "proj.05.title": "Báo cáo NPI CAPEX & OPEX",
+  "proj.05.desc": `Tôi xây dựng <strong>quy trình Excel bằng Python/openpyxl</strong> để theo dõi IR Plan so với PO Actual hàng tháng, thẻ KPI, trạng thái PO và phân loại; đồng thời phát triển dashboard Power BI OPEX cho chi phí thực tế so với phê duyệt, mức sử dụng, sai lệch, xu hướng tháng và phân tích Pareto theo nhóm. Toàn bộ hình ảnh công khai và số liệu vận hành đều được ẩn thông tin nhạy cảm.`,
+  "proj.06.cat": "Chuyển giao Tri thức · NPI",
+  "proj.06.title": "Bộ tài liệu Onboarding Thực tập sinh NPI",
+  "proj.06.desc": `Thực tập sinh mới cần lộ trình có cấu trúc để hiểu NPI và cách làm việc. Tôi tạo <strong>bộ HTML có thể tìm kiếm và in</strong>, gồm tổng quan NPI/EPM, hướng dẫn tài liệu, quản trị rủi ro và giải quyết vấn đề, theo dõi dự án, kế hoạch 30/60/90 ngày, thẻ tham khảo nhanh và checklist đào tạo, hỗ trợ in A4.`,
+  "proj.07.cat": "Khung Nghiên cứu và Luận văn đang Phát triển",
+  "proj.07.title": "Bộ khung Luận văn EPM / EEM",
+  "proj.07.desc": `Tôi đang phát triển bộ luận văn liên kết ME4101–ME4367 về <strong>Early Product Management và Early Equipment Management</strong>: khung gate NPI dựa trên bằng chứng, xác nhận quality batch theo rủi ro, logic phát hành Xanh/Vàng/Đỏ, bản đồ nguồn và phân tích bối cảnh doanh nghiệp. Đây là bản thảo nghiên cứu sẵn sàng triển khai; chưa tuyên bố kết quả trước/sau.`,
+  "proj.08.cat": "Phân tích Sản xuất · Dự án Học thuật",
+  "proj.08.title": "Pipeline Phân tích Lỗi Sản xuất",
+  "proj.08.desc": `Dự án phân tích đầu-cuối dùng bộ dữ liệu AI4I: <strong>tiền xử lý Python, star schema PostgreSQL, ETL, OLAP, dashboard Streamlit và mô hình XGBoost/SHAP tùy chọn</strong> để khám phá mẫu lỗi và hỗ trợ quyết định sản xuất.`,
+  "projects.more": "Xem thêm dự án",
+  "projects.less": "Thu gọn dự án",
+  "more.trimmer.cat": "Mô phỏng",
+  "more.trimmer.title": "Trình mô phỏng Dây chuyền Lắp ráp Tông-đơ",
+  "more.trimmer.desc": `Dự án mô phỏng dây chuyền lắp ráp tông-đơ với thu thập <strong>time study</strong>, <strong>Monte Carlo</strong>, <strong>mô phỏng sự kiện rời rạc (DES)</strong>, biểu đồ <strong>Yamazumi</strong>, phân tích tỷ lệ <strong>VA/NVA</strong> và năng lực theo ca.`,
+  "more.dashboard.cat": "Phân tích Dữ liệu",
+  "more.dashboard.title": "Dự án Trực quan hóa Dữ liệu & Dashboard",
+  "more.dashboard.desc": `Showcase dashboard hiệu suất và downtime sản xuất bằng <strong>Power BI</strong>, tập trung vào chỉ số chính, xu hướng và các chỉ báo hiệu suất vận hành.`,
+  "more.wms.cat": "Kho vận & Vận hành",
+  "more.wms.title": "WMS — Hệ thống Quản lý Kho",
+  "more.wms.desc": `Hệ thống quản lý kho dành cho portfolio với <strong>theo dõi tồn kho</strong>, trực quan hóa sơ đồ kho, xử lý XLSX nhập/xuất và quản lý kiểm kê chu kỳ.`,
+  "more.ahp.cat": "Phân tích Quyết định",
+  "more.ahp.title": "Phân tích Phân khúc Khách hàng bằng AHP",
+  "more.ahp.desc": `Mô hình AHP chiến lược xếp hạng phân khúc thị trường, kênh tiếp cận, nhà cung cấp và lựa chọn sản phẩm chủ lực theo các tiêu chí có trọng số.`,
+  "more.ergonomic.cat": "Nhân trắc học",
+  "more.ergonomic.title": "Thiết kế Không gian Bếp Công thái học",
+  "more.ergonomic.desc": `Nghiên cứu thiết kế yếu tố con người, áp dụng <strong>nhân trắc học</strong>, trình tự công việc và <strong>logic lưu trữ 5S</strong> để giảm căng thẳng trong không gian bếp.`,
+  "more.system.cat": "Kỹ thuật Hệ thống",
+  "more.system.title": "Thiết kế Hệ thống Quán Cà phê Co-working",
+  "more.system.desc": `Khái niệm kỹ thuật hệ thống cho <strong>quán cà phê co-working 24/7</strong>, bao gồm mục tiêu dịch vụ, mặt bằng, phân hệ vận hành, giả định giá và kế hoạch ROI.`,
+  "more.bkfc.cat": "Chiến dịch Lãnh đạo",
+  "more.bkfc.title": "Dự án Hướng nghiệp BK FC",
+  "more.bkfc.desc": `<strong>Trưởng dự án</strong> cho chiến dịch hướng nghiệp Bách Khoa kết hợp tư vấn trực tiếp, phân tích nội dung, video ngắn và công cụ hỗ trợ tuyển sinh nhỏ.`,
+  "more.autocad.cat": "Thiết kế Kỹ thuật",
+  "more.autocad.title": "Bản vẽ Kỹ thuật AutoCAD 2D",
+  "more.autocad.desc": `Showcase bản vẽ kỹ thuật AutoCAD 2D với <strong>hình chiếu vuông góc</strong>, <strong>hình cắt</strong>, bản vẽ xuất và preview kỹ thuật.`,
+  "status.internal": "Công cụ Nội bộ",
+  "status.deployed": "Đã triển khai",
+  "status.research": "Đang nghiên cứu",
+  "status.academic": "Dự án Học thuật",
+  "contact.label": "Kết nối",
+  "contact.title": "Liên hệ",
+  "contact.email": "Email",
+  "contact.phone": "Điện thoại",
+  "contact.location": "Địa điểm"
+});
+
 let currentLang = localStorage.getItem("lang") || "en";
 window.__siteLang = currentLang;
+
+function updateProjectsToggleLabel() {
+  var button = document.getElementById("projectsMoreToggle");
+  if (!button) return;
+  var label = button.querySelector("[data-more-label]");
+  var expanded = button.getAttribute("aria-expanded") === "true";
+  var key = expanded ? "projects.less" : "projects.more";
+  var dict = I18N[currentLang];
+  if (label) label.textContent = dict && dict[key] ? dict[key] : (expanded ? "Show fewer projects" : "Show more projects");
+}
 
 function applyLang(lang) {
   window.__siteLang = lang;
@@ -1702,6 +1951,7 @@ function applyLang(lang) {
   document.querySelectorAll(".lang-toggle").forEach(function (btn) {
     btn.classList.toggle("active-lang", btn.getAttribute("data-lang") === lang);
   });
+  updateProjectsToggleLabel();
 
   // Chat widget suggested questions — re-render if widget is loaded
   if (window.__setChatLang) {
@@ -1711,6 +1961,18 @@ function applyLang(lang) {
 
 document.addEventListener("DOMContentLoaded", function () {
   applyLang(currentLang);
+
+  var projectsMoreToggle = document.getElementById("projectsMoreToggle");
+  var moreProjects = document.getElementById("moreProjects");
+  if (projectsMoreToggle && moreProjects) {
+    projectsMoreToggle.addEventListener("click", function () {
+      var expanded = projectsMoreToggle.getAttribute("aria-expanded") === "true";
+      projectsMoreToggle.setAttribute("aria-expanded", String(!expanded));
+      moreProjects.hidden = expanded;
+      moreProjects.setAttribute("aria-hidden", String(expanded));
+      updateProjectsToggleLabel();
+    });
+  }
 
   document.querySelectorAll(".lang-toggle").forEach(function (btn) {
     btn.addEventListener("click", function () {

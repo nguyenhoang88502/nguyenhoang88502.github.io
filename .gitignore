@@ -1,0 +1,6 @@
+# Local build and validation artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+tmp/

@@ -1,0 +1,164 @@
+%-------------------------
+% Nguyen Huy Hoang Resume - Jake's Resume inspired
+% Compile with XeLaTeX
+%-------------------------
+
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontspec}
+\usepackage{microtype}
+\setmainfont{Noto Serif}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Readable one-page A4 geometry
+\addtolength{\oddsidemargin}{-0.43in}
+\addtolength{\evensidemargin}{-0.43in}
+\addtolength{\textwidth}{0.86in}
+\addtolength{\topmargin}{-0.50in}
+\addtolength{\textheight}{0.98in}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+\setlength{\emergencystretch}{2em}
+
+\titleformat{\section}{
+  \vspace{-2pt}\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-4pt}]
+
+%-------------------------
+% Commands
+\newcommand{\resumeItem}[1]{\item\small{#1\vspace{-1pt}}}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+  \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & #2 \\
+    \textit{\small #3} & \textit{\small #4} \\
+  \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \item
+  \begin{tabularx}{0.97\textwidth}[t]{@{}Xr@{}}
+    \small #1 & \small #2 \\
+  \end{tabularx}\vspace{-2pt}
+}
+
+\newcommand{\resumeActivity}[3]{
+  \item
+  \begin{tabularx}{0.97\textwidth}[t]{@{}>{\raggedright\arraybackslash}X@{\hspace{1em}}r@{}}
+    \small\textbf{#1} & \small #2 \\
+  \end{tabularx}
+  \vspace{0.8pt}
+  {\small\setlength{\baselineskip}{11.4pt}#3\par}
+  \vspace{3.2pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in,label={},itemsep=0pt,topsep=2pt,parsep=0pt,partopsep=0pt]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.22in,itemsep=1.2pt,topsep=0.5pt,parsep=0pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-2pt}}
+
+\begin{document}
+
+%----------HEADER----------
+\begin{center}
+  {\fontsize{22}{24}\selectfont\textbf{Nguyễn Huy Hoàng}} \\ \vspace{2pt}
+  \small Ho Chi Minh City, Vietnam $|$ +84 369 412 005 $|$ nguyenhoang88502@gmail.com \\ \vspace{1pt}
+  linkedin.com/in/nguyenhoang88502 $|$ nguyenhoang88502.github.io
+\end{center}
+
+%-----------EDUCATION-----------
+\section{EDUCATION}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Ho Chi Minh City University of Technology (HCMUT)}{Ho Chi Minh City, Vietnam}
+    {Bachelor of Engineering in Industrial Systems Engineering; GPA: 3.3/4.0 (2025--2026)}{Expected 2027}
+\resumeSubHeadingListEnd
+
+%-----------CREDENTIALS-----------
+\section{CREDENTIALS}
+\begin{tabularx}{\textwidth}{@{}Xr@{}}
+  \small\textbf{Lean Six Sigma Yellow Belt} $|$ LSSI Learn; certificate accredited by the Six Sigma Council & \\
+  \small\textbf{Microsoft Office Specialist: Associate} $|$ Microsoft / Certiport & \small Office 365 \& 2019 \\
+  \small\textbf{TOEIC Listening \& Reading} $|$ ETS & \small 935/990
+\end{tabularx}\vspace{-3pt}
+
+%-----------TECHNICAL SKILLS-----------
+\section{TECHNICAL SKILLS}
+\begin{itemize}[leftmargin=0.15in,label={},itemsep=1pt,topsep=1pt]
+  \small
+  \item \textbf{Data \& BI:} SQL, Power BI, Excel, PostgreSQL, Data Warehousing, OLAP, Streamlit, Minitab
+  \item \textbf{Industrial Engineering:} Arena, Oracle Crystal Ball, Time Study, Line Balancing, Yamazumi, VSM, VA/NVA, Capacity Analysis
+  \item \textbf{Quality \& NPI:} Lean Six Sigma, DMAIC, SPC, PFMEA, DFMEA Support, Control Plan, FAI, ECN, BOM Validation
+  \item \textbf{Automation \& Enterprise:} PowerShell 5.1, HTML/CSS, Google Apps Script, Vibe Coding (Claude Code, Codex), Git/GitHub, Microsoft Dynamics 365 Finance \& Operations, SharePoint/OneDrive, MS Project, AutoCAD 2D
+\end{itemize}\vspace{-7pt}
+
+%-----------EXPERIENCE-----------
+\section{EXPERIENCE}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Wahl Clipper Vietnam}{Mar 2026 -- Sep 2026}
+    {New Product Introduction (NPI) Intern}{Cần Giuộc, Long An}
+  \resumeItemListStart
+    \resumeItem{Developed the \textbf{Master Carton Fit Tool}, reducing fit-analysis setup from approximately 15 to 1 minute per finished good (\textbf{93\%}) and representing an estimated \textbf{35--42 technician-hours / VND 2.8--3.4M saved annually} across 150--180 transfers.}
+    \resumeItem{Built the \textbf{Inspection Standard Tool} around a 52,929-row weekly BOM, image/PDF handling, and Excel-template generation; reduced preparation time from approximately 40 to 10 minutes (\textbf{75\%}).}
+    \resumeItem{Launched the \textbf{Engineering File Search Tool / Digital 5S}, replacing repeated 15-minute searches with indexed lookup and a 15-minute biweekly refresh; estimated to save each technician \textbf{3--4 hours / VND 12.5--16.6M annually}.}
+    \resumeItem{Supported FAI, PFMEA, Control Plans, ECN reviews, pilot/quality builds, supplier-localization drawings, and BOM/route validation in \textbf{Microsoft Dynamics 365 Finance \& Operations}.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{PROJECTS}
+\resumeSubHeadingListStart
+  \resumeProjectHeading
+    {\textbf{Manufacturing Failure Analytics Pipeline} $|$ \emph{CO4031 Coursework}}{2026}
+  \resumeItemListStart
+    \resumeItem{Built an AI4I 2020 analytics pipeline with Python/pandas, PostgreSQL star schema, SQL/OLAP, Streamlit/Plotly, and XGBoost with SMOTE and SHAP explainability.}
+  \resumeItemListEnd
+
+  \resumeProjectHeading
+    {\textbf{Master Carton Fit Tool} $|$ \emph{Internal Packaging Decision Tool}}{2026}
+  \resumeItemListStart
+    \resumeItem{Automated six-orientation fit checks, batch audits, ranked alternatives, 3D comparison, and set-cover analysis; cut audit time from about 15 to 1 minute per FG, saving an estimated \textbf{35--42 hours and VND 2.8--3.4M annually}.}
+  \resumeItemListEnd
+
+  \resumeProjectHeading
+    {\textbf{Engineering File Search Tool / Digital 5S} $|$ \emph{Internal Engineering Tool}}{2026}
+  \resumeItemListStart
+    \resumeItem{Built a 14-day cached PowerShell/browser index and searchable English drawing names; replaced repeated 15-minute searches with indexed lookup, saving an estimated \textbf{3--4 hours/week and VND 12.5--16.6M/year per technician}.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%-----------EXTRACURRICULAR-----------
+\section{EXTRACURRICULAR}
+\vspace{1pt}
+\resumeSubHeadingListStart
+  \resumeActivity
+    {Bach Khoa Ambassador Club}
+    {Nov 2025 -- Present}
+    {Project Leader, BKFC Nguyễn Hữu Cảnh High School - used content analytics to guide a six-month campaign that generated 6,347 views, with 89.3\% reach from non-followers.}
+  \resumeActivity
+    {Mechanical Engineering Faculty Youth Union, HCMUT}
+    {Jun 2025 -- Nov 2025}
+    {Event MC, Coordinator \& STEM Member - developed runbooks and coordinated logistics and milestones for a 90-participant camp and Green Summer activities.}
+  \resumeActivity
+    {Play \& Learn English Club}
+    {Sep 2024 -- Present}
+    {HR Member - standardized tracking and task ownership for a 15-member team, improving coordination and reducing missed deadlines.}
+\resumeSubHeadingListEnd
+
+\end{document}
