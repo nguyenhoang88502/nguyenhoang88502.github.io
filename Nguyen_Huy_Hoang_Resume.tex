@@ -1,8 +1,4 @@
-%-------------------------
-% Nguyen Huy Hoang Resume - Jake's Resume inspired
-% Compile with XeLaTeX
-%-------------------------
-
+% !TeX program = lualatex
 \documentclass[a4paper,10pt]{article}
 
 \usepackage[empty]{fullpage}
@@ -16,7 +12,7 @@
 \usepackage{microtype}
 \usepackage{setspace}
 \setmainfont{Noto Serif}
-\setstretch{1.09}
+\setstretch{1.07}
 \renewcommand{\arraystretch}{1.08}
 
 \pagestyle{fancy}
@@ -39,7 +35,7 @@
 \setlength{\footskip}{12pt}
 
 \titleformat{\section}{\raggedright\large\bfseries}{}{0em}{}[\color{black}\titlerule]
-\titlespacing*{\section}{0pt}{9pt}{5pt}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
 
 %-------------------------
 % Commands
@@ -68,9 +64,9 @@
   {\small #3\par}
 }
 
-\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0in,label={},itemsep=4.5pt,topsep=0pt,parsep=0pt,partopsep=0pt]}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0in,label={},itemsep=4.2pt,topsep=0pt,parsep=0pt,partopsep=0pt]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.22in,itemsep=2.3pt,topsep=2.3pt,parsep=0pt,partopsep=0pt]}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.22in,itemsep=2.1pt,topsep=2.1pt,parsep=0pt,partopsep=0pt]}
 \newcommand{\resumeItemListEnd}{\end{itemize}}
 
 \begin{document}
@@ -86,57 +82,61 @@
 \section{EDUCATION \& CREDENTIALS}
 \begin{tabularx}{\textwidth}{@{}>{\bfseries}p{0.82in}@{\hspace{0.10in}}>{\raggedright\arraybackslash}X r@{}}
   \small Education & \small\textbf{Ho Chi Minh City University of Technology (HCMUT)} & \small Expected 2027 \\
-  & \small\textit{Bachelor of Engineering in Industrial Systems Engineering $|$ GPA: \textbf{3.3/4.0 (2025--2026)}} & \\[2pt]
+  & \small\textit{Bachelor of Engineering in Industrial Systems Engineering} & \small GPA{:} \textbf{3.3/4.0 (2025--2026)} \\
   \small Credentials & \small\textbf{Lean Six Sigma Yellow Belt} - LSSI Learn; Six Sigma Council-accredited & \\
-  & \small\textbf{Microsoft Office Specialist: Associate} - Microsoft / Certiport & \\
+  & \small\textbf{Microsoft Office Specialist: Associate} - Microsoft & \\
   & \small\textbf{TOEIC Listening \& Reading} - ETS & \small\textbf{935/990} \\
 \end{tabularx}
 
 %-----------TECHNICAL SKILLS-----------
 \section{TECHNICAL SKILLS}
-\begin{itemize}[leftmargin=0.15in,label={},itemsep=2.3pt,topsep=0pt,parsep=0pt,partopsep=0pt]
+\begin{itemize}[leftmargin=0.15in,label={},itemsep=3pt,topsep=0pt,parsep=0pt,partopsep=0pt]
   \small
-  \item \textbf{Data \& BI:} SQL, Power BI, Excel, PostgreSQL, Data Warehousing, OLAP, Streamlit, Minitab
-  \item \textbf{Industrial Engineering:} Arena, Oracle Crystal Ball, Time Study, Line Balancing, Yamazumi, VSM, VA/NVA, Capacity Analysis
-  \item \textbf{Quality \& NPI:} Lean Six Sigma, DMAIC, SPC, PFMEA, DFMEA Support, Control Plan, FAI, ECN, BOM Validation
-  \item \textbf{Automation \& Enterprise:} PowerShell 5.1, HTML/CSS, Google Apps Script, Vibe Coding (Claude Code, Codex), Git/GitHub, Microsoft Dynamics 365 Finance \& Operations, SharePoint/OneDrive, MS Project, AutoCAD 2D
+  \item \textbf{New Product Introduction:} \textbf{7-Step EPM Process}, DMAIC framework, \textbf{PFMEA and Control Plans} development during NPI, Root cause analysis to resolve late-found issues.
+  \item \textbf{Lean \& Process Improvement:} \textbf{7 IE Tools (Intermediate)} (VSM/Flowchart, Motion \& Time Study, Line Balancing using \textbf{Yamazumi}, Man-Machine Analysis, Motion Economy, Poka-Yoke), \textbf{3M} (Muri-Mura-Muda).
+  \item \textbf{Quality:} \textbf{7 QC tools} (Pareto, Histogram, Control Charts, Fishbone, Scatter Diagram, Check Sheet, Flowchart), \textbf{PFMEA}, \textbf{Minitab} (Regression and Stats).
+  \item \textbf{Data \& BI:} \textbf{SQL(Fundamental)}, \textbf{Power BI}, \textbf{Advanced Excel} (VBA, Pivot table), PostgreSQL, OLAP, Streamlit
+  \item \textbf{Automation \& Enterprise:}  \textbf{AutoCAD 2D (Intermediate)} ,  Microsoft Dynamics 365 F\&O, \textbf{PowerShell scripting} , Google Apps Script, \textbf{AI-Assisted Software Development} (Claude Code, Codex, Antigravity), Git/GitHub
 \end{itemize}
 
 %-----------EXPERIENCE-----------
 \section{EXPERIENCE}
 \resumeSubHeadingListStart
   \resumeSubheading
-    {Wahl Clipper Vietnam}{Mar 2026 -- Sep 2026}
+    {Wahl Clipper Vietnam}{Mar 2026 -- Sep 2026 (6 months)}
     {New Product Introduction (NPI) Intern}{Cần Giuộc, Long An}
   \resumeItemListStart
-    \resumeItem{\textbf{Developed} the \textbf{Master Carton Fit Tool}, reducing fit-analysis setup from approximately \textbf{15 minutes to 1 minute per finished good} (\textbf{93\%}), saving an estimated \textbf{35--42 technician-hours / VND 2.8--3.4M annually} across \textbf{150--180 transfers}, and helping prevent recurrence of \textbf{71 operator-hours / VND 4.26M} in \textbf{2025} carton-fit trial downtime.}
-    \resumeItem{\textbf{Built} the \textbf{Inspection Standard Tool} around a \textbf{52,929-row} weekly BOM, image/PDF handling, and Excel-template generation; reduced preparation time from approximately \textbf{40 minutes to 10 minutes} (\textbf{75\%}).}
-    \resumeItem{\textbf{Reduced} full-drive engineering-file lookup with the \textbf{Engineering File Search Tool / Digital 5S} from repeated \textbf{15-minute searches to under 1 minute}, with an estimated \textbf{3--4 hours / VND 12.5--16.6M saved annually per technician}.}
-    \resumeItem{\textbf{Supported} FAI, PFMEA, Control Plans, ECN reviews, pilot/quality builds, supplier-localization drawings, and BOM/route validation in \textbf{Microsoft Dynamics 365 Finance \& Operations}.}
+    \resumeItem{\textbf{Developed} the \textbf{Master Carton Fit Tool}, reducing fit-analysis setup from approximately \textbf{15 minutes to 1 minute per finished good} (\textbf{93\%}), saving an estimated \textbf{42 technician-hours / VND 3.4M annually} across \textbf{180 transfers}, and helping prevent recurrence of \textbf{71 operator-hours / VND 4.26M} in \textbf{2025} carton-fit trial downtime.}
+    \resumeItem{\textbf{Built} the \textbf{Inspection Standard Tool} around a \textbf{52,929-row} weekly BOM, image/PDF handling, and Excel-template generation; reduced preparation time from approximately \textbf{40 minutes to 10 minutes} (\textbf{75\%}) and prevent missing part in inspection documentation.}
+    \resumeItem{\textbf{Reduced} full-drive engineering-file lookup with the \textbf{Engineering File Search Tool / Digital 5S} from repeated \textbf{15-minute searches to under 1 minute}, with an estimated \textbf{4 hours / VND 16.6M saved annually per technician}.}
+    \resumeItem{\textbf{Supported} \textbf{FAI, PFMEA, Control Plans, ECN reviews}, trial assemblies, supplier-localization drawings, and \textbf{BOM/route validation} in \textbf{Microsoft Dynamics 365 Finance \& Operations}.}
   \resumeItemListEnd
 \resumeSubHeadingListEnd
 
 %-----------PROJECTS-----------
 \section{PROJECTS}
 \resumeSubHeadingListStart
+
   \resumeProjectHeading
-    {\textbf{Manufacturing Failure Analytics Pipeline} $|$ \emph{CO4031 Coursework}}{2026}
+    {\textbf{Manufacturing Failure Analytics} $|$ \emph{Data Warehouse Coursework}}{2026}
   \resumeItemListStart
-    \resumeItem{\textbf{Built} an AI4I \textbf{2020} analytics pipeline with Python/pandas, PostgreSQL star schema, SQL/OLAP, Streamlit/Plotly, and XGBoost with SMOTE and SHAP explainability.}
+    \resumeItem{\textbf{Built} a predictive-maintenance pipeline with \textbf{Python, PostgreSQL, Streamlit, XGBoost, SMOTE, and SHAP} for failure classification and explainability.}
   \resumeItemListEnd
 
   \resumeProjectHeading
-    {\textbf{Master Carton Fit Tool} $|$ \emph{Internal Packaging Decision Tool}}{2026}
+    {\textbf{Manufacturing Downtime Dashboard} $|$ \emph{Power BI Project}}{2026}
   \resumeItemListStart
-    \resumeItem{\textbf{Automated} six-orientation fit checks, batch audits, ranked alternatives, \textbf{3D} comparison, and set-cover analysis; cut audit time from about \textbf{15 minutes to 1 minute per FG}, saving an estimated \textbf{35--42 hours and VND 2.8--3.4M annually}, while designed to prevent recurrence of \textbf{71 operator-hours of 2025 carton-fit trial downtime} worth \textbf{VND 4.26M} at \textbf{VND 60,000/hour}.}
+    \resumeItem{\textbf{Created} a \textbf{Power BI dashboard} to compare actual versus standard performance, rank downtime through \textbf{Pareto analysis}, and target process improvements.}
   \resumeItemListEnd
 
   \resumeProjectHeading
-    {\textbf{Engineering File Search Tool / Digital 5S} $|$ \emph{Internal Engineering Tool}}{2026}
+    {\textbf{Assembly-Line Simulation} $|$ \emph{Modeling \& Simulation Coursework}}{2026}
   \resumeItemListStart
-    \resumeItem{\textbf{Reduced} full-drive engineering-file search from repeated \textbf{15-minute manual lookups to under 1 minute}, saving an estimated \textbf{3--4 hours/week and VND 12.5--16.6M/year per technician}.}
+    \resumeItem{\textbf{Modeled} an eight-stage assembly line in \textbf{Arena} to analyze \textbf{throughput, utilization, bottlenecks, queues, and WIP}, then tested line-balancing improvements.}
   \resumeItemListEnd
+
 \resumeSubHeadingListEnd
+
 
 %-----------EXTRACURRICULAR-----------
 \section{EXTRACURRICULAR}
@@ -144,15 +144,10 @@
   \resumeActivity
     {Bach Khoa Ambassador Club}
     {Nov 2025 -- Present}
-    {Project Leader, BKFC Nguyễn Hữu Cảnh High School - \textbf{used} content analytics to guide a \textbf{six-month} campaign that generated \textbf{6,347 views}, with \textbf{89.3\%} reach from non-followers.}
+    {\textbf{Project Leader}, BKFC Nguyễn Hữu Cảnh High School - \textbf{used} content analytics to guide a \textbf{six-month} campaign that generated \textbf{6,347 views}, with \textbf{89.3\%} reach from non-followers.}
   \resumeActivity
     {Mechanical Engineering Faculty Youth Union, HCMUT}
     {Jun 2025 -- Nov 2025}
-    {Event MC, Coordinator \& STEM Member - \textbf{developed} runbooks and coordinated logistics and milestones for a \textbf{90-participant} camp and Green Summer activities.}
-  \resumeActivity
-    {Play \& Learn English Club}
-    {Sep 2024 -- Present}
-    {HR Member - \textbf{standardized} tracking and task ownership for a \textbf{15-member} team, improving coordination and reducing missed deadlines.}
+    {\textbf{Event MC, Coordinator \& STEM Member} - \textbf{developed} runbooks and coordinated logistics and milestones for a \textbf{90-participant} camp and Green Summer activities.}
 \resumeSubHeadingListEnd
-
 \end{document}
