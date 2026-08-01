@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Case study: Inspection Standard Tool, a local-first drag-and-drop tool for building Inspection Standard Excel files from photos, PDFs, and the weekly BOM.">
+<title>Inspection Standard Tool — Case Study</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#ffffff; --ink:#151b26; --muted:#5b6576; --line:#dfe4ee;
+    --violet:#4c3a92; --violet-2:#7c5cff; --amber:#f0c33c; --good:#0f7a4a; --bad:#b3261e;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{ --bg:#0e1117; --panel:#171b24; --ink:#eef1f7; --muted:#a2acc0; --line:#2a3242; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Arial,sans-serif}
+  a{color:inherit}
+  .hero{position:relative;background:linear-gradient(135deg,#241a4d,#4c3a92 50%,#7c5cff);color:#f4f1ff;padding:26px 20px 22px}
+  .hero-inner{max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px}
+  .hero-text{flex:1 1 440px;min-width:0}
+  .eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+  .hero h1{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .hero p{margin:0;font-size:13.5px;line-height:1.6;color:#dcd5ff;max-width:640px}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 15px;border-radius:7px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap;border:1px solid rgba(255,255,255,0.28);color:#f4f1ff;transition:transform .12s ease,background .12s ease}
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:var(--amber);color:#3a2c00;border-color:transparent}
+  .btn-primary:hover{background:#f7d466}
+  .btn-ghost{background:rgba(255,255,255,0.1)}
+  .btn-ghost:hover{background:rgba(255,255,255,0.18)}
+  main{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+  .notice{background:color-mix(in srgb, var(--amber) 16%, var(--panel));border:1px solid color-mix(in srgb, var(--amber) 45%, var(--line));border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.6;margin-bottom:28px}
+  .notice b{display:block;margin-bottom:4px}
+  section{margin-bottom:34px}
+  h2{font-size:17px;margin:0 0 14px}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px}
+  .step .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:color-mix(in srgb, var(--violet-2) 16%, var(--panel));color:var(--violet-2);font-weight:800;font-size:12px;margin-bottom:10px}
+  .step h3{margin:0 0 6px;font-size:14px}
+  .step ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .case{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:18px 20px}
+  .case-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px}
+  @media(max-width:700px){.case-grid{grid-template-columns:1fr}}
+  .case h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .case ul{margin:0;padding-left:18px;font-size:13px;line-height:1.7}
+  .tag-good{color:var(--good);font-weight:700}
+  .tag-bad{color:var(--bad);font-weight:700}
+  .stat-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px}
+  .stat b{display:block;font-size:20px;font-weight:800}
+  .stat span{display:block;font-size:11.5px;color:var(--muted)}
+  footer{max-width:1080px;margin:0 auto;padding:0 20px 40px;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="eyebrow">Case study — FG 3031118</div>
+        <h1>Inspection Standard Tool</h1>
+        <p>A local-first, drag-and-drop tool that builds Inspection Standard Excel files from product photos, scanned PDFs, an Excel template, and the weekly BOM — built for WAHL Vietnam's NPI technicians, no technical steps required.</p>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-ghost" href="../NPI_tool/tool.html">← Portfolio</a>
+        <a class="btn btn-primary" href="Inspection Standard Tool.html">Open the tool →</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="notice">
+      <b>This tool is local-first by design.</b>
+      In production it's opened via <code>Launch Inspection Standard Tool.bat</code>, which prepares a browser environment that can read the Excel template and the internal weekly-BOM folder directly from a shared drive — no server, nothing ever leaves the technician's machine. Opened here on GitHub Pages, the drag-and-drop, cropping, and Excel generation work the same way, but BOM auto-suggestions won't populate since the internal weekly-BOM folder isn't available outside the company network.
+    </div>
+
+    <section>
+      <h2>How it works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Load FG + weekly BOM</h3>
+          <ul>
+            <li>Level&nbsp;1 requirements cleaned and categorized</li>
+            <li>Existing assignments retained</li>
+            <li>Missing items highlighted immediately</li>
+          </ul>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>Add source evidence</h3>
+          <ul>
+            <li>Drag photos or scanned PDFs into the asset pool</li>
+            <li>Originals stay unchanged; reusable images can duplicate</li>
+            <li>Grouped by product, color box, master carton, accessories</li>
+          </ul>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>Assign + close BOM gaps</h3>
+          <ul>
+            <li>Drag evidence into the matching named slot</li>
+            <li>Item name drives auto-tick on category match</li>
+            <li>Missing requirements stay visibly open</li>
+          </ul>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <h3>Generate + review Excel</h3>
+          <ul>
+            <li>Auto-crop fits images to the template's cell ratio, or crop manually</li>
+            <li>Export blocked until required evidence is complete</li>
+            <li>Review every generated worksheet before release</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Case study: FG 3031118</h2>
+      <div class="case">
+        <p style="margin:0;color:var(--muted);font-size:13px">Available evidence was strong — this is what a real, partially-complete audit looks like, not a cherry-picked pass.</p>
+        <div class="case-grid">
+          <div>
+            <h3>Ready</h3>
+            <ul>
+              <li><span class="tag-good">✓</span> Product, accessory, and color-box views present</li>
+              <li><span class="tag-good">✓</span> Master-carton packing and faces documented</li>
+              <li><span class="tag-good">✓</span> Barcode confirms Part No. 3031118</li>
+              <li><span class="tag-good">✓</span> Carton 3031375 is an exact library match</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Open before release</h3>
+            <ul>
+              <li><span class="tag-bad">✕</span> Safety sheet missing</li>
+              <li><span class="tag-bad">✕</span> Master Carton Label missing</li>
+              <li>Treated as a draft until every reference picture renders and both gaps close</li>
+            </ul>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><b>26</b><span>embedded case images</span></div>
+          <div class="stat"><b>4</b><span>evidence groups</span></div>
+          <div class="stat"><b>6</b><span>worksheets generated</span></div>
+          <div class="stat"><b>2</b><span>open BOM gaps</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Evidence, straight from the case file</h2>
+      <div class="steps">
+        <figure style="margin:0;background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden">
+          <img src="screenshots/product-evidence.png" alt="Collected product, accessory, and packaging photos for FG 3031118 assigned into the evidence pool" style="display:block;width:100%;height:auto" loading="lazy">
+          <figcaption style="padding:10px 14px;font-size:12px;color:var(--muted)">The asset pool for FG 3031118 — product, accessory, carton, and barcode evidence collected before assignment.</figcaption>
+        </figure>
+        <figure style="margin:0;background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden">
+          <img src="screenshots/qc-reference-sheet.png" alt="Generated Inspection Standard reference sheet with product photos, barcode, and shipping specifications" style="display:block;width:100%;height:auto" loading="lazy">
+          <figcaption style="padding:10px 14px;font-size:12px;color:var(--muted)">A completed Inspection Standard reference sheet — the kind of output the tool assembles automatically.</figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Wahl Clipper Vietnam · NPI productivity apps · <a href="README.md">Read the internal usage guide (Vietnamese)</a>
+  </footer>
+</body>
+</html>

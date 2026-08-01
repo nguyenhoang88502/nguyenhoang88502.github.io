@@ -424,6 +424,40 @@
       white-space: nowrap;
     }
 
+    .tag-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tool-card-featured {
+      border-color: color-mix(in srgb, #d4a017 45%, var(--line));
+      box-shadow: 0 16px 34px rgba(180, 130, 10, 0.16);
+    }
+
+    .tool-card-featured::before {
+      background: linear-gradient(90deg, #d4a017, #f0c33c);
+      height: 5px;
+    }
+
+    .tool-card-featured:hover,
+    .tool-card-featured:focus-within {
+      border-color: color-mix(in srgb, #d4a017 60%, var(--line));
+      box-shadow: 0 20px 42px rgba(180, 130, 10, 0.22);
+    }
+
+    .tag-featured {
+      color: #7a5900;
+      background: color-mix(in srgb, #d4a017 22%, var(--surface));
+    }
+
+    html[data-theme="dark"] .tag-featured {
+      color: #f0c33c;
+      background: color-mix(in srgb, #d4a017 28%, var(--surface));
+    }
+
     .tool-card h2 {
       margin-bottom: 12px;
       color: var(--navy);
@@ -574,7 +608,7 @@
       <aside class="status-panel" aria-label="Directory status">
         <div class="status-row">
           <span class="status-label" data-i18n="toolCountLabel">Available tools</span>
-          <span class="status-value">03</span>
+          <span class="status-value">04</span>
         </div>
         <div class="status-row">
           <span class="status-label" data-i18n="scopeLabel">Repository links</span>
@@ -600,9 +634,29 @@
     </div>
 
     <section class="directory-grid" id="toolGrid" aria-label="NPI tools">
-      <article class="tool-card" data-type="quality" data-search="inspection standards quality assurance compliance sample approval kiem tra chat luong tieu chuan">
+      <article class="tool-card tool-card-featured" data-type="operations" data-search="master carton fit tool packaging carton audit packing optimization consolidation thung carton dong goi toi uu featured">
         <div class="tool-top">
           <div class="tool-icon">01</div>
+          <div class="tag-group">
+            <span class="tag tag-featured" data-i18n="tagFeatured">Featured</span>
+            <span class="tag" data-i18n="tagOperations">Operations</span>
+          </div>
+        </div>
+        <h2 data-i18n="cartonTitle">Master Carton Fit Tool</h2>
+        <p data-i18n="cartonDesc">
+          Checks whether finished goods physically fit inside master shipping cartons, audits current BOM carton assignments against alternatives, and finds opportunities to consolidate carton sizes across products. Live demo runs with sample data — nothing to download.
+        </p>
+        <div class="metadata">
+          <span class="meta-chip" data-i18n="cartonMeta1">Packaging</span>
+          <span class="meta-chip" data-i18n="cartonMeta2">3D Packing</span>
+          <span class="meta-chip" data-i18n="cartonMeta3">Consolidation</span>
+        </div>
+        <a class="button button-primary" href="../master_carton_fit_tool/" data-i18n="launchTool">Launch Tool</a>
+      </article>
+
+      <article class="tool-card" data-type="quality" data-search="inspection standards quality assurance compliance sample approval kiem tra chat luong tieu chuan">
+        <div class="tool-top">
+          <div class="tool-icon">02</div>
           <span class="tag" data-i18n="tagQuality">Quality Control</span>
         </div>
         <h2 data-i18n="inspectionTitle">Inspection Standards</h2>
@@ -619,7 +673,7 @@
 
       <article class="tool-card" data-type="simulation" data-search="opf sim tool simulation process optimization cycle time capacity line balance mo phong toi uu chuyen san xuat">
         <div class="tool-top">
-          <div class="tool-icon">02</div>
+          <div class="tool-icon">03</div>
           <span class="tag" data-i18n="tagSimulation">Simulation</span>
         </div>
         <h2 data-i18n="opfTitle">OPF SIM Tool</h2>
@@ -636,7 +690,7 @@
 
       <article class="tool-card" data-type="operations" data-search="warehouse management inventory layout tracking kho quan ly ton kho bo tri">
         <div class="tool-top">
-          <div class="tool-icon">03</div>
+          <div class="tool-icon">04</div>
           <span class="tag" data-i18n="tagOperations">Operations</span>
         </div>
         <h2 data-i18n="warehouseTitle">NPI Warehouse Management</h2>
@@ -704,6 +758,12 @@
         warehouseMeta1: "Inventory",
         warehouseMeta2: "Layout",
         warehouseMeta3: "Dashboard",
+        tagFeatured: "Featured",
+        cartonTitle: "Master Carton Fit Tool",
+        cartonDesc: "Checks whether finished goods physically fit inside master shipping cartons, audits current BOM carton assignments against alternatives, and finds opportunities to consolidate carton sizes across products. Live demo runs with sample data — nothing to download.",
+        cartonMeta1: "Packaging",
+        cartonMeta2: "3D Packing",
+        cartonMeta3: "Consolidation",
         launchTool: "Launch Tool",
         emptyState: "No tools match the current search or filter.",
         note: "This directory is built for expansion. Additional NPI dashboards, work instructions, controlled templates, and launch resources can be added without changing the access pattern.",
@@ -746,6 +806,12 @@
         warehouseMeta1: "Tồn Kho",
         warehouseMeta2: "Bố Trí",
         warehouseMeta3: "Dashboard",
+        tagFeatured: "Nổi Bật",
+        cartonTitle: "Công Cụ Kiểm Tra Thùng Carton",
+        cartonDesc: "Kiểm tra thành phẩm có vừa vật lý trong thùng carton chính hay không, đối chiếu thùng đang gán trong BOM với các phương án thay thế, và tìm cơ hội hợp nhất kích thước thùng giữa các sản phẩm. Bản demo trực tiếp chạy với dữ liệu mẫu — không cần tải về.",
+        cartonMeta1: "Đóng Gói",
+        cartonMeta2: "Xếp 3D",
+        cartonMeta3: "Hợp Nhất",
         launchTool: "Mở Công Cụ",
         emptyState: "Không có công cụ phù hợp với tìm kiếm hoặc bộ lọc hiện tại.",
         note: "Thư mục này được thiết kế để mở rộng. Có thể bổ sung dashboard NPI, hướng dẫn công việc, biểu mẫu kiểm soát và tài nguyên triển khai mà không cần thay đổi cấu trúc truy cập.",

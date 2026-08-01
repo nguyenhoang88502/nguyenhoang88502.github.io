@@ -1,0 +1,11 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#eef2f5"/>
+  <polygon points="90,215 90,100 230,72 230,187" fill="#7fa6c9" stroke="#3d5f7d" stroke-width="2"/>
+  <polygon points="90,100 230,72 300,100 160,128" fill="#9dc0e0" stroke="#3d5f7d" stroke-width="2"/>
+  <polygon points="230,187 230,72 300,100 300,215" fill="#5f87ab" stroke="#3d5f7d" stroke-width="2"/>
+  <line x1="90" y1="100" x2="160" y2="128" stroke="#3d5f7d" stroke-width="1.5" opacity="0.6"/>
+  <line x1="160" y1="128" x2="160" y2="243" stroke="#3d5f7d" stroke-width="1.5" opacity="0.6"/>
+  <line x1="160" y1="128" x2="300" y2="100" stroke="#3d5f7d" stroke-width="1.5" opacity="0.6"/>
+  <text x="200" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#1f3a52">CTN-DEMO-B</text>
+  <text x="200" y="287" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#3d5f7d">Sample photo — 260 x 200 x 180 mm</text>
+</svg>

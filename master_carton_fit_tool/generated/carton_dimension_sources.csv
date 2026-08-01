@@ -1,0 +1,6 @@
+"carton_id","source_fg_id","source_fg_name","measured_length_mm","measured_width_mm","measured_height_mm","source_sheet","source_row","included_in_average","exclusion_reason"
+"CTN-DEMO-A","DEMO-1001","Sample Cordless Trimmer A","304","245","205","Sheet1","2","True",""
+"CTN-DEMO-A","DEMO-1002","Sample Beard Trimmer B","306","247","207","Sheet1","3","True",""
+"CTN-DEMO-B","DEMO-1003","Sample Hair Clipper C","260","200","180","Sheet1","4","True",""
+"CTN-DEMO-C","DEMO-1006","Sample Grooming Kit F","350","280","220","Sheet1","7","True",""
+"CTN-DEMO-D","DEMO-1004","Sample Nose Trimmer D","200","150","120","Sheet1","5","True",""
