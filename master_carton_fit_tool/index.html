@@ -1179,8 +1179,10 @@
     html[data-theme="dark"] .status-badge.inconclusive { background: #2e1a47; color: #d1c4e9; }
     html[data-theme="dark"] .status-badge.favorable-only { background: #3e2723; color: #ff8a80; }
     html[data-theme="dark"] .status-badge.fail { background: #212121; color: #bdbdbd; }
-    .workflow-nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:4px;margin:8px 0 12px;padding:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 3px 14px rgba(0,0,0,.08);overflow-x:auto}
-    .workflow-nav button{flex:1 0 auto;min-width:128px;margin:0;padding:9px 12px;text-align:center;white-space:nowrap;border-color:transparent;background:transparent;font-weight:750}.workflow-nav button:hover{background:var(--soft);border-color:var(--line)}.workflow-nav button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+    .workflow-nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:4px;margin:8px 0 12px;padding:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 3px 14px rgba(0,0,0,.08);overflow-x:auto;scroll-snap-type:x proximity}
+    .workflow-nav button{flex:1 0 auto;min-width:128px;margin:0;padding:9px 12px;text-align:center;white-space:nowrap;border-color:transparent;background:transparent;font-weight:750;scroll-snap-align:start}.workflow-nav button:hover{background:var(--soft);border-color:var(--line)}.workflow-nav button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+    .workflow-nav.has-more-tabs::after{content:"›";position:absolute;top:6px;right:0;bottom:6px;display:flex;align-items:center;justify-content:center;width:30px;pointer-events:none;font-size:18px;font-weight:900;color:var(--muted);background:linear-gradient(to right,transparent,var(--panel) 55%)}
+    @media(max-width:480px){.workflow-nav button{min-width:96px;padding:9px 8px;font-size:11.5px}}
     .workflow-panel[hidden],.workflow-panel.workflow-inactive{display:none!important}
     .engineering-settings{padding:0;overflow:hidden}.engineering-settings>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;cursor:pointer;font-weight:800;color:var(--blue);list-style-position:inside}.engineering-settings>summary:hover{background:var(--soft)}.engineering-settings[open]>summary{border-bottom:1px solid var(--line)}.engineering-settings-body{padding:4px 14px 12px}.engineering-settings .kpi-grid{margin-top:8px}.legacy-tolerance-settings{display:none!important}
     .allowance-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--soft)}.allowance-summary output{font-weight:800;color:var(--blue)}
@@ -1214,60 +1216,90 @@
 
 <body>
   <style>
-    #demoHero{position:relative;background:linear-gradient(135deg,#0b3d66,#134a7a 45%,#0f6a5c);color:#f2f7fb;font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:22px 20px 20px}
-    #demoHero .demo-hero-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
-    #demoHero .demo-hero-text{flex:1 1 420px;min-width:0}
-    #demoHero .demo-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f0c33c;margin-bottom:6px}
-    #demoHero h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-.01em}
-    #demoHero p{margin:0;font-size:13.5px;line-height:1.55;color:#cfe3f2;max-width:640px}
+    html{scroll-behavior:smooth}
+    #demoHero{position:relative;background:linear-gradient(135deg,#0b3d66,#134a7a 45%,#0f6a5c);color:#f2f7fb;font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:14px 20px}
+    #demoHero .demo-hero-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+    #demoHero .demo-hero-text{flex:1 1 380px;min-width:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+    #demoHero .demo-eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#f0c33c;white-space:nowrap}
+    #demoHero h1{margin:0;font-size:16.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+    #demoHero p{margin:0;font-size:12.5px;line-height:1.4;color:#cfe3f2}
     #demoHero .demo-hero-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    #demoHero .demo-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:7px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);color:#f2f7fb;transition:transform .12s ease,background .12s ease}
+    #demoHero .demo-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:7px;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;border:1px solid transparent;transition:transform .12s ease,background .12s ease}
     #demoHero .demo-btn:hover{transform:translateY(-1px)}
-    #demoHero .demo-btn-primary{background:#f0c33c;color:#3a2c00;border-color:transparent}
+    #demoHero .demo-btn-primary{background:#f0c33c;color:#3a2c00;box-shadow:0 3px 14px rgba(240,195,60,.35)}
     #demoHero .demo-btn-primary:hover{background:#f7d466}
-    #demoHero .demo-btn-ghost{background:rgba(255,255,255,0.08)}
-    #demoHero .demo-btn-ghost:hover{background:rgba(255,255,255,0.16)}
-    #demoHero .demo-hero-close{position:absolute;right:12px;top:12px;background:transparent;border:none;color:#cfe3f2;font-size:18px;cursor:pointer;line-height:1;padding:4px;opacity:.7}
-    #demoHero .demo-hero-close:hover{opacity:1}
-    #demoHero .demo-stats{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.18)}
-    #demoHero .demo-stat b{display:block;font-size:19px;font-weight:800;color:#fff;line-height:1.15}
-    #demoHero .demo-stat span{display:block;font-size:11px;color:#a9c3d6;margin-top:1px}
-    @media(max-width:640px){#demoHero h1{font-size:19px}#demoHero .demo-hero-actions{width:100%}#demoHero .demo-btn{flex:1 1 auto;justify-content:center}}
+    #demoHero .demo-links{display:flex;gap:12px;align-items:center;font-size:11.5px}
+    #demoHero .demo-links a{color:#a9c3d6;text-decoration:none;white-space:nowrap}
+    #demoHero .demo-links a:hover{color:#eaf3fc;text-decoration:underline}
+    @media(max-width:640px){#demoHero .demo-hero-inner{justify-content:flex-start}#demoHero h1{font-size:15px}#demoHero .demo-btn{flex:1 1 auto;justify-content:center}#demoHero .demo-hero-actions{width:100%;justify-content:space-between}}
   </style>
   <div id="demoHero">
-    <button type="button" class="demo-hero-close" onclick="document.getElementById('demoHero').remove()" aria-label="Dismiss">×</button>
     <div class="demo-hero-inner">
       <div class="demo-hero-text">
-        <div class="demo-eyebrow">★ Featured project — live portfolio demo</div>
+        <span class="demo-eyebrow">★ Featured project</span>
         <h1>Master Carton Fit Tool</h1>
-        <p>Wrong carton dimensions caught late cost real trial-production downtime — this tool catches the mismatch before the line does. Runs entirely in your browser with fictional sample data — nothing to download or install. The production version reads live Excel BOM/dimension workbooks through an offline PowerShell launcher instead.</p>
-        <div class="demo-stats">
-          <div class="demo-stat"><b>71 h</b><span>Downtime traced to wrong carton dimensions (2025 report)</span></div>
-          <div class="demo-stat"><b>2.84M ₫</b><span>Estimated loaded labor cost of that downtime</span></div>
-          <div class="demo-stat"><b>750</b><span>Fit checks per FG/carton pair in Optimized Mode</span></div>
-        </div>
+        <p>Wrong carton dimensions cost 71 labor-hours of real trial-production downtime — this tool catches it earlier. Sample data, nothing to install.</p>
       </div>
       <div class="demo-hero-actions">
-        <a class="demo-btn demo-btn-ghost" href="../NPI_tool/tool.html">← Portfolio</a>
-        <a class="demo-btn demo-btn-ghost" href="https://github.com/nguyenhoang88502/nguyenhoang88502.github.io/tree/main/master_carton_fit_tool" target="_blank" rel="noopener">View source</a>
-        <a class="demo-btn demo-btn-primary" href="master-carton-fit-tool-demo.zip" download>⬇ Download demo (.zip)</a>
+        <a class="demo-btn demo-btn-primary" href="#appRoot">Try it now ↓</a>
+        <div class="demo-links">
+          <a href="../NPI_tool/tool.html">← Portfolio</a>
+          <a href="https://github.com/nguyenhoang88502/nguyenhoang88502.github.io/tree/main/master_carton_fit_tool" target="_blank" rel="noopener">Source</a>
+          <a href="master-carton-fit-tool-demo.zip" download>Download .zip</a>
+        </div>
       </div>
     </div>
   </div>
   <style>
-    #prodShots{background:#0e1720;padding:20px 20px 26px;font-family:-apple-system,Segoe UI,Arial,sans-serif}
-    #prodShots .shots-inner{max-width:1200px;margin:0 auto}
-    #prodShots h2{color:#eaf3fc;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin:0 0 3px}
-    #prodShots .shots-sub{color:#8fa3b8;font-size:12px;margin:0 0 14px}
+    #prodShots{background:#0e1720;font-family:-apple-system,Segoe UI,Arial,sans-serif}
+    #prodShots summary{list-style:none;cursor:pointer;padding:10px 20px;display:flex;align-items:center;gap:8px;color:#9fb4c8;font-size:12px;font-weight:700;user-select:none}
+    #prodShots summary::-webkit-details-marker{display:none}
+    #prodShots summary .chevron{transition:transform .15s ease;font-size:10px}
+    #prodShots[open] summary .chevron{transform:rotate(90deg)}
+    #prodShots summary .badge{color:#eaf3fc;background:rgba(255,255,255,0.1);border-radius:999px;padding:2px 8px;font-size:10.5px;letter-spacing:.03em}
+    #prodShots .shots-inner{max-width:1200px;margin:0 auto;padding:0 20px 22px}
+    #prodShots .shots-sub{color:#7f93a8;font-size:11.5px;margin:0 0 14px}
     #prodShots .shots-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
     #prodShots figure{margin:0;background:#141f2b;border:1px solid #24384a;border-radius:8px;overflow:hidden}
     #prodShots figure img{display:block;width:100%;height:auto;cursor:zoom-in}
     #prodShots figcaption{padding:8px 10px;font-size:11.5px;color:#9fb4c8}
   </style>
-  <div id="prodShots">
+  <style>
+    /* Executive Presentation Mode: hide input forms/technical chrome, keep
+       KPIs, verdicts, and the 3D visual. High-specificity + !important
+       because several component styles below set their own display value
+       (learned the hard way earlier: [hidden] alone can lose that fight). */
+    #presentationModeToggle{background:#6d3fc0;border-color:#6d3fc0;color:#fff}
+    #presentationModeToggle:hover{background:#7d4fd6}
+    #presentationModeToggle.active{background:#f0c33c;border-color:#f0c33c;color:#3a2c00}
+    /* Toggled on <body>, not .app: #demoHero and #prodShots are siblings
+       positioned before <main class="app">, so they're only reachable as
+       body descendants, not via a selector scoped to .app. */
+    body.presentation-mode #demoHero,
+    body.presentation-mode #prodShots,
+    body.presentation-mode header > button:not(#presentationModeToggle),
+    body.presentation-mode .analysis-badge,
+    body.presentation-mode form,
+    body.presentation-mode .workflow-form,
+    body.presentation-mode .lookup-input-row,
+    body.presentation-mode .batch-toolbar,
+    body.presentation-mode .quick-remeasurement-panel,
+    body.presentation-mode .allowance-summary,
+    body.presentation-mode #fgCalculationSettings,
+    body.presentation-mode .comparison-controls,
+    body.presentation-mode .visual-controls {
+      display: none !important;
+    }
+    body.presentation-mode .app { font-size: 15px; }
+    body.presentation-mode .brand h1 { font-size: 23px; }
+    body.presentation-mode .workflow-nav button { padding: 13px 14px; font-size: 14px; }
+    body.presentation-mode .kpi-card .kpi-value { font-size: 30px; }
+    body.presentation-mode .visual-panel svg { transform: scale(1.08); }
+  </style>
+  <details id="prodShots">
+    <summary><span class="chevron">▶</span> Real production screenshots (actual WAHL data) <span class="badge">not the demo below</span></summary>
     <div class="shots-inner">
-      <h2>From the production app (real WAHL data)</h2>
-      <p class="shots-sub">Everything below this line is the interactive sample-data demo. These are screenshots of the same tool running against the real weekly BOM.</p>
+      <p class="shots-sub">These show the same tool running against the real weekly BOM. The interactive demo below uses fictional sample data instead — the two won't match, by design.</p>
       <div class="shots-grid">
         <figure><img src="screenshots/downtime-impact.png" alt="Downtime labor impact card: 71 labor-hours, 2,840,000 VND, traced to incorrect carton dimensions" loading="lazy"><figcaption>The problem this tool addresses — 2025 downtime report</figcaption></figure>
         <figure><img src="screenshots/new-product.png" alt="New Product tab checking a new FG against existing master cartons" loading="lazy"><figcaption>New Product — early carton feasibility check</figcaption></figure>
@@ -1275,8 +1307,8 @@
         <figure><img src="screenshots/batch-audit.png" alt="Batch Audit carton-line reduction results across the full product catalog" loading="lazy"><figcaption>Batch Audit — carton-line consolidation analysis</figcaption></figure>
       </div>
     </div>
-  </div>
-  <main class="app">
+  </details>
+  <main class="app" id="appRoot">
     <div id="loaderOverlay" class="loader-overlay">
       <div class="loader-spinner"></div>
       <div class="loader-text" id="loaderText">Loading data…</div>
@@ -1285,7 +1317,7 @@
       <div class="brand">
         <h1 data-i18n="title">WAHL Vietnam — Master Carton Fit Tool</h1><span class="analysis-badge"
           data-i18n="analysisMode">Analysis Mode Only</span>
-      </div><button id="calculationModeToggle" class="toggle-btn calculation-mode-toggle quick" type="button" aria-pressed="false">⚡ Quick Mode</button><button id="dataToggle" type="button" data-i18n="showData">Workbook</button><button id="languageToggle"
+      </div><button id="presentationModeToggle" class="toggle-btn presentation-mode-toggle" type="button" aria-pressed="false">🎤 Presentation Mode</button><button id="calculationModeToggle" class="toggle-btn calculation-mode-toggle quick" type="button" aria-pressed="false">⚡ Quick Mode</button><button id="dataToggle" type="button" data-i18n="showData">Workbook</button><button id="languageToggle"
         class="toggle-btn" type="button">EN / VI</button><button id="themeToggle" class="toggle-btn" type="button">☾
         Dark</button><button id="resetButton" type="button" data-i18n="reset">Reset</button><button id="clearAllButton"
         type="button" data-i18n="clearAll">Clear all</button>
@@ -1297,6 +1329,30 @@
       <button type="button" class="workflow-nav-btn" data-workflow="batch-audit" data-i18n="batchAudit">Batch Audit</button>
       <button type="button" class="workflow-nav-btn" data-workflow="carton-lookup" data-i18n="cartonLookup">Carton Lookup</button>
     </nav>
+    <script>
+      (() => {
+        const nav = document.querySelector('.workflow-nav');
+        if (!nav) return;
+        const updateOverflowHint = () => {
+          const atEnd = nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 4;
+          nav.classList.toggle('has-more-tabs', nav.scrollWidth > nav.clientWidth + 4 && !atEnd);
+        };
+        updateOverflowHint();
+        nav.addEventListener('scroll', updateOverflowHint, { passive: true });
+        window.addEventListener('resize', updateOverflowHint);
+        new ResizeObserver(updateOverflowHint).observe(nav);
+      })();
+      (() => {
+        const btn = document.getElementById('presentationModeToggle');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          const active = document.body.classList.toggle('presentation-mode');
+          btn.classList.toggle('active', active);
+          btn.setAttribute('aria-pressed', String(active));
+          btn.textContent = active ? '✕ Exit Presentation' : '🎤 Presentation Mode';
+        });
+      })();
+    </script>
     <section id="taskProgressPanel" class="task-panel" role="status" aria-live="polite" hidden>
       <div class="task-head"><span id="taskTitle" class="task-title">Preparing data</span><span><span id="taskElapsed">0.0 s</span> · <span id="taskEta" class="task-eta">Estimated remaining: calculating…</span></span></div>
       <div class="task-meta"><span id="taskPhase" class="task-phase">Idle</span><span id="taskCounter"></span></div>
@@ -1441,7 +1497,7 @@
     </section>
 
     <section id="fgLookupPanel" class="section selection workflow-panel" data-workflow-panel="fg-lookup" hidden style="display: flex; flex-direction: column; align-items: stretch; gap: 8px;">
-      <div style="display: flex; align-items: center; gap: 11px; flex-wrap: wrap;">
+      <div class="lookup-input-row" style="display: flex; align-items: center; gap: 11px; flex-wrap: wrap;">
         <label for="fgSearchInput" data-i18n="searchFgId">Search FG ID:</label><input id="fgSearchInput" type="search"
           autocomplete="off" data-i18n-placeholder="fgSearchPlaceholder" placeholder="Type FG ID…" disabled><label
           for="fgSelect" data-i18n="selectFg">Existing FG:</label><select id="fgSelect" disabled>
@@ -3577,6 +3633,11 @@
       return { supportedCompleteCount: supportedComplete.length, supportedIncompleteCount: supportedIncomplete.length, supportedFgCount: supportedComplete.length + supportedIncomplete.length, averageUtilization: utils.length ? mean(utils) : 0, minimumUtilization: utils.length ? Math.min(...utils) : 0, manualFgUtilization: manualFit?.volumeUtilization || 0, manualFgPasses: !!manualFit?.passes, supportedCompleteFgs: supportedComplete };
     }
 
+    function shadeHex(hex, pct) {
+      const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      const mix = (c) => pct >= 0 ? Math.round(c + (255 - c) * pct) : Math.round(c * (1 + pct));
+      return `#${[mix(r), mix(g), mix(b)].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('')}`;
+    }
     class PackingVisualizer3D {
       static sequence = 0;
       constructor(svg, summary) { this.svg = svg; this.summary = summary; this.clipId = `cartonClip-${svg?.id || ++PackingVisualizer3D.sequence}`; this.state = null; this.rotation = 0; this.pitch = 0; this.ghosts = true; this.drag = null; this.bindDrag() }
@@ -3606,9 +3667,19 @@
         for (const p of placements) { const x0 = p.x, y0 = p.y, z0 = p.z, x1 = x0 + p.length, y1 = y0 + p.width, z1 = z0 + p.height, vertices = [[x0, y0, z0], [x1, y0, z0], [x0, y1, z0], [x1, y1, z0], [x0, y0, z1], [x1, y0, z1], [x0, y1, z1], [x1, y1, z1]]; for (const [indices, fill] of faceDefs) { const points = indices.map(i => vertices[i]); faces.push({ points, fill, ghost: p.ghost, depth: points.reduce((sum, v) => sum + viewDepth(...v), 0) / points.length }) } }
         faces.sort((a, b) => a.depth - b.depth);
         const dark = document.documentElement.dataset.theme === 'dark', cartonFaceIndices = [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [3, 2, 6, 7], [0, 3, 7, 4]];
-        let out = `<defs><clipPath id="${this.clipId}"><polygon points="${cartonHull}"/></clipPath></defs><g fill="${dark ? '#ffffff' : '#b88452'}" fill-opacity="${dark ? '.045' : '.12'}" stroke="none">`;
+        // Depth cues: a soft blurred ground shadow under the carton's base footprint,
+        // and a per-face vertical light-to-dark gradient (cheap: one gradient per
+        // unique palette color, reused via url() rather than per-polygon).
+        const uid = this.clipId, groundPts = [0, 1, 2, 3].map(i => q(corners[i])), groundCx = groundPts.reduce((s, p) => s + p[0], 0) / 4, groundCy = groundPts.reduce((s, p) => s + p[1], 0) / 4;
+        const groundPoly = groundPts.map(([x, y]) => [groundCx + (x - groundCx) * 1.12, groundCy + (y - groundCy) * 1.12 + 5]).map(p => p.join(',')).join(' ');
+        const palette = [...new Set(faceDefs.map(f => f[1]))];
+        let defs = `<clipPath id="${this.clipId}"><polygon points="${cartonHull}"/></clipPath><filter id="ground-${uid}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>`;
+        for (const color of palette) defs += `<linearGradient id="face-${uid}-${color.slice(1)}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shadeHex(color, dark ? .22 : .3)}"/><stop offset="1" stop-color="${shadeHex(color, -.12)}"/></linearGradient>`;
+        let out = `<defs>${defs}</defs>`;
+        out += `<polygon points="${groundPoly}" fill="${dark ? '#000' : '#1a2733'}" opacity="${dark ? '.35' : '.16'}" filter="url(#ground-${uid})"/>`;
+        out += `<g fill="${dark ? '#ffffff' : '#b88452'}" fill-opacity="${dark ? '.045' : '.12'}" stroke="none">`;
         for (const indices of cartonFaceIndices) out += `<polygon points="${indices.map(i => P(...corners[i])).join(' ')}"/>`; out += `</g><g clip-path="url(#${this.clipId})">`;
-        for (const face of faces) out += `<polygon points="${face.points.map(p => P(...p)).join(' ')}" fill="${face.ghost ? 'none' : face.fill}" fill-opacity="${face.ghost ? 0 : .9}" stroke="${face.ghost ? '#9dafbd' : '#126ca9'}" stroke-width="${face.ghost ? '.65' : '.8'}" ${face.ghost ? 'stroke-dasharray="3 2"' : ''}/>`;
+        for (const face of faces) out += `<polygon points="${face.points.map(p => P(...p)).join(' ')}" fill="${face.ghost ? 'none' : `url(#face-${uid}-${face.fill.slice(1)})`}" fill-opacity="${face.ghost ? 0 : .95}" stroke="${face.ghost ? '#9dafbd' : shadeHex(face.fill, -.35)}" stroke-width="${face.ghost ? '.65' : '.8'}" ${face.ghost ? 'stroke-dasharray="3 2"' : ''}/>`;
         out += '</g>'; const edge = dark ? '#d9e6ef' : '#233e53';
         out += `<g fill="none" stroke="${edge}" stroke-width="1.6">`; for (const [a, b] of [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]) { const A = q(corners[a]), B = q(corners[b]); out += `<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}"/>` } out += '</g>';
         this.svg.innerHTML = out;
