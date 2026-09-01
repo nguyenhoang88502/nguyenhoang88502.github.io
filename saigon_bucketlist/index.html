@@ -217,7 +217,7 @@
     <header class="top">
       <div class="eyebrow"><span class="sync-dot" id="syncDot"></span> SỔ VÉ CÁ NHÂN</div>
       <h1>Những điều nhỏ,<br><em>và Sài Gòn để đi.</em></h1>
-      <p class="sub">Gom lại những niềm vui bé xíu trong ngày và những chỗ đáng ghé ở Sài Gòn. Chưa biết làm gì — rút một thẻ ngẫu nhiên.</p>
+      <p class="sub">Gom lại 82 niềm vui bé xíu trong ngày và những chỗ đáng ghé ở Sài Gòn. Chưa biết làm gì — rút một thẻ ngẫu nhiên.</p>
       <div class="stat-ticket">
         <div class="stat-num" id="statNum">0<small>/75</small></div>
         <div class="stat-bar-track"><div class="stat-bar-fill" id="statBar" style="width:0%"></div></div>
@@ -317,6 +317,12 @@
   <div class="field">
     <label>Dán JSON kết quả AI trả về vào đây</label>
     <textarea id="importJsonInput" placeholder='[{"ten":"...", "loai":"little", "mota":"", "diachi":"", "mood":["Vui nhộn"]}]' style="min-height:110px;font-size:12.5px;"></textarea>
+  </div>
+  <div id="importProgress" style="display:none;margin-bottom:10px;">
+    <div style="height:6px;border-radius:4px;background:var(--paper-deep);overflow:hidden;">
+      <div id="importProgressFill" style="height:100%;width:0%;background:var(--marigold);border-radius:4px;transition:width .25s ease;"></div>
+    </div>
+    <div id="importProgressText" style="font-size:11.5px;color:var(--ink-soft);margin-top:5px;">Đang nhập 0 / 0…</div>
   </div>
   <div id="importStatusText" style="font-size:12.5px;font-weight:700;margin-bottom:10px;color:var(--ink-soft);"></div>
   <button class="btn btn-primary" id="submitImportBtn" style="width:100%;">Nhập vào sổ vé</button>
@@ -551,12 +557,13 @@ function pushUpdateToSheet(id, patch){
     .catch(e=> setSyncStatus('err', String(e.message||e)));
 }
 function pushAddToSheet(item){
-  if(!sheetUrl) return;
+  if(!sheetUrl) return Promise.resolve({ok:true});
   const body = {action:'add', id:item.id, ten:item.ten, loai: internalToLoai(item.loai), mota:item.mota||'', diachi:item.diachi||'', mood:item.mood.join(','), trangthai:'Chưa làm', danhgia:'', ghichu:''};
-  fetch(sheetUrl, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)})
-    .then(r=>r.json()).then(d=>{ if(d.ok) setSyncStatus('on'); else setSyncStatus('err', d.error); })
-    .catch(e=> setSyncStatus('err', String(e.message||e)));
+  return fetch(sheetUrl, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{ if(d.ok) setSyncStatus('on'); else setSyncStatus('err', d.error); return d; })
+    .catch(e=>{ setSyncStatus('err', String(e.message||e)); return {ok:false, error:String(e.message||e)}; });
 }
+function sleep(ms){ return new Promise(res=>setTimeout(res, ms)); }
 
 function passesFilter(item){
   if(filterType !== "all" && item.loai !== filterType) return false;
@@ -744,21 +751,45 @@ document.getElementById('copyPromptBtn').addEventListener('click', ()=>{
 document.getElementById('submitImportBtn').addEventListener('click', async ()=>{
   const raw = document.getElementById('importJsonInput').value.trim();
   const statusEl = document.getElementById('importStatusText');
+  const submitBtn = document.getElementById('submitImportBtn');
+  const progressWrap = document.getElementById('importProgress');
+  const progressFill = document.getElementById('importProgressFill');
+  const progressText = document.getElementById('importProgressText');
+  statusEl.textContent = '';
   if(!raw){ statusEl.textContent='Chưa dán JSON nào cả.'; statusEl.style.color='var(--bad)'; return; }
   let arr;
   try{ arr = JSON.parse(raw); if(!Array.isArray(arr)) throw new Error('not_array'); }
   catch(e){ statusEl.textContent = 'JSON không hợp lệ, kiểm tra lại định dạng.'; statusEl.style.color = 'var(--bad)'; return; }
-  let count = 0;
-  arr.forEach((obj, idx)=>{
-    if(!obj || !obj.ten) return;
+
+  const valid = arr.filter(obj => obj && obj.ten);
+  if(valid.length === 0){ statusEl.textContent = 'Không có mục hợp lệ nào (thiếu "ten").'; statusEl.style.color = 'var(--bad)'; return; }
+
+  // Gửi tuần tự từng mục một (không gửi đồng thời) để tránh Apps Script bị
+  // nghẽn khoá (LockService) khi nhiều request POST cùng lúc — đó là nguyên
+  // nhân gây "Không thành công" hàng loạt trong Executions log.
+  submitBtn.disabled = true; submitBtn.style.opacity = '0.6';
+  progressWrap.style.display = 'block';
+  progressFill.style.width = '0%';
+  progressText.textContent = 'Đang nhập 0 / ' + valid.length + '…';
+
+  let count = 0, failed = 0;
+  for(let idx=0; idx<valid.length; idx++){
+    const obj = valid[idx];
     const loai = (obj.loai === 'saigon') ? 'saigon' : 'little';
     const mood = Array.isArray(obj.mood) ? obj.mood.filter(m=>MOODS.includes(m)) : [];
     const id = obj.id || ('custom-' + Date.now() + '-' + idx);
     const item = {id, ten:String(obj.ten), loai, mota: obj.mota?String(obj.mota):'', diachi: obj.diachi?String(obj.diachi):'', mood: mood.length?mood:['Vui nhộn']};
-    customItems.push(item); allItems.push(item); pushAddToSheet(item); count++;
-  });
+    customItems.push(item); allItems.push(item);
+    progressText.textContent = 'Đang nhập ' + (idx+1) + ' / ' + valid.length + ' — ' + item.ten;
+    const res = await pushAddToSheet(item);
+    if(res && res.ok === false) failed++; else count++;
+    progressFill.style.width = Math.round(((idx+1)/valid.length)*100) + '%';
+    if(idx < valid.length-1) await sleep(400);
+  }
   await saveCustom();
-  statusEl.textContent = 'Đã thêm ' + count + ' mục mới vào sổ vé.'; statusEl.style.color = 'var(--good)';
+  progressText.textContent = 'Xong — ' + count + '/' + valid.length + ' mục đã lưu' + (failed ? (', ' + failed + ' mục lỗi khi ghi Sheet (vẫn còn trên máy)') : '') + '.';
+  statusEl.textContent = 'Đã thêm ' + (count+failed) + ' mục mới vào sổ vé.'; statusEl.style.color = 'var(--good)';
+  submitBtn.disabled = false; submitBtn.style.opacity = '1';
   render();
 });
 
