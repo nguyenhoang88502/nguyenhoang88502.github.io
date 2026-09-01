@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sổ Vé — Những Điều Nhỏ & Sài Gòn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5EFDD; --paper-deep:#EEE4C8; --paper-line:#DCCFA9;
+    --ink:#1E2A28; --ink-soft:#4B5A54;
+    --jade:#17463C; --jade-light:#2F6E5E; --jade-pale:#DCE8E1;
+    --marigold:#E7A63C; --marigold-deep:#C4841F;
+    --coral:#E1637A; --coral-pale:#F7DEE3;
+    --good:#2F7D5A; --bad:#C4553D;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Be Vietnam Pro',system-ui,sans-serif; min-height:100vh; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;} }
+  body::before{
+    content:""; position:fixed; inset:0;
+    background-image:radial-gradient(circle at 1px 1px, rgba(30,42,40,0.05) 1px, transparent 0);
+    background-size:16px 16px; pointer-events:none; z-index:0;
+  }
+
+  .app-shell{ position:relative; z-index:1; max-width:1180px; margin:0 auto; padding-bottom:96px; }
+  .sidebar{ }
+  .main-col{ min-width:0; }
+
+  header.top{
+    padding:22px 18px 14px; position:sticky; top:0; z-index:30; background:var(--paper); border-bottom:1px solid var(--paper-line);
+  }
+  .eyebrow{ font-size:12.5px; color:var(--jade-light); font-weight:600; letter-spacing:0.02em; display:flex; align-items:center; gap:7px; }
+  .sync-dot{ width:7px; height:7px; border-radius:50%; background:#B7AD8E; flex:none; }
+  .sync-dot.on{ background:var(--good); }
+  .sync-dot.err{ background:var(--bad); }
+  h1{ font-family:'Fraunces',serif; font-weight:600; font-size:30px; line-height:1.08; margin:4px 0 2px; color:var(--jade); }
+  h1 em{ font-style:italic; color:var(--marigold-deep); }
+  .sub{ font-size:14.5px; color:var(--ink-soft); margin:0 0 14px; max-width:38ch; }
+
+  .stat-ticket{
+    display:flex; align-items:center; gap:14px; background:var(--jade); color:var(--paper);
+    border-radius:14px; padding:12px 16px; position:relative; overflow:hidden;
+  }
+  .stat-ticket::before, .stat-ticket::after{
+    content:""; position:absolute; width:16px; height:16px; background:var(--paper);
+    border-radius:50%; top:50%; transform:translateY(-50%);
+  }
+  .stat-ticket::before{ left:-8px; }
+  .stat-ticket::after{ right:-8px; }
+  .stat-num{ font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
+  .stat-num small{ font-family:'Be Vietnam Pro',sans-serif; font-size:13px; font-weight:500; opacity:0.75; }
+  .stat-bar-track{ flex:1; height:6px; border-radius:4px; background:rgba(245,239,221,0.22); overflow:hidden; }
+  .stat-bar-fill{ height:100%; background:var(--marigold); border-radius:4px; transition:width .5s cubic-bezier(.4,0,.2,1); }
+
+  .controls{ padding:14px 18px 4px; }
+  .search-row{ display:flex; gap:8px; margin-bottom:8px; }
+  .search-box{ flex:1; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--paper-line); border-radius:10px; padding:9px 12px; min-width:0; }
+  .search-box input{ border:none; outline:none; background:transparent; font:inherit; font-size:14.5px; width:100%; color:var(--ink); }
+  .search-box svg{ flex:none; opacity:0.5; }
+  .icon-btn{
+    flex:none; width:40px; height:40px; border-radius:10px; border:1px solid var(--jade);
+    background:var(--jade); color:var(--paper); font-size:17px; line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .icon-btn:active{ transform:scale(0.94); }
+
+  .secondary-actions{ display:flex; gap:8px; margin-bottom:10px; }
+  .text-btn{
+    flex:1; padding:9px 6px; border-radius:9px; border:1px solid var(--paper-line); background:#fff;
+    font:inherit; font-size:12px; font-weight:700; color:var(--jade); cursor:pointer; white-space:nowrap;
+  }
+  .text-btn:active{ transform:scale(0.97); }
+
+  .type-toggle{ display:flex; gap:6px; margin-bottom:10px; }
+  .type-toggle button{
+    flex:1; padding:8px 6px; border-radius:9px; border:1px solid var(--paper-line);
+    background:#fff; font:inherit; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer;
+  }
+  .type-toggle button.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+
+  .chip-row{ display:flex; gap:7px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; }
+  .chip-row::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex:none; padding:6px 12px; border-radius:99px; border:1px solid var(--paper-line);
+    background:#fff; font-size:12.5px; font-weight:600; color:var(--ink-soft); cursor:pointer; white-space:nowrap;
+  }
+  .chip.active{ background:var(--marigold); border-color:var(--marigold-deep); color:#3A2A08; }
+
+  .toggle-undone{ display:flex; align-items:center; gap:7px; margin:10px 2px 14px; font-size:13px; color:var(--ink-soft); }
+  .toggle-undone input{ accent-color:var(--jade); width:15px; height:15px; }
+
+  .sidebar-random-btn{
+    display:none; width:calc(100% - 36px); margin:0 18px 18px; padding:13px; border-radius:12px; border:none;
+    background:var(--marigold); color:#3A2A08; font:inherit; font-weight:700; font-size:14px; cursor:pointer;
+    align-items:center; justify-content:center; gap:8px;
+  }
+
+  .feed{ padding:14px 18px 10px; display:flex; flex-direction:column; gap:12px; }
+  .empty-msg{ text-align:center; color:var(--ink-soft); font-size:14px; padding:40px 20px; }
+
+  .card{
+    background:#fff; border:1px solid var(--paper-line); border-radius:3px; padding:14px 15px 13px;
+    position:relative; box-shadow:0 1px 0 rgba(30,42,40,0.06); transition:box-shadow .2s ease;
+  }
+  .card.highlight{ animation:pulseCard 1.4s ease 1; }
+  @keyframes pulseCard{
+    0%{ box-shadow:0 0 0 0 rgba(231,166,60,0.55); } 70%{ box-shadow:0 0 0 10px rgba(231,166,60,0); } 100%{ box-shadow:0 0 0 0 rgba(231,166,60,0); }
+  }
+  .card::before{ content:""; position:absolute; left:0; top:14px; bottom:14px; width:3px; background:var(--jade-pale); border-radius:2px; }
+  .card.done::before{ background:var(--marigold); }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-left:8px; }
+  .card-title{ font-family:'Fraunces',serif; font-size:17px; font-weight:600; line-height:1.28; color:var(--ink); margin:0; }
+  .card.done .card-title{ color:var(--jade); }
+  .type-badge{ flex:none; font-size:10.5px; font-weight:700; letter-spacing:0.02em; padding:3px 7px; border-radius:5px; margin-top:2px; }
+  .type-badge.tb-little{ background:var(--jade-pale); color:var(--jade); }
+  .type-badge.tb-saigon{ background:var(--coral-pale); color:var(--coral); }
+  .card-desc{ margin:5px 0 0 8px; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
+  .card-addr{ margin:7px 0 0 8px; font-size:12.5px; color:var(--jade-light); font-weight:600; display:flex; align-items:flex-start; gap:5px; text-decoration:none; }
+  .card-addr svg{ flex:none; margin-top:1px; }
+  .card-addr span{ text-decoration:underline; text-underline-offset:2px; }
+  .mood-tags{ display:flex; flex-wrap:wrap; gap:5px; margin:9px 0 0 8px; }
+  .mood-tag{ font-size:11px; font-weight:600; padding:2.5px 8px; border-radius:99px; background:var(--paper-deep); color:var(--ink-soft); }
+
+  .card-actions{ display:flex; align-items:center; justify-content:space-between; margin:11px 0 0 8px; padding-top:10px; border-top:1px dashed var(--paper-line); }
+  .done-toggle{ display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none; }
+  .done-toggle .box{ width:20px; height:20px; border-radius:5px; border:1.6px solid var(--jade); display:flex; align-items:center; justify-content:center; flex:none; }
+  .done-toggle.done .box{ background:var(--jade); }
+  .done-toggle span.label{ font-size:12.5px; font-weight:600; color:var(--ink-soft); }
+  .done-toggle.done span.label{ color:var(--jade); }
+  .stars{ display:flex; gap:2px; }
+  .stars button{ border:none; background:none; padding:2px; cursor:pointer; font-size:16px; color:var(--paper-line); line-height:1; }
+  .stars button.on{ color:var(--marigold); }
+
+  .comments-area{ margin:9px 0 0 8px; }
+  .comments-list{ display:flex; flex-direction:column; gap:5px; margin-bottom:7px; max-height:130px; overflow-y:auto; }
+  .comment-item{ font-size:12px; line-height:1.4; background:var(--paper); border-radius:7px; padding:6px 9px; color:var(--ink); }
+  .comment-item .c-date{ font-size:10.5px; font-weight:700; color:var(--jade-light); margin-right:6px; }
+  .comment-input-row{ display:flex; gap:6px; }
+  .comment-input-row input{
+    flex:1; border:1px solid var(--paper-line); border-radius:7px; padding:7px 9px; font:inherit; font-size:12.5px; background:#fff; color:var(--ink); min-width:0;
+  }
+  .comment-input-row button{
+    flex:none; border:none; background:var(--jade); color:var(--paper); border-radius:7px; padding:0 12px; font:inherit; font-size:12px; font-weight:700; cursor:pointer;
+  }
+
+  .fab{
+    position:fixed; right:18px; bottom:22px; z-index:40; width:60px; height:60px; border-radius:50%;
+    background:var(--marigold); border:none; color:#3A2A08; box-shadow:0 8px 18px rgba(196,132,31,0.45);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .fab:active{ transform:scale(0.92); }
+  .fab svg{ width:26px; height:26px; }
+  .fab-label{
+    position:fixed; right:88px; bottom:38px; z-index:40; font-size:11px; font-weight:700; color:var(--ink-soft);
+    background:var(--paper); padding:3px 8px; border-radius:6px; border:1px solid var(--paper-line);
+  }
+
+  .sheet-backdrop{ position:fixed; inset:0; background:rgba(20,26,24,0.5); z-index:50; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  .sheet-backdrop.open{ opacity:1; pointer-events:auto; }
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:51; background:var(--paper); border-radius:20px 20px 0 0;
+    padding:20px 20px calc(22px + env(safe-area-inset-bottom)); max-width:560px; margin:0 auto;
+    transform:translateY(100%); transition:transform .32s cubic-bezier(.2,.8,.2,1); max-height:86vh; overflow-y:auto;
+    border-top:1px solid var(--paper-line);
+  }
+  .sheet.open{ transform:translateY(0); }
+  .sheet-handle{ width:36px; height:4px; background:var(--paper-line); border-radius:99px; margin:0 auto 14px; }
+  .sheet-close{ position:absolute; top:16px; right:16px; width:30px; height:30px; border-radius:50%; border:none; background:var(--paper-deep); color:var(--ink-soft); font-size:16px; cursor:pointer; }
+
+  .reveal-kicker{ font-size:12px; font-weight:700; color:var(--marigold-deep); letter-spacing:0.02em; }
+  .reveal-title{ font-family:'Fraunces',serif; font-size:24px; font-weight:600; color:var(--jade); margin:6px 0 8px; line-height:1.15; }
+  .reveal-card{ animation:revealPop .4s cubic-bezier(.2,.9,.3,1.2); }
+  @keyframes revealPop{ 0%{ opacity:0; transform:translateY(10px) scale(0.98); } 100%{ opacity:1; transform:translateY(0) scale(1); } }
+  .reveal-btnrow{ display:flex; gap:10px; margin-top:18px; }
+  .btn{ flex:1; text-align:center; padding:12px 10px; border-radius:10px; font:inherit; font-weight:700; font-size:13.5px; border:1px solid transparent; cursor:pointer; }
+  .btn-primary{ background:var(--jade); color:var(--paper); }
+  .btn-ghost{ background:transparent; border-color:var(--paper-line); color:var(--ink-soft); }
+  .btn:active{ transform:scale(0.97); }
+
+  .form-title{ font-family:'Fraunces',serif; font-size:20px; font-weight:600; color:var(--jade); margin:0 0 14px; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:5px; }
+  .field input[type=text], .field textarea{
+    width:100%; border:1px solid var(--paper-line); border-radius:8px; padding:9px 11px; font:inherit; font-size:14px; background:#fff; color:var(--ink);
+  }
+  .field textarea{ min-height:50px; resize:vertical; font-family:'Be Vietnam Pro',sans-serif; }
+  .seg{ display:flex; gap:8px; }
+  .seg button{ flex:1; padding:9px; border-radius:8px; border:1px solid var(--paper-line); background:#fff; font:inherit; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; }
+  .seg button.active{ background:var(--jade); border-color:var(--jade); color:var(--paper); }
+  .mood-pick{ display:flex; flex-wrap:wrap; gap:7px; }
+  .mood-pick button{ padding:6px 11px; border-radius:99px; border:1px solid var(--paper-line); background:#fff; font-size:12px; font-weight:600; color:var(--ink-soft); cursor:pointer; }
+  .mood-pick button.active{ background:var(--coral); border-color:var(--coral); color:#fff; }
+
+  footer.credit{ text-align:center; font-size:11.5px; color:#9AA69F; padding:18px 20px 6px; }
+
+  /* ---------- desktop / PC layout ---------- */
+  @media (min-width: 900px){
+    .app-shell{ display:grid; grid-template-columns:320px 1fr; align-items:start; padding-bottom:40px; }
+    .sidebar{ position:sticky; top:0; height:100vh; overflow-y:auto; border-right:1px solid var(--paper-line); }
+    header.top{ position:static; border-bottom:none; }
+    .chip-row{ flex-wrap:wrap; overflow-x:visible; }
+    .main-col{ padding:24px 28px 0; }
+    .feed{ padding:0 0 24px; display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:16px; align-items:start; }
+    .fab, .fab-label{ display:none; }
+    .sidebar-random-btn{ display:flex; }
+    footer.credit{ text-align:left; padding-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <header class="top">
+      <div class="eyebrow"><span class="sync-dot" id="syncDot"></span> SỔ VÉ CÁ NHÂN</div>
+      <h1>Những điều nhỏ,<br><em>và Sài Gòn để đi.</em></h1>
+      <p class="sub">Gom lại 82 niềm vui bé xíu trong ngày và những chỗ đáng ghé ở Sài Gòn. Chưa biết làm gì — rút một thẻ ngẫu nhiên.</p>
+      <div class="stat-ticket">
+        <div class="stat-num" id="statNum">0<small>/75</small></div>
+        <div class="stat-bar-track"><div class="stat-bar-fill" id="statBar" style="width:0%"></div></div>
+      </div>
+    </header>
+
+    <div class="controls">
+      <div class="search-row">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="searchInput" type="text" placeholder="Tìm điều gì đó…">
+        </div>
+        <button class="icon-btn" id="openAddBtn" title="Thêm mục mới" aria-label="Thêm mục mới">+</button>
+      </div>
+
+      <div class="secondary-actions">
+        <button class="text-btn" id="openImportBtn">⇩ Nhập JSON</button>
+        <button class="text-btn" id="openSettingsBtn">⚙ Google Sheet</button>
+      </div>
+
+      <div class="type-toggle" id="typeToggle">
+        <button data-type="all" class="active">Tất cả</button>
+        <button data-type="little">Điều nhỏ</button>
+        <button data-type="saigon">Đi & chơi SG</button>
+      </div>
+
+      <div class="chip-row" id="moodChipRow"></div>
+
+      <label class="toggle-undone">
+        <input type="checkbox" id="onlyUndone" checked>
+        Rút thẻ chỉ trong mục <b>chưa làm</b>
+      </label>
+    </div>
+
+    <button class="sidebar-random-btn" id="sidebarRandomBtn">🎲 Rút thẻ ngẫu nhiên</button>
+  </aside>
+
+  <div class="main-col">
+    <main class="feed" id="feed"></main>
+    <footer class="credit">Chạm vào ✓ để đánh dấu đã làm · dữ liệu lưu ngay trên máy này</footer>
+  </div>
+</div>
+
+<div class="fab-label" id="fabLabel">Ngẫu nhiên</div>
+<button class="fab" id="fabRandom" aria-label="Rút ngẫu nhiên">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="4"/>
+    <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.3" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.3" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.3" fill="currentColor" stroke="none"/>
+  </svg>
+</button>
+
+<div class="sheet-backdrop" id="backdrop"></div>
+
+<div class="sheet" id="revealSheet">
+  <button class="sheet-close" id="closeReveal">✕</button>
+  <div class="sheet-handle"></div>
+  <div id="revealBody"></div>
+</div>
+
+<div class="sheet" id="addSheet">
+  <button class="sheet-close" id="closeAdd">✕</button>
+  <div class="sheet-handle"></div>
+  <div class="form-title">Thêm điều mới</div>
+  <div class="field"><label>Tên</label><input type="text" id="fName" placeholder="Vd: Xem bình minh ở Cần Giờ"></div>
+  <div class="field"><label>Loại</label>
+    <div class="seg" id="fType"><button data-v="little" class="active">Điều nhỏ</button><button data-v="saigon">Đi & chơi SG</button></div>
+  </div>
+  <div class="field"><label>Địa chỉ đầy đủ (nếu có)</label><input type="text" id="fAddr" placeholder="Số nhà, đường, phường, quận…"></div>
+  <div class="field"><label>Mô tả ngắn (tuỳ chọn)</label><textarea id="fDesc" placeholder="Một câu ngắn gọn…"></textarea></div>
+  <div class="field"><label>Gắn mood</label><div class="mood-pick" id="fMood"></div></div>
+  <button class="btn btn-primary" id="saveNewItem" style="width:100%;">Lưu vào sổ vé</button>
+</div>
+
+<div class="sheet" id="settingsSheet">
+  <button class="sheet-close" id="closeSettings">✕</button>
+  <div class="sheet-handle"></div>
+  <div class="form-title">Kết nối Google Sheet</div>
+  <p style="font-size:13px;color:var(--ink-soft);margin:-6px 0 14px;">Nếu bạn đã hardcode URL trong file HTML (biến HARDCODED_SHEET_URL ở đầu script), app tự kết nối — không cần nhập tay ở đây. Ô này chỉ để đổi URL tạm thời hoặc kiểm tra trạng thái.</p>
+  <div class="field"><label>Web App URL</label><input type="text" id="fSheetUrl" placeholder="https://script.google.com/macros/s/…/exec"></div>
+  <div id="syncStatusText" style="font-size:12.5px;font-weight:700;margin-bottom:12px;color:var(--ink-soft);">Chưa kết nối — app đang lưu cục bộ trên máy này.</div>
+  <button class="btn btn-primary" id="connectSheetBtn" style="width:100%;margin-bottom:8px;">Lưu &amp; đồng bộ ngay</button>
+  <button class="btn btn-ghost" id="disconnectSheetBtn" style="width:100%;">Ngắt kết nối, chỉ dùng offline</button>
+</div>
+
+<div class="sheet" id="importSheet">
+  <button class="sheet-close" id="closeImport">✕</button>
+  <div class="sheet-handle"></div>
+  <div class="form-title">Nhập danh sách mới từ JSON</div>
+  <p style="font-size:13px;color:var(--ink-soft);margin:-6px 0 12px;">Dán transcript YouTube vào prompt mẫu bên dưới, đưa cho một AI (Claude, ChatGPT…), rồi dán JSON mà AI trả về vào ô phía dưới.</p>
+  <div class="field">
+    <label>Prompt mẫu (bấm nút để sao chép)</label>
+    <textarea id="promptTemplate" readonly style="min-height:130px;font-size:11.5px;"></textarea>
+    <button class="btn btn-ghost" id="copyPromptBtn" style="width:100%;margin-top:6px;">Sao chép prompt</button>
+  </div>
+  <div class="field">
+    <label>Dán JSON kết quả AI trả về vào đây</label>
+    <textarea id="importJsonInput" placeholder='[{"ten":"...", "loai":"little", "mota":"", "diachi":"", "mood":["Vui nhộn"]}]' style="min-height:110px;font-size:12.5px;"></textarea>
+  </div>
+  <div id="importStatusText" style="font-size:12.5px;font-weight:700;margin-bottom:10px;color:var(--ink-soft);"></div>
+  <button class="btn btn-primary" id="submitImportBtn" style="width:100%;">Nhập vào sổ vé</button>
+</div>
+
+<script>
+/* ============================================================
+   ĐỂ TỰ KẾT NỐI GOOGLE SHEET NGAY KHI MỞ APP (không cần bấm cài đặt):
+   Thay chuỗi bên dưới bằng URL Web App bạn lấy từ Apps Script > Deploy.
+   Dạng: https://script.google.com/macros/s/AKfycb.../exec
+   ============================================================ */
+const HARDCODED_SHEET_URL = "https://script.google.com/macros/s/AKfycbxasQtFnYVR4iziA27s3xEzPJyje4pp9v7mu1ARIj1HcYh3uc4jebmnNXs0OwRg1rDV/exec";
+
+const MOODS = ["Ấm áp","Thư giãn","Vui nhộn","Hoài niệm","Chăm sóc bản thân","Kết nối","Phiêu lưu","Ngắm cảnh đẹp"];
+
+const PROMPT_TEMPLATE = "Bạn sẽ nhận được transcript của một video YouTube. Đọc kỹ và trích ra danh sách những \"điều nhỏ làm cuộc sống vui hơn\" (thói quen, khoảnh khắc đời thường) và/hoặc \"hoạt động, địa điểm vui chơi giải trí cụ thể\" được nhắc tới trong video.\n\nTrả lời DUY NHẤT một mảng JSON hợp lệ, không thêm chữ nào khác, không markdown code fence, theo đúng schema sau cho mỗi phần tử:\n\n{\n  \"ten\": \"Tên ngắn gọn (tiếng Việt)\",\n  \"loai\": \"little\" hoặc \"saigon\",\n  \"mota\": \"Mô tả 1 câu ngắn, để trống nếu không cần\",\n  \"diachi\": \"Địa chỉ đầy đủ nếu là địa điểm cụ thể, để trống nếu không có\",\n  \"mood\": [\"chọn 1-2 trong: Ấm áp, Thư giãn, Vui nhộn, Hoài niệm, Chăm sóc bản thân, Kết nối, Phiêu lưu, Ngắm cảnh đẹp\"]\n}\n\nGhi chú:\n- \"little\" = điều nhỏ đời thường, không gắn với một địa điểm cụ thể (diachi để trống).\n- \"saigon\" = hoạt động/địa điểm có thể ghé, cố gắng suy ra hoặc để trống nếu transcript không nói rõ địa chỉ.\n- Chỉ trả về mảng JSON, không giải thích, không tiêu đề.\n\nTranscript:\n<dán transcript vào đây>";
+
+const BASE_ITEMS = [
+["lt-1","Xịt nước bằng vòi tưới cây","little","","",["Vui nhộn","Thư giãn"]],
+["lt-2","Cà phê buổi sáng ngoài trời","little","","",["Thư giãn","Chăm sóc bản thân"]],
+["lt-3","Có một chú chó bên cạnh","little","","",["Ấm áp","Kết nối"]],
+["lt-4","Trở thành khách quen ở một quán nào đó","little","","",["Ấm áp","Kết nối"]],
+["lt-5","Một chiếc ghế garage êm ái để ngồi","little","","",["Thư giãn"]],
+["lt-6","Dưa lê ướp lạnh đúng độ ngày nóng","little","","",["Thư giãn"]],
+["lt-7","Một công viên đẹp gần nhà","little","","",["Thư giãn","Ngắm cảnh đẹp"]],
+["lt-8","Được mời dùng thử miễn phí","little","","",["Vui nhộn"]],
+["lt-9","Bắt gọn thứ ai đó ném cho mình","little","","",["Vui nhộn"]],
+["lt-10","Bẻ khớp ngón tay","little","","",["Thư giãn"]],
+["lt-11","Đi cùng bạn khi họ chạy việc vặt","little","","",["Kết nối"]],
+["lt-12","Đeo một chiếc đồng hồ","little","","",["Chăm sóc bản thân"]],
+["lt-14","Ăn Wiener schnitzel (cốt lết chiên xù)","little","","",["Vui nhộn"]],
+["lt-15","Tìm được tiệm cắt tóc hợp ý","little","","",["Ấm áp","Kết nối"]],
+["lt-16","Đi bộ 30 phút sau bữa tối","little","","",["Chăm sóc bản thân"]],
+["lt-17","Trải ga giường sạch tinh","little","","",["Chăm sóc bản thân","Thư giãn"]],
+["lt-20","Một ly đồ uống thật lạnh","little","","",["Thư giãn"]],
+["lt-21","Một cú vươn vai đã đời","little","","",["Chăm sóc bản thân"]],
+["lt-22","Có cây xanh quanh mình","little","","",["Thư giãn","Ngắm cảnh đẹp"]],
+["lt-26","Mở hết cửa sổ, rèm, mành buổi sáng","little","","",["Thư giãn"]],
+["lt-28","Đi hiking","little","","",["Phiêu lưu","Ngắm cảnh đẹp"]],
+["lt-29","Nghe mưa rơi khi chẳng phải đi đâu","little","","",["Thư giãn","Hoài niệm"]],
+["lt-31","Ăn cherries","little","","",["Vui nhộn"]],
+["lt-33","Kem vani (và vài vị đề cử danh dự)","little","","",["Vui nhộn","Hoài niệm"]],
+["lt-34","Khi ai đó nhắn tin trả lời ngay","little","","",["Kết nối"]],
+["lt-36","Chào chú đưa thư/shipper quen mặt","little","","",["Ấm áp","Kết nối"]],
+["lt-39","Cắt móng tay, cạo gáy sạch sẽ","little","","",["Chăm sóc bản thân"]],
+["lt-41","Uống espresso tonic","little","","",["Vui nhộn"]],
+["lt-44","Lau chùi, chỉnh lại xe đạp","little","","",["Chăm sóc bản thân"]],
+["lt-45","Mặc quần short ống rộng thoải mái","little","","",["Vui nhộn"]],
+["lt-46","Mặc chất liệu tự nhiên, mát mẻ","little","","",["Chăm sóc bản thân"]],
+["lt-47","Đi tất nhiều màu (không phải tất hài)","little","","",["Vui nhộn"]],
+["lt-48","Thắt một chiếc thắt lưng bện","little","","",["Vui nhộn"]],
+["lt-49","Mặc áo gió có mũ","little","","",["Vui nhộn"]],
+["lt-50","Đồ phong cách hải quân nói chung","little","","",["Vui nhộn"]],
+["lt-51","Đồ Gap, Abercrombie, J.Crew thập niên 90","little","","",["Hoài niệm"]],
+["lt-52","Mặc áo ba lỗ trong áo sơ mi","little","","",["Vui nhộn"]],
+["lt-53","Sắm thêm một cặp kính râm mới","little","","",["Vui nhộn"]],
+["lt-54","Áo polo hơi chật một chút","little","","",["Vui nhộn"]],
+["lt-55","Quần short thể thao phối áo có cổ","little","","",["Vui nhộn"]],
+["lt-56","Khoác lên một chiếc blazer","little","","",["Chăm sóc bản thân"]],
+["lt-58","Xem phim có Dustin Hoffman","little","","",["Hoài niệm"]],
+["lt-59","Xem phim có Martin Short","little","","",["Hoài niệm"]],
+["lt-60","Xem lại Master and Commander","little","","",["Hoài niệm"]],
+["lt-61","Sống trọn vẹn theo từng mùa","little","","",["Thư giãn","Ngắm cảnh đẹp"]],
+["lt-62","Ngửi mùi miễn phí (nến, nước hoa, nhà hàng)","little","","",["Vui nhộn"]],
+["lt-63","Nghe trọn một album từ đầu tới cuối","little","","",["Thư giãn","Hoài niệm"]],
+["lt-69","Dùng một cây bút gel 0.05 đã tay","little","","",["Chăm sóc bản thân"]],
+["lt-71","Ngồi giữa một nơi công cộng hơi nhộn nhịp","little","","",["Thư giãn"]],
+["lt-75","Thấy một cặp đôi lớn tuổi nắm tay nhau","little","","",["Ấm áp"]],
+["lt-76","Ngồi trong xe nghe nốt bài hát rồi mới vào nhà","little","","",["Thư giãn","Hoài niệm"]],
+["lt-77","Nghe tiếng chim hót","little","","",["Thư giãn"]],
+["lt-78","Ăn bánh mì còn nóng","little","","",["Vui nhộn"]],
+["lt-79","Vẫy tay chào hàng xóm","little","","",["Ấm áp","Kết nối"]],
+["lt-80","Đạp côn vào số mượt như tơ (heel-toe)","little","","",["Vui nhộn","Phiêu lưu"]],
+["lt-81","Lái xe hạ kính, bật điều hòa","little","","",["Thư giãn","Phiêu lưu"]],
+["lt-82","Sưu tầm nam châm tủ lạnh nhỏ xinh","little","","",["Hoài niệm","Ấm áp"]],
+
+["sg-1","Ngắm hoàng hôn ở Bitexco Skydeck","saigon","Lên tầng 49 ngắm 360° Sài Gòn lúc trời chuyển tối","36 Hồ Tùng Mậu, Phường Bến Nghé, Quận 1, TP.HCM",["Ngắm cảnh đẹp","Phiêu lưu"]],
+["sg-2","Đài quan sát Landmark 81 Skyview","saigon","Toà nhà cao nhất Việt Nam, sàn kính nhìn xuống thành phố","720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP.HCM",["Ngắm cảnh đẹp","Vui nhộn"]],
+["sg-3","Dạo phố đi bộ Nguyễn Huệ buổi tối","saigon","Đi bộ, xem nhạc nước, chụp hình quảng trường trung tâm","Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",["Thư giãn","Kết nối"]],
+["sg-4","Khám phá phố Tây Bùi Viện","saigon","Về đêm nhộn nhịp quán bar, nhạc sống, đồ ăn vặt vỉa hè","Đường Bùi Viện, Phường Phạm Ngũ Lão, Quận 1, TP.HCM",["Vui nhộn","Kết nối"]],
+["sg-5","Dạo chợ Bến Thành","saigon","Chợ biểu tượng, mua đồ lưu niệm, ăn khu ẩm thực trong chợ","Đường Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM",["Vui nhộn","Ngắm cảnh đẹp"]],
+["sg-6","Cà phê ngắm Hồ Con Rùa","saigon","Ngồi cà phê vỉa hè ngắm vòng xoay nổi tiếng nhất Sài Gòn","Công trường Quốc Tế, Phường Võ Thị Sáu, Quận 3, TP.HCM",["Thư giãn","Hoài niệm"]],
+["sg-7","Thăm Thảo Cầm Viên Sài Gòn","saigon","Sở thú - vườn bách thảo lâu đời nhất Việt Nam","2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP.HCM",["Thư giãn","Ngắm cảnh đẹp"]],
+["sg-8","Chơi cả ngày ở Đầm Sen","saigon","Công viên giải trí lâu đời, có cả khu công viên nước","3 Hòa Bình, Phường 3, Quận 11, TP.HCM",["Vui nhộn","Kết nối"]],
+["sg-9","Khám phá Suối Tiên","saigon","Công viên văn hoá - tâm linh - giải trí quy mô lớn ở Thủ Đức","120 Xa lộ Hà Nội, Phường Tân Phú, TP. Thủ Đức, TP.HCM",["Vui nhộn","Phiêu lưu"]],
+["sg-10","Tham quan Địa đạo Củ Chi","saigon","Trải nghiệm lịch sử, chui hầm địa đạo thời chiến","Tỉnh lộ 15, Xã Phú Hiệp, Huyện Củ Chi, TP.HCM",["Phiêu lưu","Hoài niệm"]],
+["sg-11","Bảo tàng Chứng tích Chiến tranh","saigon","Tìm hiểu lịch sử chiến tranh Việt Nam qua hiện vật","28 Võ Văn Tần, Phường Võ Thị Sáu, Quận 3, TP.HCM",["Hoài niệm"]],
+["sg-12","Check-in Nhà thờ Đức Bà & Bưu điện Thành phố","saigon","Kiến trúc Pháp cổ ngay trung tâm Sài Gòn","Công xã Paris, Phường Bến Nghé, Quận 1, TP.HCM",["Ngắm cảnh đẹp","Hoài niệm"]],
+["sg-13","Đi thuyền buýt sông Sài Gòn (Waterbus)","saigon","Ngắm thành phố từ mặt sông, vé rẻ, trải nghiệm mới lạ","Bến Bạch Đằng, Phường Bến Nghé, Quận 1, TP.HCM",["Phiêu lưu","Ngắm cảnh đẹp"]],
+["sg-14","Trượt băng ở Vincom Ice Rink Landmark 81","saigon","Trượt băng trong nhà, mát lạnh giữa trưa nóng","Tầng B1 Vincom Center Landmark 81, 720A Điện Biên Phủ, Quận Bình Thạnh, TP.HCM",["Vui nhộn","Kết nối"]],
+["sg-15","Dạo & tập thể dục ở Công viên Tao Đàn","saigon","Công viên cây xanh lâu đời, sáng sớm nhiều người tập thể dục","Đường Trương Định, Phường Bến Thành, Quận 1, TP.HCM",["Thư giãn","Chăm sóc bản thân"]],
+["sg-16","Tham quan Dinh Độc Lập","saigon","Di tích lịch sử, kiến trúc thập niên 60 giữa trung tâm","135 Nam Kỳ Khởi Nghĩa, Phường Bến Thành, Quận 1, TP.HCM",["Hoài niệm","Ngắm cảnh đẹp"]],
+["sg-17","Ngắm tranh ở Bảo tàng Mỹ thuật TP.HCM","saigon","Biệt thự cổ trưng bày mỹ thuật Việt Nam qua các thời kỳ","97A Phó Đức Chính, Phường Nguyễn Thái Bình, Quận 1, TP.HCM",["Thư giãn","Ngắm cảnh đẹp"]],
+["sg-18","Chèo SUP / đạp xe quanh Bán đảo Thanh Đa","saigon","Sáng sớm mát mẻ, cung đường ven sông yên tĩnh","Bán đảo Thanh Đa, Phường 27, Quận Bình Thạnh, TP.HCM",["Phiêu lưu","Chăm sóc bản thân"]]
+].map(r => ({id:r[0], ten:r[1], loai:r[2], mota:r[3], diachi:r[4], mood:r[5]}));
+
+let customItems = [];
+let stateAll = {};
+let allItems = [];
+let filterType = "all";
+let filterMoods = new Set();
+let searchText = "";
+let currentHighlight = null;
+let sheetUrl = null;
+
+const feedEl = document.getElementById('feed');
+const chipRow = document.getElementById('moodChipRow');
+const fMoodRow = document.getElementById('fMood');
+
+function buildMoodChips(){
+  chipRow.innerHTML = "";
+  MOODS.forEach(m=>{
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = m;
+    b.onclick = ()=>{ if(filterMoods.has(m)) filterMoods.delete(m); else filterMoods.add(m); b.classList.toggle('active'); render(); };
+    chipRow.appendChild(b);
+  });
+  fMoodRow.innerHTML = "";
+  MOODS.forEach(m=>{
+    const b = document.createElement('button');
+    b.type='button'; b.textContent = m; b.dataset.m = m;
+    b.onclick = ()=> b.classList.toggle('active');
+    fMoodRow.appendChild(b);
+  });
+}
+
+function formatDate(d){
+  const p = n => String(n).padStart(2,'0');
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function commentsToGhichu(comments){
+  return (comments||[]).map(c => (c.date ? '['+c.date+'] ' : '') + c.text).join('\n');
+}
+function ghichuToComments(ghichu){
+  if(!ghichu) return [];
+  return String(ghichu).split('\n').filter(Boolean).map(line=>{
+    const m = line.match(/^\[(.*?)\]\s*(.*)$/);
+    if(m) return {date:m[1], text:m[2]};
+    return {date:'', text:line};
+  });
+}
+
+function getState(id){
+  const s = stateAll[id];
+  if(!s) return {done:false, rating:0, comments:[]};
+  if(s.note !== undefined && s.comments === undefined){
+    s.comments = s.note ? [{text:s.note, date:''}] : [];
+    delete s.note;
+  }
+  if(!s.comments) s.comments = [];
+  return s;
+}
+function setState(id, patch){
+  stateAll[id] = Object.assign({}, getState(id), patch);
+  saveState();
+  pushUpdateToSheet(id, patch);
+  render();
+}
+
+async function loadAll(){
+  try{ const r = await window.storage.get('bucket-state', false); if(r && r.value) stateAll = JSON.parse(r.value); }catch(e){ stateAll = {}; }
+  try{ const r2 = await window.storage.get('bucket-custom-items', false); if(r2 && r2.value) customItems = JSON.parse(r2.value); }catch(e){ customItems = []; }
+  try{ const r3 = await window.storage.get('sheet-webapp-url', false); if(r3 && r3.value) sheetUrl = r3.value; }catch(e){ sheetUrl = null; }
+
+  if(!sheetUrl && HARDCODED_SHEET_URL && HARDCODED_SHEET_URL.indexOf('PASTE_') !== 0){
+    sheetUrl = HARDCODED_SHEET_URL;
+    try{ await window.storage.set('sheet-webapp-url', sheetUrl, false); }catch(e){}
+  }
+
+  allItems = BASE_ITEMS.concat(customItems);
+  render();
+
+  if(sheetUrl){
+    document.getElementById('fSheetUrl').value = sheetUrl;
+    syncFromSheet();
+  }
+}
+
+async function saveState(){ try{ await window.storage.set('bucket-state', JSON.stringify(stateAll), false); }catch(e){} }
+async function saveCustom(){ try{ await window.storage.set('bucket-custom-items', JSON.stringify(customItems), false); }catch(e){} }
+
+function mapsUrl(addr){ return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr); }
+function loaiToInternal(v){ return (v||'').indexOf('nhỏ') > -1 ? 'little' : 'saigon'; }
+function internalToLoai(v){ return v === 'little' ? 'Điều nhỏ' : 'Đi & chơi SG'; }
+
+function setSyncStatus(mode, msg){
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncStatusText');
+  dot.classList.remove('on','err');
+  if(mode === 'on'){
+    dot.classList.add('on');
+    if(txt){ txt.textContent = 'Đã kết nối — đồng bộ hai chiều với Google Sheet.'; txt.style.color = 'var(--good)'; }
+  } else if(mode === 'err'){
+    dot.classList.add('err');
+    if(txt){ txt.textContent = 'Không kết nối được (' + (msg||'lỗi không rõ') + '). Vẫn lưu tạm trên máy.'; txt.style.color = 'var(--bad)'; }
+  } else {
+    if(txt){ txt.textContent = 'Chưa kết nối — app đang lưu cục bộ trên máy này.'; txt.style.color = 'var(--ink-soft)'; }
+  }
+}
+
+async function syncFromSheet(){
+  if(!sheetUrl) return;
+  try{
+    const res = await fetch(sheetUrl + '?action=list');
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'phản hồi lỗi');
+    const knownIds = new Set(allItems.map(i=>i.id));
+    (data.items||[]).forEach(row=>{
+      const id = row.id;
+      if(!id) return;
+      stateAll[id] = { done: row.trangthai === 'Đã làm', rating: row.danhgia ? (parseInt(row.danhgia,10)||0) : 0, comments: ghichuToComments(row.ghichu) };
+      if(!knownIds.has(id)){
+        const moodArr = (row.mood||'').split(',').map(s=>s.trim()).filter(Boolean);
+        const item = {id, ten: row.ten||'(không tên)', loai: loaiToInternal(row.loai), mota: row.mota||'', diachi: row.diachi||'', mood: moodArr.length?moodArr:['Vui nhộn']};
+        customItems.push(item); allItems.push(item); knownIds.add(id);
+      }
+    });
+    saveState(); saveCustom();
+    setSyncStatus('on');
+    render();
+  }catch(e){ setSyncStatus('err', String(e.message||e)); }
+}
+
+function pushUpdateToSheet(id, patch){
+  if(!sheetUrl) return;
+  const body = {action:'update', id};
+  if(patch.done !== undefined) body.trangthai = patch.done ? 'Đã làm' : 'Chưa làm';
+  if(patch.rating !== undefined) body.danhgia = patch.rating ? String(patch.rating) : '';
+  if(patch.comments !== undefined) body.ghichu = commentsToGhichu(patch.comments);
+  fetch(sheetUrl, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{ if(d.ok) setSyncStatus('on'); else setSyncStatus('err', d.error); })
+    .catch(e=> setSyncStatus('err', String(e.message||e)));
+}
+function pushAddToSheet(item){
+  if(!sheetUrl) return;
+  const body = {action:'add', id:item.id, ten:item.ten, loai: internalToLoai(item.loai), mota:item.mota||'', diachi:item.diachi||'', mood:item.mood.join(','), trangthai:'Chưa làm', danhgia:'', ghichu:''};
+  fetch(sheetUrl, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{ if(d.ok) setSyncStatus('on'); else setSyncStatus('err', d.error); })
+    .catch(e=> setSyncStatus('err', String(e.message||e)));
+}
+
+function passesFilter(item){
+  if(filterType !== "all" && item.loai !== filterType) return false;
+  if(filterMoods.size > 0){ const has = item.mood.some(m => filterMoods.has(m)); if(!has) return false; }
+  if(searchText){ const hay = (item.ten + " " + (item.diachi||"") + " " + (item.mota||"")).toLowerCase(); if(!hay.includes(searchText)) return false; }
+  return true;
+}
+
+function renderCard(item){
+  const st = getState(item.id);
+  const div = document.createElement('div');
+  div.className = 'card' + (st.done ? ' done':'') + (item.id===currentHighlight ? ' highlight':'');
+  div.id = 'card-' + item.id;
+  const badge = item.loai === 'little' ? '<span class="type-badge tb-little">ĐIỀU NHỎ</span>' : '<span class="type-badge tb-saigon">ĐI &amp; CHƠI SG</span>';
+
+  let html = `<div class="card-top"><p class="card-title">${escapeHtml(item.ten)}</p>${badge}</div>`;
+  if(item.mota){ html += `<p class="card-desc">${escapeHtml(item.mota)}</p>`; }
+  if(item.diachi){
+    html += `<a class="card-addr" href="${mapsUrl(item.diachi)}" target="_blank" rel="noopener">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span>${escapeHtml(item.diachi)}</span></a>`;
+  }
+  html += `<div class="mood-tags">${item.mood.map(m=>`<span class="mood-tag">${m}</span>`).join('')}</div>`;
+  html += `<div class="card-actions">
+    <div class="done-toggle ${st.done?'done':''}" data-id="${item.id}">
+      <div class="box">${st.done ? checkSvg() : ''}</div>
+      <span class="label">${st.done ? 'Đã trải nghiệm' : 'Đánh dấu đã làm'}</span>
+    </div>
+    <div class="stars" data-id="${item.id}">${[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${st.rating>=n?'on':''}">★</button>`).join('')}</div>
+  </div>`;
+
+  html += `<div class="comments-area">
+    <div class="comments-list">${st.comments.map(c=>`<div class="comment-item">${c.date?`<span class="c-date">${escapeHtml(c.date)}</span>`:''}${escapeHtml(c.text)}</div>`).join('')}</div>
+    <div class="comment-input-row">
+      <input type="text" class="comment-input" placeholder="Viết nhận xét…">
+      <button class="comment-send">Gửi</button>
+    </div>
+  </div>`;
+
+  div.innerHTML = html;
+  div.querySelector('.done-toggle').onclick = ()=> setState(item.id, {done: !st.done});
+  div.querySelectorAll('.stars button').forEach(b=>{
+    b.onclick = ()=>{ const n = parseInt(b.dataset.n,10); setState(item.id, {rating: st.rating===n ? 0 : n}); };
+  });
+  const cinput = div.querySelector('.comment-input');
+  const csend = div.querySelector('.comment-send');
+  function submitComment(){
+    const val = cinput.value.trim();
+    if(!val) return;
+    const st2 = getState(item.id);
+    const comments = (st2.comments||[]).concat([{text:val, date: formatDate(new Date())}]);
+    setState(item.id, {comments});
+  }
+  csend.onclick = submitComment;
+  cinput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); submitComment(); } });
+  return div;
+}
+
+function checkSvg(){ return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F5EFDD" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`; }
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function render(){
+  const list = allItems.filter(passesFilter);
+  feedEl.innerHTML = "";
+  if(list.length === 0){
+    feedEl.innerHTML = '<div class="empty-msg">Không có mục nào khớp bộ lọc.<br>Thử bỏ bớt điều kiện xem sao.</div>';
+  } else {
+    list.forEach(item => feedEl.appendChild(renderCard(item)));
+  }
+  const total = allItems.length;
+  const done = allItems.filter(i => getState(i.id).done).length;
+  document.getElementById('statNum').innerHTML = done + '<small>/' + total + '</small>';
+  document.getElementById('statBar').style.width = (total? (done/total*100):0) + '%';
+}
+
+document.getElementById('typeToggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  document.querySelectorAll('#typeToggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); filterType = btn.dataset.type; render();
+});
+document.getElementById('searchInput').addEventListener('input', (e)=>{ searchText = e.target.value.trim().toLowerCase(); render(); });
+
+const backdrop = document.getElementById('backdrop');
+const revealSheet = document.getElementById('revealSheet');
+const addSheet = document.getElementById('addSheet');
+const settingsSheet = document.getElementById('settingsSheet');
+const importSheet = document.getElementById('importSheet');
+
+function openSheet(el){ backdrop.classList.add('open'); el.classList.add('open'); }
+function closeSheets(){ backdrop.classList.remove('open'); revealSheet.classList.remove('open'); addSheet.classList.remove('open'); settingsSheet.classList.remove('open'); importSheet.classList.remove('open'); }
+backdrop.addEventListener('click', closeSheets);
+document.getElementById('closeReveal').addEventListener('click', closeSheets);
+document.getElementById('closeAdd').addEventListener('click', closeSheets);
+document.getElementById('closeSettings').addEventListener('click', closeSheets);
+document.getElementById('closeImport').addEventListener('click', closeSheets);
+
+document.getElementById('openSettingsBtn').addEventListener('click', ()=> openSheet(settingsSheet));
+document.getElementById('connectSheetBtn').addEventListener('click', async ()=>{
+  const url = document.getElementById('fSheetUrl').value.trim();
+  if(!url) return;
+  sheetUrl = url;
+  try{ await window.storage.set('sheet-webapp-url', url, false); }catch(e){}
+  document.getElementById('syncStatusText').textContent = 'Đang đồng bộ…';
+  document.getElementById('syncStatusText').style.color = 'var(--ink-soft)';
+  await syncFromSheet();
+});
+document.getElementById('disconnectSheetBtn').addEventListener('click', async ()=>{
+  sheetUrl = null;
+  try{ await window.storage.delete('sheet-webapp-url', false); }catch(e){}
+  document.getElementById('fSheetUrl').value = '';
+  setSyncStatus('off');
+});
+
+function doRandomize(){
+  let pool = allItems.filter(passesFilter);
+  if(document.getElementById('onlyUndone').checked){ pool = pool.filter(i => !getState(i.id).done); }
+  const revealBody = document.getElementById('revealBody');
+  if(pool.length === 0){
+    revealBody.innerHTML = `<div class="reveal-kicker">HẾT THẺ RỒI</div><p class="reveal-title">Không còn mục nào để rút</p><p style="color:var(--ink-soft);font-size:14px;">Thử bỏ bộ lọc, hoặc bỏ chọn "chỉ mục chưa làm" ở trên nhé.</p>`;
+    openSheet(revealSheet); return;
+  }
+  const item = pool[Math.floor(Math.random()*pool.length)];
+  const kicker = item.loai === 'little' ? 'HÔM NAY, THỬ ĐỂ Ý' : 'HÔM NAY, ĐI THỬ';
+  let body = `<div class="reveal-card"><div class="reveal-kicker">${kicker}</div><p class="reveal-title">${escapeHtml(item.ten)}</p>`;
+  if(item.mota) body += `<p style="color:var(--ink-soft);font-size:14px;margin:0 0 8px;">${escapeHtml(item.mota)}</p>`;
+  if(item.diachi) body += `<a class="card-addr" style="margin-left:0;" href="${mapsUrl(item.diachi)}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${escapeHtml(item.diachi)}</span></a>`;
+  body += `<div class="mood-tags" style="margin-left:0;">${item.mood.map(m=>`<span class="mood-tag">${m}</span>`).join('')}</div>`;
+  body += `<div class="reveal-btnrow"><button class="btn btn-ghost" id="revealSkip">Rút lại</button><button class="btn btn-primary" id="revealDone">Đánh dấu đã làm</button></div></div>`;
+  revealBody.innerHTML = body;
+  document.getElementById('revealSkip').onclick = doRandomize;
+  document.getElementById('revealDone').onclick = ()=>{ setState(item.id, {done:true}); closeSheets(); scrollToCard(item.id); };
+  openSheet(revealSheet);
+}
+document.getElementById('fabRandom').addEventListener('click', doRandomize);
+document.getElementById('sidebarRandomBtn').addEventListener('click', doRandomize);
+
+function scrollToCard(id){
+  currentHighlight = id; render();
+  setTimeout(()=>{ const el = document.getElementById('card-'+id); if(el) el.scrollIntoView({behavior:'smooth', block:'center'}); }, 60);
+  setTimeout(()=>{ currentHighlight = null; }, 1600);
+}
+
+document.getElementById('openAddBtn').addEventListener('click', ()=>{
+  document.getElementById('fName').value=''; document.getElementById('fAddr').value=''; document.getElementById('fDesc').value='';
+  document.querySelectorAll('#fType button').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#fType button[data-v="little"]').classList.add('active');
+  document.querySelectorAll('#fMood button').forEach(b=>b.classList.remove('active'));
+  openSheet(addSheet);
+});
+document.getElementById('fType').addEventListener('click', (e)=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#fType button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+});
+document.getElementById('saveNewItem').addEventListener('click', async ()=>{
+  const name = document.getElementById('fName').value.trim();
+  if(!name){ document.getElementById('fName').focus(); return; }
+  const type = document.querySelector('#fType button.active').dataset.v;
+  const addr = document.getElementById('fAddr').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const mood = Array.from(document.querySelectorAll('#fMood button.active')).map(b=>b.dataset.m);
+  const id = 'custom-' + Date.now();
+  const item = {id, ten:name, loai:type, mota:desc, diachi:addr, mood: mood.length?mood:["Vui nhộn"]};
+  customItems.push(item); allItems.push(item);
+  await saveCustom();
+  pushAddToSheet(item);
+  closeSheets(); render();
+  setTimeout(()=>scrollToCard(id), 200);
+});
+
+document.getElementById('openImportBtn').addEventListener('click', ()=>{
+  document.getElementById('promptTemplate').value = PROMPT_TEMPLATE;
+  document.getElementById('importJsonInput').value = '';
+  document.getElementById('importStatusText').textContent = '';
+  openSheet(importSheet);
+});
+document.getElementById('copyPromptBtn').addEventListener('click', ()=>{
+  const ta = document.getElementById('promptTemplate');
+  ta.focus(); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(PROMPT_TEMPLATE).catch(()=>{}); }
+  const btn = document.getElementById('copyPromptBtn');
+  const old = btn.textContent; btn.textContent = 'Đã sao chép ✓';
+  setTimeout(()=> btn.textContent = old, 1500);
+});
+document.getElementById('submitImportBtn').addEventListener('click', async ()=>{
+  const raw = document.getElementById('importJsonInput').value.trim();
+  const statusEl = document.getElementById('importStatusText');
+  if(!raw){ statusEl.textContent='Chưa dán JSON nào cả.'; statusEl.style.color='var(--bad)'; return; }
+  let arr;
+  try{ arr = JSON.parse(raw); if(!Array.isArray(arr)) throw new Error('not_array'); }
+  catch(e){ statusEl.textContent = 'JSON không hợp lệ, kiểm tra lại định dạng.'; statusEl.style.color = 'var(--bad)'; return; }
+  let count = 0;
+  arr.forEach((obj, idx)=>{
+    if(!obj || !obj.ten) return;
+    const loai = (obj.loai === 'saigon') ? 'saigon' : 'little';
+    const mood = Array.isArray(obj.mood) ? obj.mood.filter(m=>MOODS.includes(m)) : [];
+    const id = obj.id || ('custom-' + Date.now() + '-' + idx);
+    const item = {id, ten:String(obj.ten), loai, mota: obj.mota?String(obj.mota):'', diachi: obj.diachi?String(obj.diachi):'', mood: mood.length?mood:['Vui nhộn']};
+    customItems.push(item); allItems.push(item); pushAddToSheet(item); count++;
+  });
+  await saveCustom();
+  statusEl.textContent = 'Đã thêm ' + count + ' mục mới vào sổ vé.'; statusEl.style.color = 'var(--good)';
+  render();
+});
+
+buildMoodChips();
+loadAll();
+</script>
+</body>
+</html>
