@@ -5,15 +5,20 @@
 
    Dan de len TOAN BO code cu trong Apps Script editor, roi chay theo thu tu:
      1. previewCleanup()     -> chi in ra se sua gi, khong dong vao du lieu
-     2. cleanUpAndLabel()    -> gan/kiem lai nhan category cho moi hang (an toan)
-     3. removeLoaiColumn()   -> XOA cot `loai` (KHONG hoan tac duoc)
-     4. Deploy > Manage deployments > Edit (but chi) > Version: New version > Deploy
+     2. ensureColumns()      -> them cot lat / lng / visits neu chua co (an toan)
+     3. cleanUpAndLabel()    -> gan/kiem lai nhan category cho moi hang (an toan)
+     4. removeLoaiColumn()   -> XOA cot `loai` (KHONG hoan tac duoc)
+     5. Deploy > Manage deployments > Edit (but chi) > Version: New version > Deploy
         (giu nguyen URL /exec dang dung trong index.html)
-   Nen File > Make a copy de sao luu truoc khi chay buoc 3.
+   Nen File > Make a copy de sao luu truoc khi chay buoc 4.
    ============================================================ */
 
 var VALID_CATEGORIES = ['eat', 'hangout', 'casual', 'adventure', 'culture', 'selfcare'];
 var DEFAULT_CATEGORY = 'casual';
+
+/* Cot app can co. `visits` la nhat ky ghe, moi dong "dd/MM HH:mm|ten".
+   `lat`/`lng` dung cho ban do va bo loc "gan toi". */
+var REQUIRED_COLUMNS = ['category', 'lat', 'lng', 'visits'];
 
 /* id -> category cho 49 cho hien co tren Sheet. */
 var CATEGORY_MAP = {
@@ -102,7 +107,7 @@ function doPost(e) {
       }
       if (rowIndex === -1) return json({ ok: false, error: 'not_found' });
 
-      ['trangthai', 'danhgia', 'ghichu', 'category'].forEach(function (field) {
+      ['trangthai', 'danhgia', 'ghichu', 'category', 'lat', 'lng', 'visits'].forEach(function (field) {
         if (body[field] !== undefined) {
           var col = headers.indexOf(field);
           if (col > -1) sheet.getRange(rowIndex + 1, col + 1).setValue(body[field]);
@@ -112,7 +117,7 @@ function doPost(e) {
     }
 
     if (body.action === 'add') {
-      if (headers.indexOf('category') === -1) addCategoryColumn_(sheet);
+      ensureColumns_(sheet);
       headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
       if (!body.category || VALID_CATEGORIES.indexOf(body.category) === -1) {
         body.category = DEFAULT_CATEGORY;
@@ -140,11 +145,27 @@ function json(obj) {
 
 /* ---------- Bao tri: chay tay tu Apps Script editor ---------- */
 
-function addCategoryColumn_(sheet) {
-  var lastCol = sheet.getLastColumn();
-  sheet.insertColumnAfter(lastCol);
-  sheet.getRange(1, lastCol + 1).setValue('category');
-  return lastCol + 1;
+/** Them bat ky cot nao trong REQUIRED_COLUMNS con thieu. Chay lai duoc nhieu lan. */
+function ensureColumns_(sheet) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var added = [];
+  REQUIRED_COLUMNS.forEach(function (name) {
+    if (headers.indexOf(name) > -1) return;
+    var lastCol = sheet.getLastColumn();
+    sheet.insertColumnAfter(lastCol);
+    sheet.getRange(1, lastCol + 1).setValue(name);
+    headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    added.push(name);
+  });
+  return added;
+}
+
+/** BUOC 2 - an toan. Them cot lat / lng / visits neu Sheet chua co. */
+function ensureColumns() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var added = ensureColumns_(sheet);
+  Logger.log(added.length ? 'Da them cot: ' + added.join(', ') : 'Du cot roi, khong can them gi.');
+  return added.length ? 'Da them ' + added.join(', ') : 'Khong can them';
 }
 
 /** BUOC 1 - chi in ra, khong dong vao du lieu. */
@@ -164,7 +185,9 @@ function previewCleanup() {
     if (catCol > -1 && !String(data[i][catCol]).trim()) blank.push(id);
   }
 
+  var missing = REQUIRED_COLUMNS.filter(function (c) { return headers.indexOf(c) === -1; });
   Logger.log('Tong hang: %s', data.length - 1);
+  Logger.log('Cot con thieu: %s', missing.length ? missing.join(', ') + ' -- chay ensureColumns()' : 'khong thieu cot nao');
   Logger.log('Cot `loai`: %s', loaiCol > -1
     ? 'con o cot ' + (loaiCol + 1) + ' -- removeLoaiColumn() se xoa han'
     : 'da xoa roi');
@@ -182,9 +205,9 @@ function previewCleanup() {
  */
 function cleanUpAndLabel() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  ensureColumns_(sheet);
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var catCol = headers.indexOf('category') + 1;
-  if (catCol === 0) catCol = addCategoryColumn_(sheet);
 
   var idCol = headers.indexOf('id') + 1;
   var lastRow = sheet.getLastRow();
