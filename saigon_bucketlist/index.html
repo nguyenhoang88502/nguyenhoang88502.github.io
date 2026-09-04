@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sổ Vé — Những Điều Nhỏ & Sài Gòn</title>
+<title>Sổ Vé — Sài Gòn Để Đi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -204,6 +204,8 @@
   }
   .cat-row button:active{ transform:scale(0.95); }
   .cat-row button.active{ background:var(--jade); border-color:var(--jade); color:var(--paper); }
+  .cat-row button.empty{ opacity:.4; }
+  .cat-row button.empty.active{ opacity:1; }
 
   .badge-group{ flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
   .badge-group .cat-badge{ margin-top:0; }
@@ -334,8 +336,8 @@
   <aside class="sidebar">
     <header class="top">
       <div class="eyebrow"><span class="sync-dot" id="syncDot"></span> SỔ VÉ CÁ NHÂN</div>
-      <h1>Những điều nhỏ,<br><em>và Sài Gòn để đi.</em></h1>
-      <p class="sub">Gom lại 82 niềm vui bé xíu trong ngày và những chỗ đáng ghé ở Sài Gòn. Chưa biết làm gì — rút một thẻ ngẫu nhiên.</p>
+      <h1>Những chỗ đáng ghé,<br><em>và Sài Gòn để đi.</em></h1>
+      <p class="sub">Gom lại những chỗ đáng ghé ở Sài Gòn — quán xá, công viên, bảo tàng, chỗ đi chơi. Chưa biết đi đâu — rút một thẻ ngẫu nhiên.</p>
       <div class="stat-ticket">
         <div class="stat-num" id="statNum">0<small>/75</small></div>
         <div class="stat-bar-track"><div class="stat-bar-fill" id="statBar" style="width:0%"></div></div>
@@ -399,8 +401,8 @@
 <div class="sheet" id="addSheet">
   <button class="sheet-close" id="closeAdd">✕</button>
   <div class="sheet-handle"></div>
-  <div class="form-title">Thêm điều mới</div>
-  <div class="field"><label>Tên</label><input type="text" id="fName" placeholder="Vd: Xem bình minh ở Cần Giờ"></div>
+  <div class="form-title">Thêm chỗ mới</div>
+  <div class="field"><label>Tên</label><input type="text" id="fName" placeholder="Vd: Cà phê sáng ở Hồ Con Rùa"></div>
   <div class="field"><label>Nhóm hoạt động</label>
     <div class="seg seg-wrap" id="fCat"></div>
   </div>
@@ -498,67 +500,9 @@ function catInfo(v){ const n = normCategory(v); return CATEGORIES.find(c=>c.v ==
 const ONBOARDING_KEY = "onboarding-completed";
 const CONFETTI_COLORS = ["#E7A63C","#E1637A","#2F6E5E","#17463C","#C4841F","#7FBFA3","#F2C879","#C4553D"];
 
-const PROMPT_TEMPLATE = "Bạn sẽ nhận được transcript của một video YouTube. Đọc kỹ và trích ra danh sách những \"điều nhỏ làm cuộc sống vui hơn\" (thói quen, khoảnh khắc đời thường) và/hoặc \"hoạt động, địa điểm vui chơi giải trí cụ thể\" được nhắc tới trong video.\n\nTrả lời DUY NHẤT một mảng JSON hợp lệ, không thêm chữ nào khác, không markdown code fence, theo đúng schema sau cho mỗi phần tử:\n\n{\n  \"ten\": \"Tên ngắn gọn (tiếng Việt)\",\n  \"mota\": \"Mô tả 1 câu ngắn, để trống nếu không cần\",\n  \"diachi\": \"Địa chỉ đầy đủ nếu là địa điểm cụ thể, để trống nếu không có\",\n  \"mood\": [\"chọn 1-2 trong: Ấm áp, Thư giãn, Vui nhộn, Hoài niệm, Chăm sóc bản thân, Kết nối, Phiêu lưu, Ngắm cảnh đẹp\"],\n  \"category\": \"chọn ĐÚNG 1 trong: eat, hangout, casual, adventure, culture, selfcare\"\n}\n\nGhi chú:\n- diachi: chỉ điền khi là địa điểm cụ thể có thể ghé; điều nhỏ đời thường thì để trống.\n- \"category\": eat = ăn uống, hangout = gặp gỡ/giao lưu, casual = thư giãn nhẹ nhàng, adventure = phiêu lưu/vận động, culture = văn hoá/nghệ thuật/lịch sử, selfcare = chăm sóc bản thân. Nếu không chắc, dùng \"casual\".\n- Chỉ trả về mảng JSON, không giải thích, không tiêu đề.\n\nTranscript:\n<dán transcript vào đây>";
+const PROMPT_TEMPLATE = "Bạn sẽ nhận được transcript của một video YouTube hoặc một bài viết gợi ý. Đọc kỹ và trích ra danh sách những địa điểm, quán xá, hoạt động vui chơi giải trí cụ thể ở Sài Gòn (TP.HCM) được nhắc tới.\n\nTrả lời DUY NHẤT một mảng JSON hợp lệ, không thêm chữ nào khác, không markdown code fence, theo đúng schema sau cho mỗi phần tử:\n\n{\n  \"ten\": \"Tên chỗ, ngắn gọn (tiếng Việt)\",\n  \"mota\": \"Mô tả 1 câu ngắn, để trống nếu không cần\",\n  \"diachi\": \"Địa chỉ đầy đủ, cố gắng suy ra; để trống nếu không rõ\",\n  \"mood\": [\"chọn 1-2 trong: Ấm áp, Thư giãn, Vui nhộn, Hoài niệm, Chăm sóc bản thân, Kết nối, Phiêu lưu, Ngắm cảnh đẹp\"],\n  \"category\": \"chọn ĐÚNG 1 trong: eat, hangout, casual, adventure, culture, selfcare\"\n}\n\nGhi chú:\n- Chỉ lấy chỗ có thể ghé thật; bỏ qua thói quen hay khoảnh khắc đời thường chung chung.\n- \"category\": eat = quán ăn/cà phê, hangout = chỗ tụ tập/mall/rạp phim, casual = công viên, đi dạo nhẹ nhàng, adventure = leo trèo/vận động/khám phá, culture = bảo tàng/di tích/nghệ thuật, selfcare = spa, chăm sóc bản thân. Nếu không chắc, dùng \"casual\".\n- Chỉ trả về mảng JSON, không giải thích, không tiêu đề.\n\nTranscript:\n<dán transcript vào đây>";
 
 const BASE_ITEMS = [
-["lt-1","Xịt nước bằng vòi tưới cây","little","","",["Vui nhộn","Thư giãn"],"casual"],
-["lt-2","Cà phê buổi sáng ngoài trời","little","","",["Thư giãn","Chăm sóc bản thân"],"eat"],
-["lt-3","Có một chú chó bên cạnh","little","","",["Ấm áp","Kết nối"],"casual"],
-["lt-4","Trở thành khách quen ở một quán nào đó","little","","",["Ấm áp","Kết nối"],"eat"],
-["lt-5","Một chiếc ghế garage êm ái để ngồi","little","","",["Thư giãn"],"casual"],
-["lt-6","Dưa lê ướp lạnh đúng độ ngày nóng","little","","",["Thư giãn"],"eat"],
-["lt-7","Một công viên đẹp gần nhà","little","","",["Thư giãn","Ngắm cảnh đẹp"],"casual"],
-["lt-8","Được mời dùng thử miễn phí","little","","",["Vui nhộn"],"eat"],
-["lt-9","Bắt gọn thứ ai đó ném cho mình","little","","",["Vui nhộn"],"hangout"],
-["lt-10","Bẻ khớp ngón tay","little","","",["Thư giãn"],"selfcare"],
-["lt-11","Đi cùng bạn khi họ chạy việc vặt","little","","",["Kết nối"],"hangout"],
-["lt-12","Đeo một chiếc đồng hồ","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-14","Ăn Wiener schnitzel (cốt lết chiên xù)","little","","",["Vui nhộn"],"eat"],
-["lt-15","Tìm được tiệm cắt tóc hợp ý","little","","",["Ấm áp","Kết nối"],"selfcare"],
-["lt-16","Đi bộ 30 phút sau bữa tối","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-17","Trải ga giường sạch tinh","little","","",["Chăm sóc bản thân","Thư giãn"],"selfcare"],
-["lt-20","Một ly đồ uống thật lạnh","little","","",["Thư giãn"],"eat"],
-["lt-21","Một cú vươn vai đã đời","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-22","Có cây xanh quanh mình","little","","",["Thư giãn","Ngắm cảnh đẹp"],"casual"],
-["lt-26","Mở hết cửa sổ, rèm, mành buổi sáng","little","","",["Thư giãn"],"casual"],
-["lt-28","Đi hiking","little","","",["Phiêu lưu","Ngắm cảnh đẹp"],"adventure"],
-["lt-29","Nghe mưa rơi khi chẳng phải đi đâu","little","","",["Thư giãn","Hoài niệm"],"casual"],
-["lt-31","Ăn cherries","little","","",["Vui nhộn"],"eat"],
-["lt-33","Kem vani (và vài vị đề cử danh dự)","little","","",["Vui nhộn","Hoài niệm"],"eat"],
-["lt-34","Khi ai đó nhắn tin trả lời ngay","little","","",["Kết nối"],"hangout"],
-["lt-36","Chào chú đưa thư/shipper quen mặt","little","","",["Ấm áp","Kết nối"],"hangout"],
-["lt-39","Cắt móng tay, cạo gáy sạch sẽ","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-41","Uống espresso tonic","little","","",["Vui nhộn"],"eat"],
-["lt-44","Lau chùi, chỉnh lại xe đạp","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-45","Mặc quần short ống rộng thoải mái","little","","",["Vui nhộn"],"selfcare"],
-["lt-46","Mặc chất liệu tự nhiên, mát mẻ","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-47","Đi tất nhiều màu (không phải tất hài)","little","","",["Vui nhộn"],"selfcare"],
-["lt-48","Thắt một chiếc thắt lưng bện","little","","",["Vui nhộn"],"selfcare"],
-["lt-49","Mặc áo gió có mũ","little","","",["Vui nhộn"],"selfcare"],
-["lt-50","Đồ phong cách hải quân nói chung","little","","",["Vui nhộn"],"selfcare"],
-["lt-51","Đồ Gap, Abercrombie, J.Crew thập niên 90","little","","",["Hoài niệm"],"selfcare"],
-["lt-52","Mặc áo ba lỗ trong áo sơ mi","little","","",["Vui nhộn"],"selfcare"],
-["lt-53","Sắm thêm một cặp kính râm mới","little","","",["Vui nhộn"],"selfcare"],
-["lt-54","Áo polo hơi chật một chút","little","","",["Vui nhộn"],"selfcare"],
-["lt-55","Quần short thể thao phối áo có cổ","little","","",["Vui nhộn"],"selfcare"],
-["lt-56","Khoác lên một chiếc blazer","little","","",["Chăm sóc bản thân"],"selfcare"],
-["lt-58","Xem phim có Dustin Hoffman","little","","",["Hoài niệm"],"culture"],
-["lt-59","Xem phim có Martin Short","little","","",["Hoài niệm"],"culture"],
-["lt-60","Xem lại Master and Commander","little","","",["Hoài niệm"],"culture"],
-["lt-61","Sống trọn vẹn theo từng mùa","little","","",["Thư giãn","Ngắm cảnh đẹp"],"casual"],
-["lt-62","Ngửi mùi miễn phí (nến, nước hoa, nhà hàng)","little","","",["Vui nhộn"],"casual"],
-["lt-63","Nghe trọn một album từ đầu tới cuối","little","","",["Thư giãn","Hoài niệm"],"culture"],
-["lt-69","Dùng một cây bút gel 0.05 đã tay","little","","",["Chăm sóc bản thân"],"casual"],
-["lt-71","Ngồi giữa một nơi công cộng hơi nhộn nhịp","little","","",["Thư giãn"],"casual"],
-["lt-75","Thấy một cặp đôi lớn tuổi nắm tay nhau","little","","",["Ấm áp"],"casual"],
-["lt-76","Ngồi trong xe nghe nốt bài hát rồi mới vào nhà","little","","",["Thư giãn","Hoài niệm"],"culture"],
-["lt-77","Nghe tiếng chim hót","little","","",["Thư giãn"],"casual"],
-["lt-78","Ăn bánh mì còn nóng","little","","",["Vui nhộn"],"eat"],
-["lt-79","Vẫy tay chào hàng xóm","little","","",["Ấm áp","Kết nối"],"hangout"],
-["lt-80","Đạp côn vào số mượt như tơ (heel-toe)","little","","",["Vui nhộn","Phiêu lưu"],"adventure"],
-["lt-81","Lái xe hạ kính, bật điều hòa","little","","",["Thư giãn","Phiêu lưu"],"adventure"],
-["lt-82","Sưu tầm nam châm tủ lạnh nhỏ xinh","little","","",["Hoài niệm","Ấm áp"],"casual"],
-
 ["sg-1","Ngắm hoàng hôn ở Bitexco Skydeck","saigon","Lên tầng 49 ngắm 360° Sài Gòn lúc trời chuyển tối","36 Hồ Tùng Mậu, Phường Bến Nghé, Quận 1, TP.HCM",["Ngắm cảnh đẹp","Phiêu lưu"],"adventure"],
 ["sg-2","Đài quan sát Landmark 81 Skyview","saigon","Toà nhà cao nhất Việt Nam, sàn kính nhìn xuống thành phố","720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP.HCM",["Ngắm cảnh đẹp","Vui nhộn"],"adventure"],
 ["sg-3","Dạo phố đi bộ Nguyễn Huệ buổi tối","saigon","Đi bộ, xem nhạc nước, chụp hình quảng trường trung tâm","Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",["Thư giãn","Kết nối"],"hangout"],
@@ -783,9 +727,6 @@ function dedupeCustomItems(){
 }
 
 function mapsUrl(addr){ return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr); }
-/* App không còn phân biệt "Điều nhỏ" / "Đi & chơi SG" — category là phân loại duy nhất.
-   Vẫn suy ra giá trị cho cột `loai` sẵn có trên Sheet để không phá cấu trúc cũ. */
-function loaiForSheet(item){ return item.diachi ? 'Đi & chơi SG' : 'Điều nhỏ'; }
 
 function setSyncStatus(mode, msg){
   const dot = document.getElementById('syncDot');
@@ -871,7 +812,7 @@ function pushUpdateToSheet(id, patch){
 }
 function pushAddToSheet(item){
   if(!sheetUrl) return Promise.resolve({ok:true});
-  const body = {action:'add', id:item.id, ten:item.ten, loai: loaiForSheet(item), category: normCategory(item.category), mota:item.mota||'', diachi:item.diachi||'', mood:item.mood.join(','), trangthai:'Chưa làm', danhgia:'', ghichu:''};
+  const body = {action:'add', id:item.id, ten:item.ten, category: normCategory(item.category), mota:item.mota||'', diachi:item.diachi||'', mood:item.mood.join(','), trangthai:'Chưa làm', danhgia:'', ghichu:''};
   return fetch(sheetUrl, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)})
     .then(r=>r.json()).then(d=>{ if(d.ok) setSyncStatus('on'); else setSyncStatus('err', d.error); return d; })
     .catch(e=>{ setSyncStatus('err', String(e.message||e)); return {ok:false, error:String(e.message||e)}; });
@@ -927,6 +868,21 @@ function clearAllFilters(){
 }
 /* Cho biết đang xem bao nhiêu mục và vì sao — nhất là ngay sau onboarding,
    khi bộ lọc được áp tự động mà người dùng không hề hay biết. */
+/* Làm mờ nhóm hoạt động không còn mục nào (xét cùng mood + từ khoá đang bật),
+   để không ai bấm vào một bộ lọc chắc chắn trả về màn hình trống. */
+function updateCatCounts(){
+  const saved = filterCat;
+  filterCat = 'all';
+  const pool = allItems.filter(passesFilter);
+  filterCat = saved;
+  document.querySelectorAll('#catRow button').forEach(b=>{
+    const v = b.dataset.cat;
+    const n = v === 'all' ? pool.length : pool.filter(i => normCategory(i.category) === v).length;
+    b.classList.toggle('empty', n === 0);
+    b.title = n + ' mục';
+  });
+}
+
 function updateFilterSummary(count){
   const el = document.getElementById('filterSummary');
   if(!el) return;
@@ -1034,6 +990,7 @@ function render(){
   }
   restoreDrafts(drafts);
   updateStats();
+  updateCatCounts();
   updateFilterSummary(list.length);
 }
 
