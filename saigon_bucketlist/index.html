@@ -28,6 +28,8 @@
   :focus-visible{ outline:2px solid var(--marigold-deep); outline-offset:2px; }
 
   .app-shell{ position:relative; z-index:1; max-width:1240px; margin:0 auto; padding-bottom:96px; }
+  body{ padding-right:var(--rail-w); transition:padding-right .2s ease; }
+  body.rail-open{ padding-right:var(--rail-w-open); }
   .main-col{ min-width:0; }
 
   header.top{
@@ -56,17 +58,78 @@
   .stat-bar-track{ flex:1; height:6px; border-radius:4px; background:rgba(245,239,221,0.22); overflow:hidden; }
   .stat-bar-fill{ height:100%; background:var(--marigold); border-radius:4px; transition:width .5s cubic-bezier(.4,0,.2,1); }
 
-  /* ---------- tab nav ---------- */
-  .tab-nav{ display:flex; gap:6px; padding:12px 18px 0; }
-  .tab-nav button{
-    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
-    padding:10px 8px; border-radius:10px; border:1px solid var(--paper-line); background:#fff;
-    font:inherit; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; white-space:nowrap;
-    transition:background .16s ease, color .16s ease, border-color .16s ease;
+  /* ---------- right expandable rail ---------- */
+  :root{ --rail-w:56px; --rail-w-open:196px; }
+  .rail{
+    position:fixed; top:0; right:0; bottom:0; z-index:60;
+    width:var(--rail-w); background:var(--paper-deep); border-left:1px solid var(--paper-line);
+    display:flex; flex-direction:column; gap:6px; padding:12px 8px;
+    overflow:hidden; box-shadow:-6px 0 20px rgba(30,42,40,0.06);
   }
-  .tab-nav button.active{ background:var(--jade); border-color:var(--jade); color:var(--paper); }
-  .tab-nav button:active{ transform:scale(0.97); }
+  .rail.open{ width:var(--rail-w-open); }
+  .rail-toggle{
+    flex:none; height:40px; border-radius:10px; border:1px solid var(--paper-line);
+    background:#fff; color:var(--ink-soft); cursor:pointer; font-size:15px; line-height:1;
+    display:flex; align-items:center; justify-content:center; gap:8px; padding:0 10px;
+    margin-bottom:6px;
+  }
+  .rail-toggle .rl{ font:inherit; font-size:12px; font-weight:700; }
+  .rail-nav{ display:flex; flex-direction:column; gap:6px; }
+  .rail-nav button{
+    display:flex; align-items:center; gap:10px; width:100%;
+    height:44px; padding:0 10px; border-radius:10px; border:1px solid transparent;
+    background:transparent; font:inherit; font-size:13.5px; font-weight:600;
+    color:var(--ink-soft); cursor:pointer; white-space:nowrap; text-align:left;
+    transition:background .16s ease, color .16s ease;
+  }
+  .rail-nav button:hover{ background:#fff; }
+  .rail-nav button.active{ background:var(--jade); color:var(--paper); }
+  .rail-nav .ri{ flex:none; width:24px; text-align:center; font-size:17px; line-height:1; }
+  .rail-nav .rl, .rail-toggle .rl{ opacity:0; transition:opacity .2s ease; }
+  .rail.open .rl{ opacity:1; }
+  .rail-badge{
+    margin-top:auto; font-size:10.5px; color:var(--ink-soft); text-align:center;
+    opacity:0; transition:opacity .2s ease; line-height:1.4;
+  }
+  .rail.open .rail-badge{ opacity:1; }
   .tab-panel[hidden]{ display:none !important; }
+
+  /* ---------- status (đã ghé / chưa ghé) ---------- */
+  .status-row{ display:flex; gap:6px; margin:0 0 10px; }
+  .status-row button{
+    flex:1; padding:7px 6px; border-radius:9px; border:1px solid var(--paper-line); background:#fff;
+    font:inherit; font-size:12.5px; font-weight:600; color:var(--ink-soft); cursor:pointer; white-space:nowrap;
+  }
+  .status-row button.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+
+  /* ---------- visited log (Thống kê) ---------- */
+  .visited-list{ display:flex; flex-direction:column; gap:10px; }
+  .visited-card{ background:#fff; border:1px solid var(--paper-line); border-radius:11px; padding:13px 14px; }
+  .visited-card .vh{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .visited-card .vt{ font-family:'Fraunces',Georgia,serif; font-size:15.5px; font-weight:600; color:var(--jade); line-height:1.25; margin:0; }
+  .visited-card .vstars{ flex:none; font-size:13px; color:var(--marigold); letter-spacing:1px; white-space:nowrap; }
+  .visited-card .vstars .off{ color:var(--paper-line); }
+  .visited-card .vmeta{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+  .visited-card .vdates{ display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .visited-card .vnotes{ margin-top:9px; display:flex; flex-direction:column; gap:5px; }
+  .visited-card .vnote{ font-size:12.5px; line-height:1.45; background:var(--paper); border-radius:7px; padding:6px 9px; }
+  .visited-card .vnote b{ color:var(--jade); font-size:11px; margin-right:5px; }
+
+  /* ---------- image drop / OCR ---------- */
+  .img-drop{
+    border:1.5px dashed var(--paper-line); border-radius:11px; background:#fff;
+    padding:16px 14px; text-align:center; cursor:pointer; color:var(--ink-soft);
+    font-size:12.5px; line-height:1.5; transition:border-color .18s ease, background .18s ease;
+  }
+  .img-drop:hover, .img-drop:focus-visible{ border-color:var(--jade-light); background:var(--jade-pale); }
+  .img-drop.dragover{ border-color:var(--jade); background:var(--jade-pale); }
+  .img-drop b{ color:var(--jade); }
+  .img-preview{ margin-top:9px; display:none; }
+  .img-preview.show{ display:block; }
+  .img-preview img{ width:100%; max-height:180px; object-fit:contain; border-radius:9px; border:1px solid var(--paper-line); background:var(--paper-deep); }
+  .ocr-status{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--jade); margin-top:8px; }
+  .ocr-bar{ height:5px; border-radius:99px; background:var(--paper-deep); overflow:hidden; margin-top:6px; }
+  .ocr-bar span{ display:block; height:100%; width:0%; background:var(--marigold); border-radius:99px; transition:width .25s ease; }
 
   .controls{ padding:14px 18px 4px; }
   .search-row{ display:flex; gap:8px; margin-bottom:8px; }
@@ -221,14 +284,14 @@
   }
 
   .fab{
-    position:fixed; right:18px; bottom:22px; z-index:40; width:60px; height:60px; border-radius:50%;
+    position:fixed; right:calc(18px + var(--rail-w)); bottom:22px; z-index:40; width:60px; height:60px; border-radius:50%;
     background:var(--marigold); border:none; color:#3A2A08; box-shadow:0 8px 18px rgba(196,132,31,0.45);
     display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
   .fab:active{ transform:scale(0.92); }
   .fab svg{ width:26px; height:26px; }
   .fab-label{
-    position:fixed; right:88px; bottom:38px; z-index:40; font-size:11px; font-weight:700; color:var(--ink-soft);
+    position:fixed; right:calc(88px + var(--rail-w)); bottom:38px; z-index:40; font-size:11px; font-weight:700; color:var(--ink-soft);
     background:var(--paper); padding:3px 8px; border-radius:6px; border:1px solid var(--paper-line);
   }
 
@@ -369,7 +432,7 @@
     100%{ transform:translate3d(var(--dx,0px),104vh,0) rotate(var(--rot,540deg)); opacity:0; }
   }
   .toast{
-    position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); z-index:95;
+    position:fixed; left:calc(50% - var(--rail-w)/2); bottom:calc(96px + env(safe-area-inset-bottom)); z-index:95;
     transform:translate(-50%, 14px); opacity:0; pointer-events:none;
     max-width:min(420px, calc(100vw - 36px)); text-align:center;
     background:var(--ink); color:var(--paper); font-size:13px; font-weight:600; line-height:1.35;
@@ -442,8 +505,6 @@
     .sidebar{ position:sticky; top:0; height:100vh; overflow-y:auto; border-right:1px solid var(--paper-line); }
     header.top{ position:static; border-bottom:none; }
     .chip-row, .cat-row, .dist-row{ flex-wrap:wrap; overflow-x:visible; }
-    .tab-nav{ flex-direction:column; gap:5px; padding:14px 18px 4px; }
-    .tab-nav button{ justify-content:flex-start; padding:11px 13px; font-size:13.5px; }
     .main-col{ padding:24px 28px 0; }
     .feed{ padding:0 0 24px; display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:16px; align-items:start; }
     .panel-pad{ padding:0 0 24px; }
@@ -468,12 +529,6 @@
       </div>
     </header>
 
-    <nav class="tab-nav" id="tabNav" aria-label="Chuyển mục">
-      <button data-tab="explore" class="active"><span>🗺️</span><span>Khám phá</span></button>
-      <button data-tab="stats"><span>📊</span><span>Thống kê</span></button>
-      <button data-tab="settings"><span>⚙️</span><span>Cài đặt</span></button>
-    </nav>
-
     <div class="controls" id="exploreControls">
       <div class="search-row">
         <div class="search-box">
@@ -484,6 +539,11 @@
         <button class="icon-btn" id="openAddBtn" title="Thêm chỗ mới" aria-label="Thêm chỗ mới">+</button>
       </div>
 
+      <div class="status-row" id="statusRow">
+        <button type="button" data-st="all" class="active">Tất cả</button>
+        <button type="button" data-st="visited">Đã ghé</button>
+        <button type="button" data-st="new">Chưa ghé</button>
+      </div>
       <div class="cat-row" id="catRow"></div>
       <div class="chip-row" id="moodChipRow"></div>
       <div class="dist-row" id="distRow"></div>
@@ -522,6 +582,12 @@
         <p class="sec-note" style="margin-bottom:12px;">Chấm đậm là chỗ đã ghé nhiều lần. Bấm vào chấm để xem chi tiết.</p>
         <div id="analyticsMap"></div>
         <p class="map-note" id="mapNote"></p>
+      </div>
+
+      <div class="card-block">
+        <h3 class="sec-title" style="font-size:16px;">Nhật ký đã ghé</h3>
+        <p class="sec-note" style="margin-bottom:12px;">Từng chỗ bạn đã tới: mấy sao, đi mấy lần, ngày nào, và viết lại gì.</p>
+        <div class="visited-list" id="visitedList"></div>
       </div>
 
       <div class="card-block">
@@ -598,6 +664,18 @@
   </div>
 </div>
 
+<aside class="rail" id="rail">
+  <button class="rail-toggle" id="railToggle" type="button" aria-expanded="false" aria-controls="tabNav" title="Mở rộng">
+    <span class="ri" id="railIcon">☰</span><span class="rl">Thu gọn</span>
+  </button>
+  <nav class="rail-nav" id="tabNav" aria-label="Chuyển mục">
+    <button data-tab="explore" class="active" title="Khám phá"><span class="ri">🗺️</span><span class="rl">Khám phá</span></button>
+    <button data-tab="stats" title="Thống kê"><span class="ri">📊</span><span class="rl">Thống kê</span></button>
+    <button data-tab="settings" title="Cài đặt"><span class="ri">⚙️</span><span class="rl">Cài đặt</span></button>
+  </nav>
+  <div class="rail-badge" id="railBadge"></div>
+</aside>
+
 <div class="fab-label" id="fabLabel">Ngẫu nhiên</div>
 <button class="fab" id="fabRandom" aria-label="Rút ngẫu nhiên">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -620,6 +698,16 @@
   <button class="sheet-close" id="closeAdd">✕</button>
   <div class="sheet-handle"></div>
   <div class="form-title">Thêm chỗ mới</div>
+
+  <div class="field">
+    <label>Dán ảnh vào đây</label>
+    <div class="img-drop" id="imgDrop" tabindex="0" role="button">
+      Dán ảnh bằng <b>Ctrl+V</b>, kéo thả, hoặc bấm để chọn<br>
+      <span style="font-size:11.5px;">Screenshot Google Maps, biển hiệu, menu… đều được</span>
+      <input type="file" id="imgFile" accept="image/*" hidden>
+    </div>
+    <div class="img-preview" id="imgPreview"></div>
+  </div>
 
   <div class="field">
     <label>Gõ tự do cũng được</label>
@@ -718,6 +806,7 @@ let stateAll = {};              // id -> {visits:[], rating, comments:[]}
 let filterCat = "all";
 let filterMoods = new Set();
 let filterDist = 0;             // km, 0 = không lọc
+let filterStatus = "all";       // all | visited | new
 let searchText = "";
 let currentHighlight = null;
 let sheetUrl = null;
@@ -1017,6 +1106,8 @@ function pushAddToSheet(item){
 
 /* ---------------- bộ lọc ---------------- */
 function passesFilter(item){
+  if(filterStatus === 'visited' && visitCount(item.id) === 0) return false;
+  if(filterStatus === 'new' && visitCount(item.id) > 0) return false;
   if(filterCat !== "all" && normCategory(item.category) !== filterCat) return false;
   if(filterMoods.size > 0){ if(!(item.mood||[]).some(m => filterMoods.has(m))) return false; }
   if(filterDist > 0){
@@ -1030,10 +1121,10 @@ function passesFilter(item){
   return true;
 }
 function hasActiveFilter(){
-  return filterCat !== 'all' || filterMoods.size > 0 || filterDist > 0 || !!searchText;
+  return filterCat !== 'all' || filterMoods.size > 0 || filterDist > 0 || !!searchText || filterStatus !== 'all';
 }
 function clearAllFilters(){
-  filterCat = 'all'; filterMoods.clear(); filterDist = 0; searchText = '';
+  filterCat = 'all'; filterMoods.clear(); filterDist = 0; searchText = ''; filterStatus = 'all';
   const si = document.getElementById('searchInput');
   if(si){ si.value = ''; syncSearchClear(); }
   syncFilterUI(); render();
@@ -1043,6 +1134,8 @@ function updateFilterSummary(count){
   if(!el) return;
   if(!hasActiveFilter()){ el.className = 'filter-summary'; el.innerHTML = ''; return; }
   const bits = [];
+  if(filterStatus === 'visited') bits.push('đã ghé');
+  if(filterStatus === 'new') bits.push('chưa ghé');
   if(filterCat !== 'all') bits.push(catInfo(filterCat).emoji + ' ' + catInfo(filterCat).label);
   filterMoods.forEach(m => bits.push(m));
   if(filterDist > 0) bits.push('trong ' + filterDist + ' km');
@@ -1161,7 +1254,12 @@ function syncFilterUI(){
   document.querySelectorAll('#catRow button').forEach(b=>b.classList.toggle('active', b.dataset.cat === filterCat));
   document.querySelectorAll('#moodChipRow button').forEach(b=>b.classList.toggle('active', filterMoods.has(b.dataset.m)));
   document.querySelectorAll('#distRow button').forEach(b=>b.classList.toggle('active', Number(b.dataset.km) === filterDist));
+  document.querySelectorAll('#statusRow button').forEach(b=>b.classList.toggle('active', b.dataset.st === filterStatus));
 }
+document.getElementById('statusRow').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  filterStatus = b.dataset.st; syncFilterUI(); render();
+});
 function syncSearchClear(){
   const si = document.getElementById('searchInput');
   si.closest('.search-box').classList.toggle('has-text', !!si.value);
@@ -1328,6 +1426,7 @@ function render(){
   restoreDrafts(drafts);
   updateStats();
   updateCatCounts();
+  updateRailBadge();
   updateFilterSummary(list.length);
 }
 function renderAll(){
@@ -1356,6 +1455,32 @@ document.getElementById('tabNav').addEventListener('click', e=>{
   const b = e.target.closest('button'); if(!b) return;
   showTab(b.dataset.tab);
 });
+
+/* Thanh điều hướng bên phải: thu gọn thành dải icon, mở ra thì hiện chữ. */
+const railEl = document.getElementById('rail');
+document.getElementById('railToggle').addEventListener('click', ()=>{
+  const open = railEl.classList.toggle('open');
+  document.body.classList.toggle('rail-open', open);
+  document.getElementById('railToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.getElementById('railIcon').textContent = open ? '✕' : '☰';
+  try{ localStorage.setItem('rail-open', open ? '1' : '0'); }catch(e){}
+});
+function restoreRail(){
+  let open = false;
+  try{ open = localStorage.getItem('rail-open') === '1'; }catch(e){}
+  if(open){
+    railEl.classList.add('open');
+    document.body.classList.add('rail-open');
+    document.getElementById('railToggle').setAttribute('aria-expanded','true');
+    document.getElementById('railIcon').textContent = '✕';
+  }
+}
+function updateRailBadge(){
+  const el = document.getElementById('railBadge');
+  if(!el) return;
+  const visited = items.filter(i=>visitCount(i.id) > 0).length;
+  el.innerHTML = '<b>' + visited + '</b>/' + items.length + '<br>đã ghé';
+}
 
 /* ---------------- thống kê ---------------- */
 function renderStats(){
@@ -1386,6 +1511,43 @@ function renderStats(){
       '<span class="bv">' + x.done + '/' + x.all + '</span>' +
     '</div>'
   ).join('') : '<p class="sec-note" style="margin:0;">Chưa có dữ liệu.</p>';
+
+  // nhật ký đã ghé — chỗ nào, mấy sao, mấy lần, viết lại gì
+  const visitedSorted = visited.slice().sort(function(a, b){
+    const va = getState(a.id).visits, vb = getState(b.id).visits;
+    const da = (va[va.length-1] || {}).date || '';
+    const db = (vb[vb.length-1] || {}).date || '';
+    return db.localeCompare(da);
+  });
+  document.getElementById('visitedList').innerHTML = visitedSorted.length ? visitedSorted.map(function(i){
+    const st = getState(i.id);
+    const ci = catInfo(i.category);
+    const stars = st.rating
+      ? '★'.repeat(st.rating) + '<span class="off">' + '★'.repeat(5 - st.rating) + '</span>'
+      : '<span class="off">★★★★★</span>';
+    const who = Array.from(new Set(st.visits.map(function(v){ return v.by; }).filter(Boolean)));
+    return '<div class="visited-card">' +
+      '<div class="vh">' +
+        '<p class="vt">' + escapeHtml(i.ten) + '</p>' +
+        '<span class="vstars">' + stars + '</span>' +
+      '</div>' +
+      '<div class="vmeta">' + ci.emoji + ' ' + escapeHtml(ci.label) +
+        ' · đã ghé <b>' + st.visits.length + '</b> lần' +
+        (who.length ? ' · ' + escapeHtml(who.join(', ')) : '') +
+        (st.rating ? ' · ' + st.rating + '/5 sao' : ' · chưa chấm sao') +
+      '</div>' +
+      '<div class="vdates">' + st.visits.map(function(v){
+        return '<span class="visit-pill">' + escapeHtml(v.date || 'không rõ ngày') +
+               (v.by ? ' · ' + escapeHtml(v.by) : '') + '</span>';
+      }).join('') + '</div>' +
+      (st.comments.length
+        ? '<div class="vnotes">' + st.comments.map(function(c){
+            return '<div class="vnote">' + (c.by ? '<b>' + escapeHtml(c.by) + '</b>' : '') +
+                   escapeHtml(c.text) + '</div>';
+          }).join('') + '</div>'
+        : '') +
+    '</div>';
+  }).join('') : '<p class="sec-note" style="margin:0;">Chưa ghé chỗ nào. Bấm “Đã ghé” trên một tấm thẻ để bắt đầu.</p>';
 
   // xếp hạng sao
   const top = rated.slice().sort((a,b)=>{
@@ -1677,17 +1839,22 @@ function scrollToCard(id){
 /* ---------------- thêm chỗ mới ---------------- */
 document.getElementById('openAddBtn').addEventListener('click', ()=>{
   ['fRaw','fName','fAddr','fDesc'].forEach(id=>document.getElementById(id).value='');
+  const prev = document.getElementById('imgPreview');
+  prev.className = 'img-preview'; prev.innerHTML = '';
+  document.getElementById('imgFile').value = '';
   document.querySelectorAll('#fCat button').forEach((b,i)=>b.classList.toggle('active', i===0));
   document.querySelectorAll('#fMood button').forEach(b=>b.classList.remove('active'));
   openSheet(addSheet);
 });
 
-document.getElementById('aiNormalizeBtn').addEventListener('click', async ()=>{
+/* Dùng chung cho nút "Chuẩn hoá bằng AI" và cho luồng dán ảnh. */
+async function runNormalize(opts){
+  opts = opts || {};
   const btn = document.getElementById('aiNormalizeBtn');
   const raw = document.getElementById('fRaw').value.trim();
   const ten = document.getElementById('fName').value.trim();
-  if(!raw && !ten){ toast('Gõ gì đó vào đã.', 'bad'); return; }
-  if(!aiEnabled || !aiUrl){ toast('Bật trợ lý AI trong Cài đặt trước đã.', 'bad'); return; }
+  if(!raw && !ten){ if(!opts.fromImage) toast('Gõ gì đó vào đã.', 'bad'); return false; }
+  if(!aiEnabled || !aiUrl){ if(!opts.fromImage) toast('Bật trợ lý AI trong Cài đặt trước đã.', 'bad'); return false; }
 
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Đang chuẩn hoá…';
@@ -1697,21 +1864,24 @@ document.getElementById('aiNormalizeBtn').addEventListener('click', async ()=>{
       mota: document.getElementById('fDesc').value.trim(),
       diachi: document.getElementById('fAddr').value.trim(),
       vocab: aiVocab()
-    });
+    }, {timeout: 30000});
     const it = r.item;
     if(!it) throw new Error('no_item');
     document.getElementById('fName').value = it.ten || '';
     document.getElementById('fDesc').value = it.mota || '';
     document.getElementById('fAddr').value = it.diachi || '';
-    document.querySelectorAll('#fCat button').forEach(b=>b.classList.toggle('active', b.dataset.v === it.category));
-    document.querySelectorAll('#fMood button').forEach(b=>b.classList.toggle('active', (it.mood||[]).includes(b.dataset.m)));
-    toast('Đã chuẩn hoá — kiểm tra lại rồi lưu nhé.', 'good');
+    document.querySelectorAll('#fCat button').forEach(function(b){ b.classList.toggle('active', b.dataset.v === it.category); });
+    document.querySelectorAll('#fMood button').forEach(function(b){ b.classList.toggle('active', (it.mood||[]).indexOf(b.dataset.m) > -1); });
+    if(!opts.fromImage) toast('Đã chuẩn hoá — kiểm tra lại rồi lưu nhé.', 'good');
+    return true;
   }catch(e){
     toast('AI không chuẩn hoá được (' + String(e.message||e) + ').', 'bad');
+    return false;
   }finally{
     btn.disabled = false; btn.textContent = old;
   }
-});
+}
+document.getElementById('aiNormalizeBtn').addEventListener('click', function(){ runNormalize(); });
 
 document.getElementById('saveNewItem').addEventListener('click', async ()=>{
   const name = document.getElementById('fName').value.trim();
@@ -1737,6 +1907,124 @@ document.getElementById('saveNewItem').addEventListener('click', async ()=>{
   toast('Đã thêm “' + name + '” vào sổ vé.' + (item.lat ? ' Có toạ độ.' : ''), 'good');
   pushAddToSheet(item);
   setTimeout(()=>scrollToCard(id), 200);
+});
+
+/* ============================================================
+   DÁN ẢNH -> OCR -> AI điền sẵn thông tin
+
+   DeepSeek chỉ nhận chữ, không nhận ảnh, nên ảnh được đọc bằng Tesseract
+   ngay trên máy (tiếng Việt + tiếng Anh), rồi phần chữ đọc được mới gửi
+   cho AI chuẩn hoá. Bộ đọc chỉ tải khi thật sự có ảnh.
+   ============================================================ */
+let tesseractReady = null;
+function loadTesseract(){
+  if(tesseractReady) return tesseractReady;
+  tesseractReady = new Promise(function(resolve, reject){
+    if(window.Tesseract) return resolve(window.Tesseract);
+    const sc = document.createElement('script');
+    sc.src = 'vendor/tesseract/tesseract.min.js';
+    sc.onload = function(){ window.Tesseract ? resolve(window.Tesseract) : reject(new Error('tesseract_missing')); };
+    sc.onerror = function(){ reject(new Error('tesseract_load_failed')); };
+    document.head.appendChild(sc);
+  });
+  return tesseractReady;
+}
+
+function setOcrStatus(html, pct){
+  const wrap = document.getElementById('imgPreview');
+  let st = wrap.querySelector('.ocr-status');
+  let bar = wrap.querySelector('.ocr-bar span');
+  if(!st){
+    const d = document.createElement('div');
+    d.innerHTML = '<div class="ocr-status"></div><div class="ocr-bar"><span></span></div>';
+    wrap.appendChild(d);
+    st = wrap.querySelector('.ocr-status');
+    bar = wrap.querySelector('.ocr-bar span');
+  }
+  st.innerHTML = html;
+  if(typeof pct === 'number' && bar) bar.style.width = Math.round(pct*100) + '%';
+}
+
+async function handleImage(file){
+  if(!file || String(file.type).indexOf('image') !== 0){ toast('Cần một file ảnh.', 'bad'); return; }
+  const wrap = document.getElementById('imgPreview');
+  wrap.classList.add('show');
+  wrap.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(file);
+  wrap.appendChild(img);
+  setOcrStatus('<span class="spinner"></span><span>Đang tải bộ đọc chữ…</span>', 0);
+
+  let text = '';
+  try{
+    const T = await loadTesseract();
+    setOcrStatus('<span class="spinner"></span><span>Đang đọc chữ trong ảnh…</span>', 0.05);
+    const worker = await T.createWorker(['vie','eng'], 1, {
+      workerPath: 'vendor/tesseract/worker.min.js',
+      corePath:   'vendor/tesseract/core/tesseract-core-simd.wasm.js',
+      langPath:   'vendor/tesseract/lang',
+      logger: function(m){
+        if(m.status === 'recognizing text'){
+          setOcrStatus('<span class="spinner"></span><span>Đang đọc chữ… ' + Math.round(m.progress*100) + '%</span>', m.progress);
+        }
+      }
+    });
+    const out = await worker.recognize(file);
+    await worker.terminate();
+    text = ((out && out.data && out.data.text) || '').trim();
+  }catch(e){
+    setOcrStatus('<span>Không đọc được chữ trong ảnh (' + escapeHtml(String(e.message||e)) + '). Bạn gõ tay giúp nhé.</span>', 0);
+    return;
+  }
+
+  if(!text){
+    setOcrStatus('<span>Ảnh không có chữ nào đọc được. Bạn gõ tay giúp nhé.</span>', 0);
+    return;
+  }
+
+  const rawEl = document.getElementById('fRaw');
+  rawEl.value = (rawEl.value ? rawEl.value.trim() + '\n' : '') + text;
+  const charCount = text.replace(/\s+/g, ' ').trim().length;
+
+  if(aiEnabled && aiUrl){
+    setOcrStatus('<span class="spinner"></span><span>Đã đọc ' + charCount + ' ký tự. Đang nhờ AI tách thông tin…</span>', 1);
+    const ok = await runNormalize({fromImage:true});
+    setOcrStatus(ok
+      ? '<span>Xong — kiểm tra lại các ô bên dưới rồi lưu nhé.</span>'
+      : '<span>Đã đọc xong chữ, nhưng AI chưa tách được. Bạn sửa tay bên dưới nhé.</span>', 1);
+  } else {
+    setOcrStatus('<span>Đã đọc ' + charCount + ' ký tự. Bật trợ lý AI để tự tách thông tin, hoặc sửa tay bên dưới.</span>', 1);
+  }
+}
+
+const imgDrop = document.getElementById('imgDrop');
+const imgFile = document.getElementById('imgFile');
+imgDrop.addEventListener('click', function(){ imgFile.click(); });
+imgDrop.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); imgFile.click(); }
+});
+imgFile.addEventListener('change', function(e){ if(e.target.files[0]) handleImage(e.target.files[0]); });
+['dragenter','dragover'].forEach(function(ev){
+  imgDrop.addEventListener(ev, function(e){ e.preventDefault(); imgDrop.classList.add('dragover'); });
+});
+['dragleave','drop'].forEach(function(ev){
+  imgDrop.addEventListener(ev, function(e){ e.preventDefault(); imgDrop.classList.remove('dragover'); });
+});
+imgDrop.addEventListener('drop', function(e){
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f) handleImage(f);
+});
+/* Ctrl+V ở bất kỳ đâu khi form "Thêm chỗ mới" đang mở */
+document.addEventListener('paste', function(e){
+  if(!addSheet.classList.contains('open')) return;
+  const parts = (e.clipboardData && e.clipboardData.items) || [];
+  for(let k = 0; k < parts.length; k++){
+    const it = parts[k];
+    if(it.type && it.type.indexOf('image') === 0){
+      const f = it.getAsFile();
+      if(f){ e.preventDefault(); handleImage(f); return; }
+    }
+  }
 });
 
 /* ---------------- nhập JSON ---------------- */
@@ -2031,6 +2319,7 @@ async function loadAll(){
   }
 
   buildCatFilters(); buildCatPicker(); buildMoodChips(); buildDistRow();
+  restoreRail();
   showTab('explore');
   renderAll();
 
