@@ -1283,6 +1283,8 @@ function pushUpdateToSheet(id, patch){
   }
   if(patch.rating !== undefined) body.danhgia = patch.rating ? String(patch.rating) : '';
   if(patch.comments !== undefined) body.ghichu = commentsToGhichu(patch.comments);
+  if(patch.lat !== undefined) body.lat = (typeof patch.lat === 'number') ? String(patch.lat) : '';
+  if(patch.lng !== undefined) body.lng = (typeof patch.lng === 'number') ? String(patch.lng) : '';
   fetch(sheetUrl, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)})
     .then(r=>r.json()).then(d=>{ if(d.ok) setSyncStatus('on'); else setSyncStatus('err', d.error); })
     .catch(e=> setSyncStatus('err', String(e.message||e)));
@@ -1928,11 +1930,14 @@ function renderMap(){
 }
 
 async function geocodeMissing(){
-  const missing = items.filter(i=>i.diachi && typeof i.lat !== 'number');
-  if(!missing.length){ toast('Mọi chỗ có địa chỉ đều đã có toạ độ.'); return; }
+  const missing = items.filter(i=>(i.diachi || i.ten) && typeof i.lat !== 'number');
+  if(!missing.length){ toast('Mọi chỗ đều đã có toạ độ.'); return; }
   if(!aiEnabled || !aiUrl){ toast('Bật trợ lý AI trong Cài đặt trước đã.', 'bad'); return; }
+  // Chỗ đã ghé lên trước: đó là những chỗ đáng nhìn trên bản đồ nhất.
+  missing.sort((a,b)=> visitCount(b.id) - visitCount(a.id));
+  const note = document.getElementById('mapNote');
   toast('Đang tìm toạ độ cho ' + missing.length + ' chỗ…');
-  let ok = 0;
+  let ok = 0, done = 0;
   for(const it of missing){
     try{
       const r = await callAi('geocode', {address: it.diachi, name: it.ten});
@@ -1942,6 +1947,9 @@ async function geocodeMissing(){
         queueSheetUpdate(it.id, {lat: r.lat, lng: r.lng});
       }
     }catch(e){ /* bỏ qua, thử chỗ tiếp theo */ }
+    done++;
+    if(note) note.textContent = 'Đang tìm toạ độ… ' + done + '/' + missing.length + ' (được ' + ok + ')';
+    if(done % 10 === 0){ flushSheetUpdates(); renderMap(); }   // giữ tiến độ, đừng mất khi đóng tab
     await sleep(1100);   // Nominatim giới hạn ~1 request/giây
   }
   flushSheetUpdates();
