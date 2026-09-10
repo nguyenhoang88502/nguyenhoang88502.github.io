@@ -2242,7 +2242,7 @@ async function runNormalize(opts){
   if(!raw && !ten){ if(!opts.fromImage) toast('Gõ gì đó vào đã.', 'bad'); return false; }
   if(!aiEnabled || !aiUrl){ if(!opts.fromImage) toast('Bật trợ lý AI trong Cài đặt trước đã.', 'bad'); return false; }
 
-  const old = btn.textContent;
+  const old = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = icon('loader') + ' Đang chuẩn hoá…';
   try{
     const r = await callAi('normalize', {
@@ -2250,7 +2250,7 @@ async function runNormalize(opts){
       mota: document.getElementById('fDesc').value.trim(),
       diachi: document.getElementById('fAddr').value.trim(),
       vocab: aiVocab()
-    }, {timeout: 30000});
+    }, {timeout: 120000});
     const it = r.item;
     if(!it) throw new Error('no_item');
     document.getElementById('fName').value = it.ten || '';
@@ -2261,10 +2261,13 @@ async function runNormalize(opts){
     if(!opts.fromImage) toast('Đã chuẩn hoá — kiểm tra lại rồi lưu nhé.', 'good');
     return true;
   }catch(e){
-    toast('AI không chuẩn hoá được (' + String(e.message||e) + ').', 'bad');
+    const m = String(e.message || e);
+    toast(/abort/i.test(m) ? 'AI xử lý lâu quá nên đã dừng — thử lại hoặc điền tay nhé.'
+        : m === 'unparseable_model_output' ? 'AI trả lời không đúng định dạng — thử lại nhé.'
+        : 'AI không chuẩn hoá được (' + m + ').', 'bad');
     return false;
   }finally{
-    btn.disabled = false; btn.textContent = old;
+    btn.disabled = false; btn.innerHTML = old;
   }
 }
 document.getElementById('aiNormalizeBtn').addEventListener('click', function(){ runNormalize(); });
