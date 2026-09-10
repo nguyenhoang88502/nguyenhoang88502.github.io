@@ -1935,7 +1935,7 @@ async function geocodeMissing(){
   let ok = 0;
   for(const it of missing){
     try{
-      const r = await callAi('geocode', {address: it.diachi});
+      const r = await callAi('geocode', {address: it.diachi, name: it.ten});
       if(r && typeof r.lat === 'number'){
         it.lat = r.lat; it.lng = r.lng;
         ok++;
