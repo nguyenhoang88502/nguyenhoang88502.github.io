@@ -263,6 +263,40 @@
   .card.appear{ animation:cardIn .42s cubic-bezier(.22,.8,.3,1) both; }
   @keyframes cardIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
 
+  /* Ghim "đi tiếp": nút ghim đứng cạnh đầu thẻ, không lồng trong nút mở thẻ. */
+  .card-top{ display:flex; align-items:center; gap:6px; }
+  .pin-btn{
+    flex:none; width:30px; height:30px; border-radius:var(--r-sm); cursor:pointer;
+    border:1px solid transparent; background:none; color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+    transition:background .18s ease, color .18s ease;
+  }
+  .pin-btn:hover{ background:var(--paper-deep); color:var(--jade); }
+  .pin-btn.on{ color:var(--jade); background:var(--jade-pale); }
+  .pin-btn.on .ic{ fill:currentColor; }
+  .card.pinned{ border-color:var(--jade-light); }
+  .drag-handle{
+    flex:none; display:flex; align-items:center; gap:3px; height:30px; padding:0 3px 0 5px; margin-left:4px;
+    border:none; background:none; border-radius:var(--r-sm); color:var(--ink-soft);
+    font:inherit; cursor:grab; touch-action:none; user-select:none;
+  }
+  .drag-handle:hover{ background:var(--paper-deep); }
+  .drag-handle:focus-visible{ outline:2px solid var(--jade); outline-offset:1px; }
+  .drag-handle .ic{ font-size:14px; }
+  .pin-rank{
+    min-width:19px; height:19px; padding:0 4px; border-radius:var(--r-sm); background:var(--jade); color:#fff;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums;
+  }
+  .card.dragging{ box-shadow:var(--shadow-lg); opacity:.94; z-index:2; }
+  .card.dragging .drag-handle{ cursor:grabbing; }
+  .feed-section{
+    grid-column:1/-1; display:flex; align-items:center; gap:7px; margin:4px 2px -2px;
+    font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .feed-section .ic{ font-size:13px; color:var(--jade); }
+  .feed-section small{ font-weight:600; letter-spacing:0; text-transform:none; }
+  .reveal-btnrow{ flex-wrap:wrap; }
+
   .card-head{
     display:flex; align-items:center; gap:10px; width:100%;
     margin:0; padding:0 0 0 8px; border:none; background:none;
@@ -648,6 +682,8 @@
 <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
 <symbol id="i-loader" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></symbol>
 <symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.35" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.35" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.35" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol>
+<symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></symbol>
 <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
 </defs></svg>
 
@@ -958,6 +994,7 @@ let mapObj = null, mapLayer = null;
 
 const feedEl = document.getElementById('feed');
 const openCards = new Set();   // thẻ nào đang mở, giữ qua mỗi lần dựng lại
+let pins = {};                 // id -> thứ hạng ưu tiên (nhỏ đi trước); lưu riêng vì đồng bộ Sheet dựng lại stateAll
 const fMoodRow = document.getElementById('fMood');
 
 /* ---------------- tiện ích ---------------- */
@@ -1016,10 +1053,96 @@ function getState(id){
 }
 function visitCount(id){ return getState(id).visits.length; }
 function setState(id, patch){
+  // Ghé rồi thì chỗ đó không còn là "đi tiếp" nữa.
+  const unpin = pins[id] && patch.visits && patch.visits.length > getState(id).visits.length;
   stateAll[id] = Object.assign({}, getState(id), patch);
   saveState();
   queueSheetUpdate(id, patch);
-  patchCard(id);
+  if(unpin){ delete pins[id]; savePins(); render(); }
+  else patchCard(id);
+}
+
+/* ---------------- ghim đi tiếp ---------------- */
+function savePins(){ try{ window.storage.set('bucket-pins', JSON.stringify(pins)); }catch(e){} }
+function pinOrder(){ return Object.keys(pins).sort((a,b)=> pins[a] - pins[b]); }
+function setPinned(id, on){
+  if(on) pins[id] = pins[id] || (Math.max(0, ...Object.values(pins)) + 1);   // ghim mới xếp cuối hàng
+  else delete pins[id];
+  savePins();
+  render();
+}
+/* Xếp lại theo thứ tự các thẻ đang thấy; ghim bị bộ lọc ẩn giữ nguyên chỗ của nó. */
+function reorderPins(visibleIds){
+  const shown = new Set(visibleIds);
+  let k = 0;
+  pinOrder().map(id => shown.has(id) ? visibleIds[k++] : id)
+    .forEach((id, i) => { pins[id] = i + 1; });
+  savePins();
+}
+function shownPinnedIds(){ return [...feedEl.querySelectorAll('.card.pinned')].map(c => c.id.slice(5)); }
+
+function bindPinDrag(card, id){
+  const handle = card.querySelector('.drag-handle');
+  if(!handle) return;
+
+  handle.addEventListener('keydown', e=>{
+    if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const ids = shownPinnedIds();
+    const i = ids.indexOf(id), j = i + (e.key === 'ArrowUp' ? -1 : 1);
+    if(j < 0 || j >= ids.length) return;
+    ids.splice(i, 1); ids.splice(j, 0, id);
+    reorderPins(ids); render();
+    const h = document.querySelector('#card-' + CSS.escape(id) + ' .drag-handle');
+    if(h) h.focus();
+  });
+
+  handle.addEventListener('pointerdown', e=>{
+    if(e.button !== 0) return;
+    e.preventDefault();
+    try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+    const before = shownPinnedIds();
+    card.classList.add('dragging');
+
+    const move = ev=>{
+      const over = document.elementsFromPoint(ev.clientX, ev.clientY)
+        .map(el => el.closest('.card.pinned')).find(c => c && c !== card);
+      if(!over) return;
+      const cards = [...feedEl.querySelectorAll('.card.pinned')];
+      const down = cards.indexOf(over) > cards.indexOf(card);
+      const r = over.getBoundingClientRect();
+      // Chỉ đổi chỗ khi con trỏ đã qua nửa thẻ kia — thẻ cao thấp khác nhau cũng không giật qua lại.
+      const sameRow = Math.abs(r.top - card.getBoundingClientRect().top) < 8;
+      const past = sameRow
+        ? (down ? ev.clientX > r.left + r.width/2 : ev.clientX < r.left + r.width/2)
+        : (down ? ev.clientY > r.top + r.height/2 : ev.clientY < r.top + r.height/2);
+      if(past){ if(down) over.after(card); else over.before(card); }
+    };
+    const end = ()=>{
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', end);
+      handle.removeEventListener('pointercancel', end);
+      card.classList.remove('dragging');
+      const ids = shownPinnedIds();
+      if(ids.join('|') !== before.join('|')) reorderPins(ids);
+      render();
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+  });
+}
+function togglePin(id){
+  const item = items.find(i => i.id === id);
+  const name = item ? item.ten : '';
+  if(pins[id]){
+    const at = pins[id];
+    setPinned(id, false);
+    toast('Đã bỏ ghim “' + name + '”.', null, ()=>{ pins[id] = at; savePins(); render(); });
+  } else {
+    setPinned(id, true);
+    toast('Đã ghim “' + name + '” vào Đi tiếp.', 'good', ()=> setPinned(id, false));
+  }
 }
 
 /* ghichu <-> comments, dạng "[dd/MM HH:mm|tên] nội dung" (tương thích bản cũ không có tên) */
@@ -1514,7 +1637,8 @@ function renderCard(item){
   const n = st.visits.length;
   const isOpen = openCards.has(item.id);
   const div = document.createElement('div');
-  div.className = 'card' + visitClass(n) + (isOpen ? ' open' : '') + (item.id===currentHighlight ? ' highlight':'');
+  const pinned = !!pins[item.id];
+  div.className = 'card' + visitClass(n) + (isOpen ? ' open' : '') + (pinned ? ' pinned' : '') + (item.id===currentHighlight ? ' highlight':'');
   div.id = 'card-' + item.id;
 
   const ci = catInfo(item.category);
@@ -1528,11 +1652,19 @@ function renderCard(item){
     (st.rating ? '<span class="card-stars-mini" title="' + st.rating + '/5 sao">' +
       icon('star').repeat(st.rating) + '</span>' : '');
 
-  let html = '<button type="button" class="card-head" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +
+  const pinLabel = pinned ? 'Bỏ ghim khỏi Đi tiếp' : 'Ghim vào Đi tiếp';
+  const rank = pinned ? pinOrder().indexOf(item.id) + 1 : 0;
+  let html = '<div class="card-top">' +
+    (pinned ? '<button type="button" class="drag-handle" title="Kéo để đổi thứ tự (hoặc phím ↑ ↓)"' +
+      ' aria-label="Ưu tiên ' + rank + ' — kéo hoặc dùng phím mũi tên để đổi thứ tự">' +
+      '<span class="pin-rank">' + rank + '</span>' + icon('grip') + '</button>' : '') +
+    '<button type="button" class="card-head" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +
     '<span class="card-head-main">' +
       '<span class="card-title">' + escapeHtml(item.ten) + '</span>' +
       '<span class="card-sub">' + sub + '</span>' +
-    '</span><span class="card-caret">' + icon('chevron-down') + '</span></button>';
+    '</span><span class="card-caret">' + icon('chevron-down') + '</span></button>' +
+    '<button type="button" class="pin-btn' + (pinned ? ' on' : '') + '" aria-pressed="' + pinned + '"' +
+      ' title="' + pinLabel + '" aria-label="' + pinLabel + '">' + icon('pin') + '</button></div>';
 
   /* Mở ra: mô tả, địa chỉ, mood, sao, lần ghé, nhận xét. */
   html += '<div class="card-body">';
@@ -1582,6 +1714,8 @@ function renderCard(item){
     if(openCards.has(item.id)) openCards.delete(item.id); else openCards.add(item.id);
     patchCard(item.id);
   };
+  div.querySelector('.pin-btn').onclick = ()=> togglePin(item.id);
+  if(pinned) bindPinDrag(div, item.id);
 
   div.querySelector('.visit-btn').onclick = ()=>{
     const cur = getState(item.id);
@@ -1678,8 +1812,12 @@ function updateStats(){
 }
 
 function render(){
-  const list = items.filter(passesFilter);
-  const sig = list.map(i=>i.id).join('|');
+  const matched = items.filter(passesFilter);
+  // Chỗ đã ghim lên đầu, ghim trước đứng trước; phần còn lại giữ thứ tự sổ.
+  const pinnedList = matched.filter(i => pins[i.id]).sort((a,b)=> pins[a.id] - pins[b.id]);
+  const list = pinnedList.concat(matched.filter(i => !pins[i.id]));
+  // Chữ ký theo tập kết quả, không theo thứ tự — ghim/bỏ ghim không làm cả feed nhảy lại.
+  const sig = matched.map(i=>i.id).sort().join('|');
   const animate = (sig !== lastListSig) && !prefersReducedMotion();
   lastListSig = sig;
 
@@ -1700,7 +1838,15 @@ function render(){
     const ec = document.getElementById('emptyClearBtn');
     if(ec) ec.onclick = clearAllFilters;
   } else {
+    const section = (ic, label, count)=>{
+      const h = document.createElement('div');
+      h.className = 'feed-section';
+      h.innerHTML = icon(ic) + '<span>' + label + '</span><small>' + count + '</small>';
+      feedEl.appendChild(h);
+    };
     list.forEach((item, idx) => {
+      if(pinnedList.length && idx === 0) section('pin', 'Đi tiếp', pinnedList.length);
+      if(pinnedList.length && idx === pinnedList.length) section('inbox', 'Còn lại', list.length - pinnedList.length);
       const card = renderCard(item);
       if(animate){
         card.classList.add('appear');
@@ -2165,8 +2311,10 @@ document.getElementById('wipeLocalBtn').addEventListener('click', async ()=>{
   pendingUpdates.clear();
   clearTimeout(pushTimer);
   stateAll = {};
+  pins = {};
   openCards.clear();
   try{ await window.storage.delete('bucket-state'); }catch(e){}
+  try{ await window.storage.delete('bucket-pins'); }catch(e){}
   renderAll();
   toast('Đã xoá dữ liệu cục bộ.', 'good');
 });
@@ -2204,9 +2352,15 @@ function showReveal(item, why){
   body += '<div class="reveal-btnrow">' +
     '<button class="btn btn-ghost" id="revealSkip">Rút lại</button>' +
     '<button class="btn btn-ghost" id="revealOpen">Xem thẻ</button>' +
+    '<button class="btn btn-ghost" id="revealPin">' + icon('pin') + ' ' + (pins[item.id] ? 'Đã ghim' : 'Ghim đi tiếp') + '</button>' +
     '<button class="btn btn-primary" id="revealDone">Đã ghé</button>' +
   '</div></div>';
   revealBody.innerHTML = body;
+  document.getElementById('revealPin').onclick = (e)=>{
+    if(!pins[item.id]) setPinned(item.id, true);
+    e.currentTarget.innerHTML = icon('pin') + ' Đã ghim';
+    e.currentTarget.disabled = true;
+  };
   document.getElementById('revealSkip').onclick = doRandomize;
   document.getElementById('revealOpen').onclick = ()=>{ closeSheets(); showTab('explore'); scrollToCard(item.id); };
   document.getElementById('revealDone').onclick = ()=>{
@@ -2695,6 +2849,7 @@ function showOnboarding(){
 /* ---------------- khởi động ---------------- */
 async function loadAll(){
   try{ const r = await window.storage.get('bucket-state'); if(r && r.value) stateAll = JSON.parse(r.value); }catch(e){ stateAll = {}; }
+  try{ const r = await window.storage.get('bucket-pins'); if(r && r.value) pins = JSON.parse(r.value) || {}; }catch(e){ pins = {}; }
   try{
     const r = await window.storage.get('bucket-labels');
     if(r && r.value){
