@@ -1366,7 +1366,14 @@ async function syncFromSheet(){
       seenNames.add(nm);
 
       const moodArr = String(row.mood||'').split(',').map(s=>s.trim()).filter(Boolean);
-      const lat = parseFloat(row.lat), lng = parseFloat(row.lng);
+      // Sheet locale VN từng lưu "10.807296" thành 10807296: trả lại dấu thập phân
+      // (vĩ độ Sài Gòn luôn 2 chữ số phần nguyên, kinh độ 3). Vẫn ngoài vùng thì coi như chưa có.
+      const coord = (v, intDigits)=>{
+        const s = String(v == null ? '' : v).trim();
+        return /^\d{4,}$/.test(s) ? parseFloat(s.slice(0, intDigits) + '.' + s.slice(intDigits)) : parseFloat(s);
+      };
+      let lat = coord(row.lat, 2), lng = coord(row.lng, 3);
+      if(!(lat > 9 && lat < 12 && lng > 105 && lng < 108)){ lat = NaN; lng = NaN; }
       const rawAddr = String(row.diachi == null ? '' : row.diachi);
       // Bản chuẩn hoá chỉ còn đúng khi địa chỉ trên Sheet chưa bị sửa kể từ lúc dựng.
       const fix = geoFix[id] && geoFix[id].src === rawAddr ? geoFix[id] : null;

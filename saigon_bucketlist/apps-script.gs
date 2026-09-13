@@ -133,7 +133,8 @@ function doPost(e) {
       }
       // Cot nao khong co trong body thi de trong -- ke ca `loai` neu ban chua xoa cot do.
       var newRow = headers.map(function (h) {
-        return body[h] !== undefined ? body[h] : '';
+        if (body[h] === undefined) return '';
+        return (h === 'lat' || h === 'lng') && body[h] !== '' ? coordValue_(body[h]) : body[h];
       });
       sheet.appendRow(newRow);
       return json({ ok: true });
@@ -149,13 +150,21 @@ function doPost(e) {
 
 var UPDATABLE_FIELDS = ['trangthai', 'danhgia', 'ghichu', 'category', 'diachi', 'lat', 'lng', 'visits'];
 
+/* Sheet dat locale Viet Nam coi "." la dau hang nghin: chuoi "10.807296" bi luu thanh
+   10807296. Ghi toa do duoi dang so thuc thi khong phu thuoc locale. */
+function coordValue_(v) {
+  var n = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
+  return isFinite(n) ? n : '';
+}
+
 function writeFields_(sheet, headers, rowIndex, body) {
   var written = [];
   UPDATABLE_FIELDS.forEach(function (field) {
     if (body[field] === undefined) return;
     var col = headers.indexOf(field);
     if (col === -1) return;
-    sheet.getRange(rowIndex + 1, col + 1).setValue(body[field]);
+    var value = (field === 'lat' || field === 'lng') ? coordValue_(body[field]) : body[field];
+    sheet.getRange(rowIndex + 1, col + 1).setValue(value);
     written.push(field);
   });
   return written;
