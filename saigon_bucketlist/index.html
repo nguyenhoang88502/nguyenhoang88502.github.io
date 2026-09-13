@@ -211,6 +211,18 @@
   .empty-state .btn{ flex:none; margin-top:14px; padding:10px 18px; }
 
   /* Never leave the feed blank while the Sheet is still answering. */
+  .load-ring{
+    grid-column:1/-1; display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:16px 0 4px; color:var(--ink-soft); font-size:13px; font-weight:600; text-align:center;
+  }
+  .ring{
+    width:22px; height:22px; flex:none; border-radius:50%;
+    border:2.5px solid var(--jade-pale); border-top-color:var(--jade); animation:spin .8s linear infinite;
+  }
+  .onb-opt.busy::after{
+    content:""; width:14px; height:14px; flex:none; margin-left:auto; border-radius:50%;
+    border:2px solid currentColor; border-right-color:transparent; animation:spin .8s linear infinite;
+  }
   .sk-card{ background:var(--surface); border:1px solid var(--paper-line); border-radius:var(--r); padding:13px 14px; }
   .sk-line{ height:11px; border-radius:var(--r-sm); background:var(--paper-deep); animation:skPulse 1.4s ease-in-out infinite; }
   .sk-line + .sk-line{ margin-top:9px; }
@@ -1306,14 +1318,43 @@ function setSyncStatus(mode, msg){
   }
 }
 
+/* Apps Script lúc khởi động nguội hay trả trang HTML thay vì JSON (Safari báo
+   "The string did not match the expected pattern"), nên thử lại vài lần rồi mới chịu thua. */
+const SHEET_TRIES = 4;
+let loadNote = '';
+async function fetchSheetItems(){
+  let lastErr;
+  for(let attempt = 1; attempt <= SHEET_TRIES; attempt++){
+    if(attempt > 1){
+      loadNote = 'Sheet chưa trả lời — thử lại lần ' + attempt + '/' + SHEET_TRIES + '…';
+      if(loadingItems) render();
+      await sleep(1000 * 2 ** (attempt - 2));      // 1s, 2s, 4s
+    }
+    try{
+      const res = await fetch(sheetUrl + '?action=list&t=' + Date.now(), {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      let data;
+      try{ data = JSON.parse(text); }catch(e){ throw new Error('Sheet trả về không phải JSON'); }
+      if(!data.ok) throw new Error(data.error || 'phản hồi lỗi');
+      return data;
+    }catch(err){ lastErr = err; }
+  }
+  throw lastErr;
+}
+
+/* Địa chỉ chuẩn hoá + toạ độ dựng sẵn (geo.json), dùng khi Sheet còn thiếu. */
+let geoFix = {};
+const geoReady = fetch('geo.json', {cache:'no-cache'})
+  .then(r => r.ok ? r.json() : {}).then(j => { geoFix = j || {}; }).catch(()=>{});
+
 async function syncFromSheet(){
   if(!sheetUrl) return;
   const firstLoad = !items.length;
   if(firstLoad){ loadingItems = true; render(); }
   try{
-    const res = await fetch(sheetUrl + '?action=list');
-    const data = await res.json();
-    if(!data.ok) throw new Error(data.error || 'phản hồi lỗi');
+    await geoReady;
+    const data = await fetchSheetItems();
 
     const seenNames = new Set();
     const next = [];
@@ -1326,15 +1367,19 @@ async function syncFromSheet(){
 
       const moodArr = String(row.mood||'').split(',').map(s=>s.trim()).filter(Boolean);
       const lat = parseFloat(row.lat), lng = parseFloat(row.lng);
+      const rawAddr = String(row.diachi == null ? '' : row.diachi);
+      // Bản chuẩn hoá chỉ còn đúng khi địa chỉ trên Sheet chưa bị sửa kể từ lúc dựng.
+      const fix = geoFix[id] && geoFix[id].src === rawAddr ? geoFix[id] : null;
+      const fixed = !Number.isFinite(lat) && fix && typeof fix.lat === 'number';
       next.push({
         id,
         ten: row.ten || '(không tên)',
         mota: row.mota || '',
-        diachi: row.diachi || '',
+        diachi: (fix && fix.diachi) || rawAddr,
         mood: moodArr,
         category: normCategory(row.category),
-        lat: Number.isFinite(lat) ? lat : null,
-        lng: Number.isFinite(lng) ? lng : null
+        lat: Number.isFinite(lat) ? lat : (fixed ? fix.lat : null),
+        lng: Number.isFinite(lng) ? lng : (fixed ? fix.lng : null)
       });
 
       stateAll[id] = {
@@ -1356,6 +1401,7 @@ async function syncFromSheet(){
     setSyncStatus('err', String(e.message||e));
     toast('Không đồng bộ được — dữ liệu vẫn lưu trên máy.', 'bad');
   }finally{
+    loadNote = '';
     if(loadingItems){ loadingItems = false; render(); }
   }
 }
@@ -1824,7 +1870,8 @@ function render(){
   const drafts = captureDrafts();
   feedEl.innerHTML = "";
   if(loadingItems){
-    feedEl.innerHTML = skeletonFeed(6);
+    feedEl.innerHTML = '<div class="load-ring" role="status"><span class="ring" aria-hidden="true"></span><span>' +
+      escapeHtml(loadNote || 'Đang tải sổ từ Google Sheet…') + '</span></div>' + skeletonFeed(6);
   } else if(!items.length){
     feedEl.innerHTML = emptyState('inbox', 'Sổ vé đang trống',
       'Chưa có chỗ nào. Kết nối Google Sheet để kéo danh sách về, hoặc tự thêm chỗ đầu tiên.',
@@ -2737,10 +2784,23 @@ function onbRenderStep(){
   wrap.innerHTML = html;
 
   wrap.querySelectorAll('.onb-opt').forEach(b=>{
-    b.onclick = ()=>{
+    b.onclick = async ()=>{
       onbAnswers[step.key] = b.dataset.v;
       wrap.querySelectorAll('.onb-opt').forEach(x=>x.classList.remove('sel'));
       b.classList.add('sel');
+      // Chọn khoảng cách thì phải có vị trí mới lọc được — xin ngay lúc này, có ngữ cảnh.
+      if(step.key === 'distance' && b.dataset.v !== 'any' && !myPos){
+        wrap.querySelectorAll('.onb-opt').forEach(x=> x.disabled = true);
+        b.classList.add('busy');
+        onbHint.textContent = 'Đang xin quyền vị trí để lọc theo khoảng cách…';
+        const ok = await requestPosition();
+        b.classList.remove('busy');
+        if(ok){ markGeoOn(true); onbHint.textContent = 'Đã có vị trí của bạn.'; }
+        else{
+          onbHint.textContent = 'Không lấy được vị trí — sẽ không lọc theo khoảng cách.';
+          await sleep(1100);
+        }
+      }
       // chọn xong là tự sang bước kế, không cần bấm "Tiếp theo"
       setTimeout(onbAdvance, 190);
     };
@@ -2755,7 +2815,6 @@ function onbRenderStep(){
 async function onbAdvance(){
   if(onbIndex < ONB_STEPS.length - 1){
     onbDir = 1; onbIndex++; onbRenderStep();
-    if(ONB_STEPS[onbIndex].key === 'distance' && onbAnswers.distance === undefined) requestPosition();
     return;
   }
   await onbFinish();
@@ -2883,10 +2942,11 @@ async function loadAll(){
 
   if(sheetUrl){
     document.getElementById('fSheetUrl').value = sheetUrl;
-    await syncFromSheet();
+    syncFromSheet();              // không chờ: onboarding hiện ngay, feed tự quay vòng tải
   }
   showOnboarding();
 }
+window.addEventListener('online', ()=>{ if(sheetUrl) syncFromSheet(); });
 
 loadAll();
 </script>

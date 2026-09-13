@@ -107,13 +107,22 @@ function doPost(e) {
       }
       if (rowIndex === -1) return json({ ok: false, error: 'not_found' });
 
-      ['trangthai', 'danhgia', 'ghichu', 'category', 'lat', 'lng', 'visits'].forEach(function (field) {
-        if (body[field] !== undefined) {
-          var col = headers.indexOf(field);
-          if (col > -1) sheet.getRange(rowIndex + 1, col + 1).setValue(body[field]);
-        }
+      var written = writeFields_(sheet, headers, rowIndex, body);
+      // `written` cho biet cot nao thuc su duoc ghi -- ban cu tra ok:true ma khong ghi gi.
+      return json({ ok: true, written: written });
+    }
+
+    /* Ghi nhieu hang mot lan: { action:'bulk', rows:[{id, diachi, lat, lng, ...}] } */
+    if (body.action === 'bulk') {
+      var rowOf = {};
+      for (var r = 1; r < data.length; r++) rowOf[String(data[r][idCol])] = r;
+      var done = 0, missing = [];
+      (body.rows || []).forEach(function (patch) {
+        var idx = rowOf[String(patch.id)];
+        if (idx === undefined) { missing.push(patch.id); return; }
+        if (writeFields_(sheet, headers, idx, patch).length) done++;
       });
-      return json({ ok: true });
+      return json({ ok: true, updated: done, not_found: missing });
     }
 
     if (body.action === 'add') {
@@ -136,6 +145,20 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+var UPDATABLE_FIELDS = ['trangthai', 'danhgia', 'ghichu', 'category', 'diachi', 'lat', 'lng', 'visits'];
+
+function writeFields_(sheet, headers, rowIndex, body) {
+  var written = [];
+  UPDATABLE_FIELDS.forEach(function (field) {
+    if (body[field] === undefined) return;
+    var col = headers.indexOf(field);
+    if (col === -1) return;
+    sheet.getRange(rowIndex + 1, col + 1).setValue(body[field]);
+    written.push(field);
+  });
+  return written;
 }
 
 function json(obj) {
