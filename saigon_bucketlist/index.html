@@ -1378,6 +1378,11 @@ async function syncFromSheet(){
       // Bản chuẩn hoá chỉ còn đúng khi địa chỉ trên Sheet chưa bị sửa kể từ lúc dựng.
       const fix = geoFix[id] && geoFix[id].src === rawAddr ? geoFix[id] : null;
       const fixed = !Number.isFinite(lat) && fix && typeof fix.lat === 'number';
+      // Sheet không lưu độ chính xác: nếu toạ độ trên Sheet chính là điểm geo.json dựng, lấy độ chính xác từ đó.
+      const g = geoFix[id];
+      const sameAsGeo = g && typeof g.lat === 'number' && Number.isFinite(lat) &&
+        Math.abs(g.lat - lat) < 1e-6 && Math.abs(g.lng - lng) < 1e-6;
+      const roughHow = h => h === 'street' || h === 'ai';
       next.push({
         id,
         ten: row.ten || '(không tên)',
@@ -1388,7 +1393,7 @@ async function syncFromSheet(){
         lat: Number.isFinite(lat) ? lat : (fixed ? fix.lat : null),
         lng: Number.isFinite(lng) ? lng : (fixed ? fix.lng : null),
         // toạ độ chỉ đúng tới con đường, hoặc AI đoán chưa kiểm được -> khoảng cách hiện dấu ~
-        approx: !!fixed && (fix.how === 'street' || fix.how === 'ai')
+        approx: (!!fixed && roughHow(fix.how)) || (!!sameAsGeo && roughHow(g.how))
       });
 
       stateAll[id] = {
