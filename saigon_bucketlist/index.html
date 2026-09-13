@@ -1379,7 +1379,9 @@ async function syncFromSheet(){
         mood: moodArr,
         category: normCategory(row.category),
         lat: Number.isFinite(lat) ? lat : (fixed ? fix.lat : null),
-        lng: Number.isFinite(lng) ? lng : (fixed ? fix.lng : null)
+        lng: Number.isFinite(lng) ? lng : (fixed ? fix.lng : null),
+        // toạ độ chỉ đúng tới con đường, hoặc AI đoán chưa kiểm được -> khoảng cách hiện dấu ~
+        approx: !!fixed && (fix.how === 'street' || fix.how === 'ai')
       });
 
       stateAll[id] = {
@@ -1693,7 +1695,7 @@ function renderCard(item){
   /* Thu gọn: chỉ tên, nhãn nhóm, khoảng cách, và dấu đã ghé. */
   const sub =
     '<span class="cat-badge">' + icon(catIcon(ci)) + escapeHtml(ci.label) + '</span>' +
-    (d !== null ? '<span class="card-dist">' + (d < 1 ? Math.round(d*1000) + ' m' : d.toFixed(1) + ' km') + '</span>' : '') +
+    (d !== null ? '<span class="card-dist"' + (item.approx ? ' title="Vị trí gần đúng theo con đường">~' : '>') + (d < 1 ? Math.round(d*1000) + ' m' : d.toFixed(1) + ' km') + '</span>' : '') +
     (n ? '<span class="visit-badge">' + icon('check') + 'đã ghé' + (n > 1 ? ' ×' + n : '') + '</span>' : '') +
     (st.rating ? '<span class="card-stars-mini" title="' + st.rating + '/5 sao">' +
       icon('star').repeat(st.rating) + '</span>' : '');
